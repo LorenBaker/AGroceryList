@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.lbconsulting.agrocerylist.R;
@@ -27,6 +26,8 @@ import de.greenrobot.event.EventBus;
 public class MainActivity extends Activity {
 
     private ActionBar mActionBar;
+
+    public static final String NOT_AVAILABLE = "Name N/A: ";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +126,7 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MyLog.i("MainActivity", "onCreateOptionsMenu");
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main_activity, menu);
         return true;
     }
 

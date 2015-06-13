@@ -9,6 +9,7 @@ public class MySettings {
 
 
     public static final int FRAG_HOME = 1;
+    public static final int INITIAL_NUMBER_OF_AISLES = 10;
 
     private static Context mContext;
 

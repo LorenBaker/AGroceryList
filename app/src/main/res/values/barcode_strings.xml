@@ -1,22 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="scanner_activity">ZXing Scanner - Full Activity</string>
+<!--    <string name="scanner_activity">ZXing Scanner - Full Activity</string>
     <string name="scanner_fragment_activity">ZXing Scanner - Full Fragment Activity</string>
     <string name="simple_scanner_activity">ZXing Scanner - Simple Activity</string>
-    <string name="simple_scanner_fragment_activity">ZXing Scanner - Simple Fragment Activity</string>
+    <string name="simple_scanner_fragment_activity"></string>
     <string name="simple_activity_sample">Simple Activity Sample</string>
     <string name="simple_fragment_sample">Simple Fragment Sample</string>
     <string name="activity_sample">Full Activity Sample</string>
-    <string name="fragment_sample">Full Fragment Sample</string>
+    <string name="fragment_sample">Full Fragment Sample</string>-->
+
     <string name="toggle_flash">Flash</string>
     <string name="flash_on">Flash [ON]</string>
     <string name="flash_off">Flash [OFF]</string>
-    <string name="auto_focus_on">Auto Focus [ON]</string>
-    <string name="auto_focus_off">Auto Focus [OFF]</string>
+
+<!--    <string name="auto_focus_on">Auto Focus [ON]</string>
+    <string name="auto_focus_off">Auto Focus [OFF]</string>-->
     <string name="formats">Formats</string>
     <string name="choose_formats">Choose Formats</string>
     <string name="select_camera">Select a Camera</string>
     <string name="ok_button">OK</string>
     <string name="cancel_button">Cancel</string>
+
+    <!--Do not change the order of the item location list-->
+    <string-array name="initial_location_list">
+        <item>Front-Left</item>
+        <item>Front-Mid</item>
+        <item>Front-Right</item>
+        <item>Middle-Left</item>
+        <item>Middle-Right</item>
+        <item>Rear-Left</item>
+        <item>Rear-Mid</item>
+        <item>Rear-Right</item>
+    </string-array>
 
 </resources>

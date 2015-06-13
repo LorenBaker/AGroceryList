@@ -8,22 +8,19 @@
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/CameraSelectorDialogFragment.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/FormatSelectorDialogFragment.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/MessageDialogFragment.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/ScannerActivity.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/ScannerFragment.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/ScannerFragmentActivity.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/core/BarcodeScannerView.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/core/CameraPreview.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/core/CameraUtils.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/core/DisplayUtils.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/barcodescanner/core/ViewFinderView.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/classes/MyLog.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/classes/OutpanRequest.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/classes/clsUtils.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/rec_genoa_no_stroke.xml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/rec_genoa_whitesmoke_stroke.xml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/rec_opal_no_stroke.xml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_scanner_fragment.xml" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_product.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/values/ids.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/values/mycolors.xml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/core" charset="windows-1252" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>
