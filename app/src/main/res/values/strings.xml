@@ -2,4 +2,13 @@
     <string name="app_name">AGroceryList</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="btnOk_text">Ok</string>
+    <string name="btnCancel_text">Cancel</string>
+    <string name="product_name_not_available">"Name N/A: "</string>
+    <string name="invalid_gtin">. Invalid GTIN (UPC, EAN, or ISBN) barcode number.</string>
+    <string name="scan_resutls_title">Scan Results</string>
+    <string name="error_no_available_information">Error: No available information!</string>
+    <string name="key_word_title">"Key word: "</string>
+    <string name="location_group_title">"Location group: "</string>
+    <string name="dropbox_default_path">No Folder Selected</string>
 </resources>

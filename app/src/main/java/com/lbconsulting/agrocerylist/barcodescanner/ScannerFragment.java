@@ -5,23 +5,35 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.zxing.Result;
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.classes.OutpanRequest;
+import com.lbconsulting.agrocerylist.classes.clsProductValues;
 import com.lbconsulting.agrocerylist.classes.clsUtils;
+import com.lbconsulting.agrocerylist.database.ProductsTable;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -33,6 +45,7 @@ import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
 public class ScannerFragment extends Fragment implements MessageDialogFragment.MessageDialogListener,
         ZXingScannerView.ResultHandler {
+
     private static final String FLASH_STATE = "FLASH_STATE";
     private static final String AUTO_FOCUS_STATE = "AUTO_FOCUS_STATE";
     private static final String SELECTED_FORMATS = "SELECTED_FORMATS";
@@ -42,7 +55,7 @@ public class ScannerFragment extends Fragment implements MessageDialogFragment.M
     private boolean mAutoFocus;
     private ArrayList<Integer> mSelectedIndices;
     private int mCameraId = -1;
-
+    private RequestQueue mQueue;
 
     @Override
     public void onCreate(Bundle state) {
@@ -167,6 +180,7 @@ public class ScannerFragment extends Fragment implements MessageDialogFragment.M
         mScannerView.startCamera(mCameraId);
         mScannerView.setFlash(mFlash);
         mScannerView.setAutoFocus(mAutoFocus);
+        mQueue = Volley.newRequestQueue(getActivity());
     }
 
     @Override
@@ -185,20 +199,106 @@ public class ScannerFragment extends Fragment implements MessageDialogFragment.M
             Ringtone r = RingtoneManager.getRingtone(getActivity().getApplicationContext(), notification);
             r.play();
         } catch (Exception e) {
+            MyLog.e("ScannerFragment", "handleResult: Exception: " + e.getMessage());
         }
 
-/*        ProductsTable.createNewProduct(getActivity(), rawResult.getText(),
-                rawResult.getBarcodeFormat().toString(), rawResult.getTimestamp());*/
+        String gtin = rawResult.getText();
+        String format = rawResult.getBarcodeFormat().toString();
+        if (format.equals(ProductsTable.UPC_E)) {
+            switch (gtin.length()){
+                case 6:
+                    // do nothing
+                    break;
+                case 8:
+                    // truncate first and last digit
+                    //  assume that the first digit is the number system digit
+                    //  and the last digit is the UPCE check digit
+                    gtin = gtin.substring(1, 7);
+                    break;
+                default:
+                    gtin = clsUtils.UpcE2A(gtin);
+                    gtin = clsUtils.UpcA2E(gtin);
+            }
 
-        String msg = rawResult.getBarcodeFormat().toString() + ": " + clsUtils.formatGTIN(rawResult.getText());
-        // showMessageDialog("Number = " + rawResult.getText() + "\nFormat = " + rawResult.getBarcodeFormat().toString());
-        showMessageDialog(msg);
-        //Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
+        }
 
+        // save UPC, EAN, and ISBN products to the SQLite database
+        if (format.startsWith("UPC") || format.startsWith("EAN") || format.startsWith("ISBN")) {
+            ProductsTable.createNewProduct(getActivity(), gtin, format, rawResult.getTimestamp());
+        }
+        if (okToUseInternet()) {
+            JsonObjectRequest jsObjRequest = getOutpanRequest(gtin, format);
+            mQueue.add(jsObjRequest);
+        } else {
+            String msg = format + ": " + clsUtils.formatGTIN(gtin);
+            showMessageDialog(msg);
+        }
+    }
+
+    private boolean okToUseInternet() {
+        // TODO: write code for okToUseInternet
+        return true;
+    }
+
+    private JsonObjectRequest getOutpanRequest(final String gtin, final String format) {
+
+        String url = "https://api.outpan.com/v1/products/" + gtin + "/name";
+
+        // Make the request to Outpan
+        JsonObjectRequest jsObjRequest = new OutpanRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    String outpanResponse = response.toString();
+                    final JSONObject obj = new JSONObject(outpanResponse);
+                    String responseName = obj.getString("name");
+                    if (responseName.equals("null")) {
+                        responseName = getString(R.string.product_name_not_available);
+                    }
+                    updateDatabaseAndShowMessage(format, gtin, responseName);
+
+                } catch (JSONException e) {
+                    MyLog.e("ScannerFragment", "onResponse: JSONException: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                int statusCode = error.networkResponse.statusCode;
+                MyLog.e("ScannerFragment", "onErrorResponse: statusCode = " + statusCode);
+
+                String responseName = getString(R.string.product_name_not_available) + getActivity().getString(R.string.invalid_gtin);
+                updateDatabaseAndShowMessage(format, gtin, responseName);
+
+            }
+        });
+
+        return jsObjRequest;
+    }
+
+    private void updateDatabaseAndShowMessage(String format, String gtin, String responseName) {
+
+        if (responseName.contains(getActivity().getString(R.string.invalid_gtin))) {
+            String message = responseName +
+                    "\n\n" + format + ": " + clsUtils.formatGTIN(gtin);
+            showMessageDialog(message);
+
+        } else {
+            ContentValues cv = new ContentValues();
+            cv.put(ProductsTable.COL_PRODUCT_TITLE, responseName);
+            ProductsTable.updateProductFields(getActivity(), gtin, cv);
+
+            clsProductValues product = new clsProductValues(getActivity(), gtin);
+            showMessageDialog(product.displayMessage());
+        }
     }
 
     public void showMessageDialog(String message) {
-        DialogFragment fragment = MessageDialogFragment.newInstance("Scan Results", message, this);
+        DialogFragment fragment = MessageDialogFragment
+                .newInstance(getActivity().getString(R.string.scan_resutls_title), message, this);
         fragment.show(getActivity().getFragmentManager(), "scan_results");
     }
 

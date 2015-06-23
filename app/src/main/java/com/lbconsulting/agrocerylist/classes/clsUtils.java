@@ -6,15 +6,21 @@ package com.lbconsulting.agrocerylist.classes;
 public class clsUtils {
 
     public static String formatGTIN(String gtin) {
-        String result = "";
+        String result = gtin;
         gtin = gtin.trim();
         if (gtin.isEmpty()) {
             return "";
         }
         switch (gtin.length()) {
+            case 6:
+                String part1 = gtin.substring(0, 3);
+                String part2 = gtin.substring(3, 6);
+                result = part1 + " " + part2;
+                break;
+
             case 8:
-                String part1 = gtin.substring(0, 4);
-                String part2 = gtin.substring(4, 8);
+                part1 = gtin.substring(0, 4);
+                part2 = gtin.substring(4, 8);
                 result = part1 + " " + part2;
                 break;
 

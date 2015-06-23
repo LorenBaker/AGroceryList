@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.classes.clsProductValues;
 
 
 /**
@@ -23,11 +24,14 @@ public class ProductsTable {
     public static final String TABLE_PRODUCTS = "tblProducts";
     public static final String COL_PRODUCT_ID = "_id";
     public static final String COL_BAR_CODE_FORMAT = "barCodeFormat";
-    public static final String COL_BAR_CODE_NUMBER = "barCodeNumber";
+    public static final String COL_BAR_CODE_NUMBER = "barCodeNumber"; // UPC_A, EAN, or ISBN codes
     public static final String COL_PRODUCT_CATEGORY_ID = "productCategoryID";
     public static final String COL_PRODUCT_TITLE = "productTitle";
     public static final String COL_TIME_STAMP = "timeStamp";
 
+    public static final String UPC_A = "UPC_A";
+    public static final String UPC_E = "UPC_E";
+    public static final String ISBN = "ISBN";
 
     public static final String[] PROJECTION_ALL = {COL_PRODUCT_ID, COL_BAR_CODE_FORMAT, COL_BAR_CODE_NUMBER,
             COL_PRODUCT_CATEGORY_ID, COL_PRODUCT_TITLE, COL_TIME_STAMP};
@@ -38,12 +42,11 @@ public class ProductsTable {
             + TABLE_PRODUCTS;
     public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + "vnd.lbconsulting."
             + TABLE_PRODUCTS;
-    public static final Uri CONTENT_URI = Uri.parse("content://" + AGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
+    public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
 
     public static final String SORT_ORDER_BAR_CODE_NUMBER = COL_BAR_CODE_NUMBER + " ASC ";
     public static final String SORT_ORDER_PRODUCT_TITLE = COL_PRODUCT_TITLE + " ASC ";
     public static final String SORT_ORDER_TIME_STAMP = COL_TIME_STAMP + " ASC ";
-
 
     // Database creation SQL statements
     private static final String CREATE_DATA_TABLE = "create table "
@@ -75,6 +78,10 @@ public class ProductsTable {
     public static long createNewProduct(Context context, String barCodeNumber, String barCodeFormat, long timeStamp) {
 
         long newUserID = -1;
+        if (productExists(context, barCodeNumber)) {
+            newUserID = getProductID(context, barCodeNumber);
+            return newUserID;
+        }
         try {
             ContentResolver cr = context.getContentResolver();
             Uri uri = CONTENT_URI;
@@ -90,6 +97,27 @@ public class ProductsTable {
             MyLog.e("ProductsTable", "createNewProduct: Exception" + e.getMessage());
         }
         return newUserID;
+    }
+
+    private static boolean productExists(Context context, String barCodeNumber) {
+        boolean results = false;
+        Cursor cursor = getProductCursor(context, barCodeNumber, SORT_ORDER_TIME_STAMP);
+        if (cursor != null && cursor.getCount() > 0) {
+            results = true;
+            cursor.close();
+        }
+        return results;
+    }
+
+    private static long getProductID(Context context, String barCodeNumber) {
+        long results = -1;
+        Cursor cursor = getProductCursor(context, barCodeNumber, SORT_ORDER_TIME_STAMP);
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            results = cursor.getLong(cursor.getColumnIndex(COL_PRODUCT_ID));
+            cursor.close();
+        }
+        return results;
     }
 
 
@@ -145,6 +173,7 @@ public class ProductsTable {
         }
         return cursor;
     }
+
 
     public static CursorLoader getAllProductsCursorLoader(Context context, String sortOrder) {
         CursorLoader cursorLoader = null;
@@ -202,4 +231,5 @@ public class ProductsTable {
 
         return numberOfDeletedRecords;
     }
+
 }

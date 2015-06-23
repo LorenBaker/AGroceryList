@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="key_words">
+        <item>Bacon</item>
+        <item>Beans</item>
+        <item>Beef</item>
+        <item>Beer</item>
+        <item>Bread</item>
+        <item>Buns</item>
+        <item>Cereal</item>
+        <item>Cheese</item>
+        <item>Cream</item>
+        <item>Eggs</item>
+        <item>Flour </item>
+        <item>Kleenex</item>
+        <item>Mayonnaise</item>
+        <item>Milk</item>
+        <item>Mustard</item>
+        <item>Noodles</item>
+        <item>Oil</item>
+        <item>Olives</item>
+        <item>Peanut Butter</item>
+        <item>Pickles</item>
+        <item>Relish</item>
+        <item>Sauce</item>
+        <item>Soup</item>
+        <item>Toothpaste</item>
+        <item>Tuna</item>
+        <item>Turkey</item>
+        <item>Vinegar</item>
+        <item>Water</item>
+        <item>Wine</item>
+        <item>Yogurt</item>
+    </string-array>
+
+    <string-array name="grocery_store_chains">
+        <item>Albertsons</item>
+        <item>Fred Meyer</item>
+        <item>Haggen</item>
+        <item>PCC Natural Markets</item>
+        <item>QFC Quality Food Centers</item>
+        <item>Safeway</item>
+        <item>Top Foods</item>
+        <item>Trader Joe’s</item>
+        <item>Whole Foods Market</item>
+        <item>Winco</item>
+    </string-array>
+
+    <string-array name="grocery_items">
+        <item>Aleve</item>
+        <item>Almonds</item>
+        <item>Apple Cider Vinegar</item>
+        <item>Apples</item>
+        <item>Avocado</item>
+        <item>Baby Food</item>
+        <item>Bacon</item>
+        <item>Baked Beans</item>
+        <item>Balsamic Vinegar</item>
+        <item>Bananas</item>
+        <item>Beer</item>
+        <item>Black Olives</item>
+        <item>Blue Cheese</item>
+        <item>Blueberries</item>
+        <item>Bread</item>
+        <item>Broccoli</item>
+        <item>Buns</item>
+        <item>Buttermilk</item>
+        <item>Butternut Squash</item>
+        <item>Cabbage</item>
+        <item>Carrots</item>
+        <item>Cereal</item>
+        <item>Cheese</item>
+        <item>Chicken</item>
+        <item>Chicken Broth</item>
+        <item>Chicken Thighs</item>
+        <item>Clif Bars</item>
+        <item>Corn-canned</item>
+        <item>Corn-fresh</item>
+        <item>Corn-frozen</item>
+        <item>Cottage Cheese</item>
+        <item>Cream Cheese</item>
+        <item>Cream of Mushroom Soup</item>
+        <item>Distilled Water</item>
+        <item>Eggs</item>
+        <item>Enchilada Sauce</item>
+        <item>Feta</item>
+        <item>Flour </item>
+        <item>Garlic</item>
+        <item>Grapefruit</item>
+        <item>Grapes</item>
+        <item>Ground Beef</item>
+        <item>Ground Turkey</item>
+        <item>Hummus</item>
+        <item>Kleenex</item>
+        <item>Lemons</item>
+        <item>Lettuce</item>
+        <item>Limes</item>
+        <item>Manicotti Noodles</item>
+        <item>Masa\'s Curry Sauce</item>
+        <item>Mayonnaise</item>
+        <item>Milk</item>
+        <item>Mozzarella</item>
+        <item>Mustard</item>
+        <item>Olive Oil</item>
+        <item>Orange Juice-fresh</item>
+        <item>Orange Juice-frozen</item>
+        <item>Oranges</item>
+        <item>Parmesan Cheese</item>
+        <item>Peanut Butter</item>
+        <item>Pickles</item>
+        <item>Pineapple</item>
+        <item>Port Tenderloin</item>
+        <item>Potatoes</item>
+        <item>Relish</item>
+        <item>Rhubarb</item>
+        <item>Sour Cream</item>
+        <item>Spinach</item>
+        <item>String Cheese</item>
+        <item>Toilet Paper</item>
+        <item>Tomato Soup</item>
+        <item>Tomatoes</item>
+        <item>Toothpaste</item>
+        <item>Tuna</item>
+        <item>Vanilla</item>
+        <item>Vinegar</item>
+        <item>Vodka</item>
+        <item>Wine</item>
+        <item>Yogurt</item>
+    </string-array>
+
+    <!--    <string-array name="grocery_stores">
+        <item>A &amp; P Food Stores</item>
+        <item>Albertsons</item>
+        <item>ALDI</item>
+        <item>Basic American Foods</item>
+        <item>Boardman Foods</item>
+        <item>Broussards Supermarket Inc</item>
+        <item>Bybee Foods LLC</item>
+        <item>City Market</item>
+        <item>Daybreak Foods</item>
+        <item>Eastern Foods</item>
+        <item>Fiesta Foods</item>
+        <item>Food 4 Less</item>
+        <item>Food Emporium</item>
+        <item>Food Lion</item>
+        <item>Fred Meyer</item>
+        <item>Friendly Foods</item>
+        <item>Gruma Mission Foods</item>
+        <item>Haggen Food &amp; Pharmacy</item>
+        <item>Harvest Foods</item>
+        <item>Healthway Natural Foods</item>
+        <item>HEB</item>
+        <item>Hometown Foods</item>
+        <item>Houghton Market</item>
+        <item>Jerome Foods</item>
+        <item>Jumbo Foods</item>
+        <item>Kroger</item>
+        <item>Market Basket</item>
+        <item>Metal Supermarkets</item>
+        <item>Piggly Wiggly</item>
+        <item>PCC Natural Markets</item>
+        <item>Publix</item>
+        <item>Qfc Quality Food Centers</item>
+        <item>Resers Fine Foods</item>
+        <item>Rosauers Supermarket</item>
+        <item>Safeway</item>
+        <item>Save A Lot</item>
+        <item>Schreiber Food Inc.</item>
+        <item>Schwan's Fine Food</item>
+        <item>Seneca Foods</item>
+        <item>Stop &amp; Shop</item>
+        <item>Super 1 Foods</item>
+        <item>Super One Foods</item>
+        <item>Supervalu</item>
+        <item>Twin City Foods</item>
+        <item>Vons</item>
+        <item>Wawa Food Markets</item>
+        <item>Westfarm Foods</item>
+        <item>Whole Foods Market</item>
+        <item>Winco</item>
+        <item>Winn Dixie</item>
+    </string-array>-->
+
+</resources>

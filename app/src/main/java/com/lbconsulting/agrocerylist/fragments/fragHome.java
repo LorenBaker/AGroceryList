@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.classes.MySettings;
 
 import de.greenrobot.event.EventBus;
 
@@ -55,6 +56,7 @@ public class fragHome extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         MyLog.i("fragHome", "onActivityCreated");
+        MySettings.setActiveFragmentID(MySettings.FRAG_HOME);
     }
 
     @Override

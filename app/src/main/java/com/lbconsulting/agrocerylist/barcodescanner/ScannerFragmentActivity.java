@@ -7,28 +7,33 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
+import android.widget.NumberPicker;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.database.ProductsTable;
 import com.lbconsulting.agrocerylist.database.StoreItemLocationsTable;
 
 import java.util.ArrayList;
 
-//public class ScannerFragmentActivity extends ActionBarActivity {
 public class ScannerFragmentActivity extends Activity {
 
     private Spinner spnLocation;
-    private FrameLayout scanner_fragment_container;
+    private ArrayAdapter<String> mSpinnerArrayAdapter;
+    private long mItemLocationID = -1;
 
-    private long mItemLocationID=-1;
+    public long getItemLocationID() {
+        return mItemLocationID;
+    }
 
     @Override
     public void onCreate(Bundle state) {
@@ -37,13 +42,10 @@ public class ScannerFragmentActivity extends Activity {
         setContentView(R.layout.activity_scanner_fragment);
 
         spnLocation = (Spinner) findViewById(R.id.spnItemLocation);
-        scanner_fragment_container = (FrameLayout) findViewById(R.id.scanner_fragment_container);
-
         ArrayList<String> itemLocationsList = StoreItemLocationsTable.getAllItemLocations(this);
-        ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, itemLocationsList);
-        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spnLocation.setAdapter(spinnerArrayAdapter);
+        mSpinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, itemLocationsList);
+        mSpinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spnLocation.setAdapter(mSpinnerArrayAdapter);
         spnLocation.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -62,8 +64,6 @@ public class ScannerFragmentActivity extends Activity {
     protected void onResume() {
         super.onResume();
         MyLog.i("ScannerFragmentActivity", "onResume");
-        //getActionBar().setTitle("");
-
         FragmentManager fm = getFragmentManager();
         fm.beginTransaction()
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
@@ -85,36 +85,63 @@ public class ScannerFragmentActivity extends Activity {
     }
 
     @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+    public boolean onMenuItemSelected(int featureId, @NonNull MenuItem item) {
 
         int id = item.getItemId();
         if (id == R.id.action_add_aisles) {
-            //Toast.makeText(this, "TO COME: action_add_aisles", Toast.LENGTH_SHORT).show();
 
             // Creating and Building the Dialog
             Dialog itemLocationDialog;
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("TO COME: Select your store location");
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            LayoutInflater inflater = getLayoutInflater();
+            View layout = inflater.inflate(R.layout.dialog_number_picker, (RelativeLayout) findViewById(R.id.numberPickerRelativeLayout));
+            final NumberPicker numberPicker_10s = (NumberPicker) layout.findViewById(R.id.numberPicker_10s);
+            final NumberPicker numberPicker_1s = (NumberPicker) layout.findViewById(R.id.numberPicker_1s);
+            numberPicker_10s.setMaxValue(9);
+            numberPicker_10s.setMinValue(0);
+            numberPicker_1s.setMaxValue(9);
+            numberPicker_1s.setMinValue(0);
+
+            int numberOfAisles = StoreItemLocationsTable.getNumberOfAisles(this);
+            int tens = numberOfAisles / 10;
+            int ones = numberOfAisles % 10;
+            numberPicker_10s.setValue(tens);
+            numberPicker_1s.setValue(ones);
+
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Select the number of aisles in this store.");
+            builder.setPositiveButton(getString(R.string.btnOk_text), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    int tens = numberPicker_10s.getValue();
+                    int ones = numberPicker_1s.getValue();
+                    int numberOfAisles = tens * 10 + ones;
+                    StoreItemLocationsTable.createNewAisles(ScannerFragmentActivity.this, numberOfAisles);
+
+                    ArrayList<String> itemLocationsList = StoreItemLocationsTable
+                            .getAllItemLocations(ScannerFragmentActivity.this);
+                    mSpinnerArrayAdapter = new ArrayAdapter<>(ScannerFragmentActivity.this,
+                            android.R.layout.simple_spinner_item, itemLocationsList);
+                    int position = spnLocation.getSelectedItemPosition();
+                    spnLocation.setAdapter(mSpinnerArrayAdapter);
+                    spnLocation.setSelection(position);
+
+                    dialog.dismiss();
+                }
+            });
+            builder.setNegativeButton(getString(R.string.btnCancel_text), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
                 }
             });
-/*        builder.s(names, selectedUserPosition, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int position) {
-                // find the new user
-                String newUserName = userNames.get(position);
-                Cursor newUserCursor = UsersTable.getUser(getActivity(), newUserName);
-                mActiveUser = new clsUserValues(getActivity(), newUserCursor);
-                selectActiveUser();
-                dialog.dismiss();
-                newUserCursor.close();
-            }
-        });*/
+
+
+            builder.setView(layout);
             itemLocationDialog = builder.create();
             itemLocationDialog.show();
             return true;
+        }else if (id == R.id.action_clear_products_table) {
+            ProductsTable.deleteAllProducts(this);
         }
 
         return super.onMenuItemSelected(featureId, item);

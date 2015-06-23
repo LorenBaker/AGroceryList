@@ -9,7 +9,6 @@ import android.widget.CursorAdapter;
 import android.widget.TextView;
 
 import com.lbconsulting.agrocerylist.R;
-import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.clsUtils;
 import com.lbconsulting.agrocerylist.database.ProductsTable;
@@ -52,12 +51,9 @@ public class ProductsCursorAdapter extends CursorAdapter {
         String barCodeFormat = cursor.getString(cursor.getColumnIndex(ProductsTable.COL_BAR_CODE_FORMAT));
         String barCodeNumber = cursor.getString(cursor.getColumnIndex(ProductsTable.COL_BAR_CODE_NUMBER));
         barCodeNumber = clsUtils.formatGTIN(barCodeNumber);
+
         tvProductTitle.setText(productTitle);
-        tvFormat.setText(barCodeFormat+":");
-        if (productTitle.startsWith(MainActivity.NOT_AVAILABLE)) {
-            tvBarCodeNumber.setText("");
-        } else {
-            tvBarCodeNumber.setText(barCodeNumber);
-        }
+        tvFormat.setText(barCodeFormat + ":");
+        tvBarCodeNumber.setText(barCodeNumber);
     }
 }

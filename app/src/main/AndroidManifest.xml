@@ -3,6 +3,8 @@
     package="com.lbconsulting.agrocerylist">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -34,7 +36,7 @@
         </activity>
 
         <provider
-            android:name="com.lbconsulting.agrocerylist.database.AGroceryListContentProvider"
+            android:name=".database.aGroceryListContentProvider"
             android:authorities="com.lbconsulting.aGroceryList.contentProvider"
             android:exported="false" />
     </application>

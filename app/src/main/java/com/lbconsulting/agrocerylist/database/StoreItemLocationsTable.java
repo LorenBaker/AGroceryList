@@ -35,7 +35,7 @@ public class StoreItemLocationsTable {
             + TABLE_STORE_ITEM_LOCATIONS;
     public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + "vnd.lbconsulting."
             + TABLE_STORE_ITEM_LOCATIONS;
-    public static final Uri CONTENT_URI = Uri.parse("content://" + AGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
+    public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
 
     private static final String SORT_STORE_ITEM_LOCATION_ID = COL_STORE_ITEM_LOCATION_ID + " ASC ";
 
