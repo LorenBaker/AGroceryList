@@ -23,6 +23,7 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'me.dm7.barcodescanner:zxing:1.7.2'
     compile 'com.android.support:appcompat-v7:22.2.0'
+    compile 'com.android.support:support-v13:+'
     compile files('libs/commons-io-2.4.jar')
     compile files('libs/volley.jar')
 }

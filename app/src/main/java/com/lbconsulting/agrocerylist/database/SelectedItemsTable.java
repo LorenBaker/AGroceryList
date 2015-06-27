@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
@@ -28,7 +29,7 @@ public class SelectedItemsTable {
             + "vnd.lbconsulting." + TABLE_SELECTED_ITEMS;
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
 
-private static long mExistingSelectedItemsID;
+    private static long mExistingSelectedItemsID;
     // Version 1
     // TODO: Sort by item name, etc
 
@@ -58,14 +59,14 @@ private static long mExistingSelectedItemsID;
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Create Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public static long newSelectedItem(Context context, long storeID, long itemID) {
+    public static long addItemToStore(Context context, long storeID, long itemID) {
         long newSelectedItemID = -1;
-        if (storeID > 0 && itemID>0) {
-            if (selectedItemExists(context, storeID, itemID)) {
-                // the item is already selected exists in the table ... so return its id
+        if (storeID > 0 && itemID > 0) {
+            if (itemExists(context, storeID, itemID)) {
+                // the item is already exists in the table ... so return its id
                 newSelectedItemID = mExistingSelectedItemsID;
             } else {
-                // the selected item does not exist in the table ... so add it
+                // the item does not exist in the table ... so add it
                 try {
                     ContentResolver cr = context.getContentResolver();
                     Uri uri = CONTENT_URI;
@@ -77,9 +78,13 @@ private static long mExistingSelectedItemsID;
                         newSelectedItemID = Long.parseLong(newListUri.getLastPathSegment());
                     }
                 } catch (Exception e) {
-                    MyLog.e("Exception error in newSelectedItem. ", e.toString());
+                    MyLog.e("Exception error in addItemToStore. ", e.toString());
                 }
             }
+            // set item check mark
+            ItemsTable.setCheckMark(context, itemID, true);
+            // set the item's selected flag
+            setItemSelectedFlag(context, itemID);
         }
         return newSelectedItemID;
     }
@@ -88,7 +93,7 @@ private static long mExistingSelectedItemsID;
     // Read Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static Cursor getSelectedItemsCursor(Context context, long storeID, long itemID) {
+    private static Cursor getSelectedItemCursor(Context context, long storeID, long itemID) {
         Cursor cursor = null;
 
         Uri uri = CONTENT_URI;
@@ -100,16 +105,53 @@ private static long mExistingSelectedItemsID;
         try {
             cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
         } catch (Exception e) {
-            MyLog.e("StoresTable", "getSelectedItemsCursor: Exception: " + e.getMessage());
+            MyLog.e("StoresTable", "getSelectedItemCursor: Exception: " + e.getMessage());
         }
 
         return cursor;
     }
 
-    private static boolean selectedItemExists(Context context, long storeID, long itemID) {
+    public static Cursor getAllItemsSelectedInStoreCursor(Context context, long storeID) {
+        Cursor cursor = null;
+
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = COL_STORE_ID + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(storeID)};
+        String sortOrder = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllItemsSelectedInStoreCursor: Exception: " + e.getMessage());
+        }
+        String cursorContent = DatabaseUtils.dumpCursorToString(cursor);
+
+        return cursor;
+    }
+
+    private static Cursor getAllStoresContainingItem(Context context, long itemID) {
+        Cursor cursor = null;
+
+        Uri uri = CONTENT_URI;
+        String[] projection = {COL_STORE_ID};
+        String selection = COL_ITEM_ID + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(itemID)};
+        String sortOrder = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllStoresContainingItem: Exception: " + e.getMessage());
+        }
+
+        return cursor;
+    }
+
+    private static boolean itemExists(Context context, long storeID, long itemID) {
         mExistingSelectedItemsID = -1;
         boolean result = false;
-        Cursor cursor = getSelectedItemsCursor(context, storeID, itemID);
+        Cursor cursor = getSelectedItemCursor(context, storeID, itemID);
         if (cursor != null) {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
@@ -119,9 +161,17 @@ private static long mExistingSelectedItemsID;
             cursor.close();
         }
         return result;
-
     }
 
+    private static boolean isItemSelected(Context context, long itemID) {
+        boolean result = false;
+        Cursor cursor = getAllStoresContainingItem(context, itemID);
+        if (cursor != null) {
+            result = cursor.getCount() > 0;
+            cursor.close();
+        }
+        return result;
+    }
 
     public static CursorLoader getStoreItems(Context context, long storeID) {
         // TODO: Implement a joined table query
@@ -142,11 +192,50 @@ private static long mExistingSelectedItemsID;
     }
 
 
-
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Update Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public static void toggleSelection(Context context, long storeID, long itemID) {
+        if (itemExists(context, storeID, itemID)) {
+            // the item is selected in the provided store
+            // toggle: remove the item from this table
+            // remove the check from the checkbox
+            removeSelectedItem(context, storeID, itemID);
+            ItemsTable.setCheckMark(context, itemID, false);
+        } else {
+            // the item is NOT selected in the provided store
+            // toggle: add the item to this table
+            // set the check in the checkbox
+            addItemToStore(context, storeID, itemID);
+            //ItemsTable.setCheckMark(context, itemID, true);
+        }
+
+        setItemSelectedFlag(context, itemID);
+    }
+
+    private static void setItemSelectedFlag(Context context, long itemID) {
+        Cursor cursor = getAllStoresContainingItem(context, itemID);
+
+        if (cursor != null) {
+            switch (cursor.getCount()) {
+                case 0:
+                    //The item is not selected in any store
+                    ItemsTable.setItemSelectedValue(context, itemID, 0);
+                    break;
+                case 1:
+                    // The item is selected for only one store
+                    ItemsTable.setItemSelectedValue(context, itemID, 1);
+                    break;
+                default:
+                    // The item is selected in more than one store
+                    ItemsTable.setItemSelectedValue(context, itemID, 2);
+                    break;
+            }
+            cursor.close();
+        }
+
+    }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Delete Methods
@@ -162,6 +251,13 @@ private static long mExistingSelectedItemsID;
         String selectionArgs[] = new String[]{String.valueOf(storeID), String.valueOf(itemID)};
         numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
 
+        setItemSelectedFlag(context, itemID);
+        /*boolean isSelected = isItemSelected(context, itemID);
+        if (!isSelected) {
+            // set item as not selected
+            ItemsTable.setItemSelectedValue(context, itemID, false);
+        }*/
+
         return numberOfDeletedRecords;
     }
 
@@ -173,8 +269,32 @@ private static long mExistingSelectedItemsID;
         Uri uri = CONTENT_URI;
         String selection = COL_STORE_ID + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(storeID)};
+        String[] projection = {COL_ITEM_ID};
+        String sortOrder = null;
+
+        // get a cursor that contains all the itemIDs that are in the store
+        Cursor cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+
+        // delete all records with the provided storeID
         numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
 
+        // check if any of the items are still selected.
+        // if not set item as not selected
+        if (cursor != null && cursor.getCount() > 0) {
+            long itemID;
+            while (cursor.moveToNext()) {
+                itemID = cursor.getLong(cursor.getColumnIndex(COL_ITEM_ID));
+                boolean isSelected = isItemSelected(context, itemID);
+                if (!isSelected) {
+                    // set item as not selected
+                    setItemSelectedFlag(context, itemID);
+                    //ItemsTable.setItemSelectedValue(context, itemID, false);
+                }
+            }
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
         return numberOfDeletedRecords;
     }
 
@@ -188,7 +308,12 @@ private static long mExistingSelectedItemsID;
         String selectionArgs[] = new String[]{String.valueOf(itemID)};
         numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
 
+        setItemSelectedFlag(context, itemID);
+        // set item as not selected
+        // ItemsTable.setItemSelectedValue(context, itemID, false);
+
         return numberOfDeletedRecords;
     }
+
 
 }

@@ -1,0 +1,76 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+
+    <item
+        android:id="@+id/action_removeStruckOffItems"
+        android:title="Remove struck out items"
+        android:icon="@drawable/ic_action_cancel"
+        android:showAsAction="ifRoom"
+        android:orderInCategory="10" />
+
+    <item
+        android:id="@+id/action_addItem"
+        android:icon="@drawable/ic_action_new"
+        android:showAsAction="ifRoom"
+        android:title="Add item"
+        android:orderInCategory="20"/>
+
+
+    <item
+        android:id="@+id/action_remove_all_items"
+        android:title="Remove all items"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_show_sort_dialog"
+        android:title="Sort"
+        android:orderInCategory="110"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_new_store"
+        android:title="New store"
+        android:orderInCategory="120"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_edit_store"
+        android:title="Edit store"
+        android:orderInCategory="130"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_set_store_favorites"
+        android:title="Set store favorites"
+        android:orderInCategory="140"
+        app:showAsAction="never" />
+
+
+    <item
+        android:id="@+id/action_scan_barcodes"
+        android:title="Scan Barcodes"
+        android:orderInCategory="150"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_show_products"
+        android:title="Show Products"
+        android:orderInCategory="160"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/action_settings"
+        android:orderInCategory="1000"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_about"
+        android:title="About"
+        android:orderInCategory="1010"
+        app:showAsAction="never" />
+</menu>

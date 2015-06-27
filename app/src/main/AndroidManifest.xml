@@ -12,7 +12,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".activities.StoreListsActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,9 +28,13 @@
             android:value="splitActionBarWhenNarrow" />-->
         <activity
             android:name=".barcodescanner.ScannerFragmentActivity"
-
             android:theme="@style/AppTheme"
+            android:label="@string/app_name">
 
+        </activity>
+
+        <activity
+            android:name=".activities.MasterListActivity"
             android:label="@string/app_name">
 
         </activity>

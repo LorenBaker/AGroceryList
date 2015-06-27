@@ -9,11 +9,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.lbconsulting.agrocerylist.R;
+import com.lbconsulting.agrocerylist.adapters.StoreListPagerAdapter;
 import com.lbconsulting.agrocerylist.barcodescanner.ScannerFragmentActivity;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
@@ -23,23 +25,26 @@ import com.lbconsulting.agrocerylist.database.SelectedItemsTable;
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.database.aGroceryListDatabaseHelper;
-import com.lbconsulting.agrocerylist.fragments.fragHome;
+import com.lbconsulting.agrocerylist.fragments.fragStoreList;
 import com.lbconsulting.agrocerylist.fragments.fragProductsList;
 
 import de.greenrobot.event.EventBus;
 
 
-public class MainActivity extends Activity {
+public class StoreListsActivity extends Activity {
 
     private ActionBar mActionBar;
 
     public static final String NOT_AVAILABLE = "Name N/A: ";
 
+    private StoreListPagerAdapter mListsPagerAdapter;
+    private ViewPager mPager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MyLog.i("MainActivity", "onCreate");
-        setContentView(R.layout.activity_main);
+        MyLog.i("StoreListsActivity", "onCreate");
+        setContentView(R.layout.activity_store_lists);
 
         MySettings.setContext(this);
         EventBus.getDefault().register(this);
@@ -78,7 +83,7 @@ public class MainActivity extends Activity {
         StoresTable.createNewStore(this, 6, "Factoria");
         StoresTable.createNewStore(this, 6, "Evergreen Village");
         StoresTable.createNewStore(this, 6, "Issaquah");
-        StoresTable.createNewStore(this, 6, "Sammamish Highlands");
+        StoresTable.createNewStore(this, 6, "Highlands");
 
         StoresTable.createNewStore(this, 8, "Bellevue");
         StoresTable.createNewStore(this, 8, "Redmond");
@@ -92,22 +97,22 @@ public class MainActivity extends Activity {
             ItemsTable.createNewItem(this, groceryItem);
         }
 
-        long storeIndex = 1;
+/*        long storeIndex = 1;
         long itemIndex = 1;
         for (String item : groceryItems) {
-            SelectedItemsTable.newSelectedItem(this, storeIndex, itemIndex);
+            SelectedItemsTable.addItemToStore(this, storeIndex, itemIndex);
             itemIndex++;
             storeIndex++;
             if (storeIndex > 18) {
                 storeIndex = 1;
             }
-        }
+        }*/
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        MyLog.i("MainActivity", "onSaveInstanceState");
+        MyLog.i("StoreListsActivity", "onSaveInstanceState");
         // save activity variables
     }
 
@@ -134,15 +139,43 @@ public class MainActivity extends Activity {
 
         FragmentManager fm = getFragmentManager();
 
-        switch (fragmentID) {
-            case MySettings.FRAG_HOME:
-                fm.beginTransaction()
+/*        switch (fragmentID) {
+            case MySettings.HOME_FRAG_STORE_LIST:*/
+/*                fm.beginTransaction()
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                         .replace(R.id.fragment_container,
-                                fragHome.newInstance(), "FRAG_HOME")
+                                fragStoreList.newInstance(), "HOME_FRAG_STORE_LIST")
                         .commit();
-                MyLog.i("MainActivity", "showFragment: FRAG_HOME");
-                break;
+                MyLog.i("StoreListsActivity", "showFragment: HOME_FRAG_STORE_LIST");*/
+
+                mListsPagerAdapter = new StoreListPagerAdapter(getFragmentManager(), this);
+                mPager = (ViewPager) findViewById(R.id.storeListPager);
+                mPager.setAdapter(mListsPagerAdapter);
+                mPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+
+                    @Override
+                    public void onPageScrollStateChanged(int state) {
+                    }
+
+                    @Override
+                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                    }
+
+                    @Override
+                    public void onPageSelected(int position) {
+                        // A list page has been selected
+                        MyLog.i("StoreListsActivity", "onPageSelected: position=" + position);
+/*                        SetActiveListID(position);
+                        SetActiveListBroadcastReceivers();
+                        DynamicListView.setManualSort(mListSettings.isManualSort());
+                        MyLog.d("Lists_ACTIVITY", "onPageSelected() - position = " + position + " ; listID = " + mActiveListID);
+
+                        if (mTwoFragmentLayout) {
+                            LoadMasterListFragment();
+                        }*/
+                    }
+                });
+/*                break;
 
             case MySettings.FRAG_PRODUCTS_LIST:
                 fm.beginTransaction()
@@ -150,10 +183,10 @@ public class MainActivity extends Activity {
                         .replace(R.id.fragment_container,
                                 fragProductsList.newInstance(), "FRAG_PRODUCTS_LIST")
                         .commit();
-                MyLog.i("MainActivity", "showFragment: FRAG_PRODUCTS_LIST");
+                MyLog.i("StoreListsActivity", "showFragment: FRAG_PRODUCTS_LIST");
                 break;
 
-        }
+        }*/
     }
 
     @Override
@@ -170,7 +203,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        MyLog.i("MainActivity", "onResume");
+        MyLog.i("StoreListsActivity", "onResume");
 
         // show the appropriate fragment
         showFragment(MySettings.getActiveFragmentID());
@@ -180,21 +213,21 @@ public class MainActivity extends Activity {
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        MyLog.i("MainActivity", "onRestoreInstanceState");
+        MyLog.i("StoreListsActivity", "onRestoreInstanceState");
     }
 
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MyLog.i("MainActivity", "onPrepareOptionsMenu");
+        MyLog.i("StoreListsActivity", "onPrepareOptionsMenu");
         return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MyLog.i("MainActivity", "onCreateOptionsMenu");
+        MyLog.i("StoreListsActivity", "onCreateOptionsMenu");
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main_activity, menu);
+        getMenuInflater().inflate(R.menu.menu_store_lists_activity, menu);
         return true;
     }
 
@@ -203,26 +236,62 @@ public class MainActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.action_scan_barcodes) {
-            launchScannerActivity();
-            return true;
-        } else if (id == R.id.action_show_products) {
-            showFragment(MySettings.FRAG_PRODUCTS_LIST);
-            return true;
+        switch (item.getItemId()){
+            case R.id.action_removeStruckOffItems:
+                Toast.makeText(this, "action_removeStruckOffItems", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.action_addItem:
+                Intent intent = new Intent(this, MasterListActivity.class);
+                startActivity(intent);
+                break;
+
+            case R.id.action_remove_all_items:
+                Toast.makeText(this, "action_remove_all_items", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.action_show_sort_dialog:
+                Toast.makeText(this, "action_show_sort_dialog", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.action_new_store:
+                Toast.makeText(this, "action_new_store", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.action_edit_store:
+                Toast.makeText(this, "action_edit_store", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.action_set_store_favorites:
+                Toast.makeText(this, "action_set_store_favorites", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.action_scan_barcodes:
+                launchScannerActivity();
+                break;
+
+            case R.id.action_show_products:
+                showFragment(MySettings.FRAG_PRODUCTS_LIST);
+                break;
+
+            case R.id.action_settings:
+                Toast.makeText(this, "action_settings", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.action_about:
+                Toast.makeText(this, "action_about", Toast.LENGTH_SHORT).show();
+                break;
+
         }
+        return true;
 
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        MyLog.i("MainActivity", "onDestroy");
+        MyLog.i("StoreListsActivity", "onDestroy");
         EventBus.getDefault().unregister(this);
 
     }

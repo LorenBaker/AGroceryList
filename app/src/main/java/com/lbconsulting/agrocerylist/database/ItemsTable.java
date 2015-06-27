@@ -21,6 +21,7 @@ public class ItemsTable {
     public static final String COL_ITEM_NAME = "itemName";
     public static final String COL_ITEM_NOTE = "itemNote";
     public static final String COL_GROUP_ID = "groupID";
+    public static final String COL_SELECTED = "itemSelected";
     public static final String COL_STRUCK_OUT = "itemStruckOut";
     public static final String COL_CHECKED = "itemChecked";
     public static final String COL_MANUAL_SORT_ORDER = "manualSortOrder";
@@ -28,7 +29,7 @@ public class ItemsTable {
     public static final String COL_DATE_TIME_LAST_USED = "dateTimeLastUsed";
 
     public static final String[] PROJECTION_ALL = {COL_ITEM_ID, COL_ITEM_NAME, COL_ITEM_NOTE,
-            COL_GROUP_ID, COL_STRUCK_OUT, COL_CHECKED,
+            COL_GROUP_ID, COL_SELECTED, COL_STRUCK_OUT, COL_CHECKED,
             COL_MANUAL_SORT_ORDER, COL_MANUAL_SORT_SWITCH, COL_DATE_TIME_LAST_USED};
 
     public static final String[] PROJECTION_WITH_GROUP_NAME = {
@@ -36,6 +37,7 @@ public class ItemsTable {
             TABLE_ITEMS + "." + COL_ITEM_NAME,
             TABLE_ITEMS + "." + COL_ITEM_NOTE,
             TABLE_ITEMS + "." + COL_GROUP_ID,
+            TABLE_ITEMS + "." + COL_SELECTED,
             TABLE_ITEMS + "." + COL_STRUCK_OUT,
             TABLE_ITEMS + "." + COL_CHECKED,
             TABLE_ITEMS + "." + COL_MANUAL_SORT_ORDER,
@@ -52,6 +54,7 @@ public class ItemsTable {
             TABLE_ITEMS + "." + COL_ITEM_NAME,
             TABLE_ITEMS + "." + COL_ITEM_NOTE,
             TABLE_ITEMS + "." + COL_GROUP_ID,
+            TABLE_ITEMS + "." + COL_SELECTED,
             TABLE_ITEMS + "." + COL_STRUCK_OUT,
             TABLE_ITEMS + "." + COL_CHECKED,
             TABLE_ITEMS + "." + COL_MANUAL_SORT_ORDER,
@@ -60,8 +63,10 @@ public class ItemsTable {
             LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_NAME};
 
     public static final String CONTENT_PATH = TABLE_ITEMS;
-    public static final String CONTENT_PATH_ITEMS_WITH_GROUPS = "itemsWithGroups";
-    public static final String CONTENT_PATH_ITEMS_WITH_LOCATIONS = "itemsWithLocations";
+
+
+/*    public static final String CONTENT_PATH_ITEMS_WITH_GROUPS = "itemsWithGroups";
+    public static final String CONTENT_PATH_ITEMS_WITH_LOCATIONS = "itemsWithLocations";*/
 
     public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + "vnd.lbconsulting."
             + TABLE_ITEMS;
@@ -69,19 +74,17 @@ public class ItemsTable {
             + TABLE_ITEMS;
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
 
-    public static final Uri CONTENT_URI_ITEMS_WITH_GROUPS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
-            + "/" + CONTENT_PATH_ITEMS_WITH_GROUPS);
 
-    public static final Uri CONTENT_URI_ITEMS_WITH_LOCATIONS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
-            + "/" + CONTENT_PATH_ITEMS_WITH_LOCATIONS);
+
+/*    public static final Uri CONTENT_URI_ITEMS_WITH_LOCATIONS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
+            + "/" + CONTENT_PATH_ITEMS_WITH_LOCATIONS);*/
 
     public static final String SORT_ORDER_ITEM_NAME = COL_ITEM_NAME + " ASC";
     public static final String SORT_ORDER_LAST_USED = COL_DATE_TIME_LAST_USED + " DESC, " + SORT_ORDER_ITEM_NAME;
     public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_ORDER + " ASC";
 
     // TODO: SORT by group name not id!
-    // public static final String SORT_ORDER_BY_GROUP = COL_GROUP_ID + " ASC, "
-    // + SORT_ORDER_ITEM_NAME;
+    //public static final String SORT_ORDER_BY_GROUP = COL_GROUP_ID + " ASC, "+ SORT_ORDER_ITEM_NAME;
 
     public static final int FALSE = 0;
     public static final int TRUE = 1;
@@ -97,8 +100,9 @@ public class ItemsTable {
                     + " ("
                     + COL_ITEM_ID + " integer primary key autoincrement, "
                     + COL_ITEM_NAME + " text collate nocase, "
-                    + COL_ITEM_NOTE + " text collate nocase, "
+                    + COL_ITEM_NOTE + " text collate nocase  default '', "
                     + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default -1, "
+                    + COL_SELECTED + " integer default 0, "
                     + COL_STRUCK_OUT + " integer default 0, "
                     + COL_CHECKED + " integer default 0, "
                     + COL_MANUAL_SORT_ORDER + " integer default -1, "
@@ -135,16 +139,16 @@ public class ItemsTable {
             try {
                 ContentResolver cr = context.getContentResolver();
                 Uri uri = CONTENT_URI;
-                ContentValues values = new ContentValues();
-                values.put(COL_ITEM_NAME, itemName);
-                values.put(COL_DATE_TIME_LAST_USED, System.currentTimeMillis());
+                ContentValues cv = new ContentValues();
+                cv.put(COL_ITEM_NAME, itemName);
+                cv.put(COL_DATE_TIME_LAST_USED, System.currentTimeMillis());
 
-                Uri newListUri = cr.insert(uri, values);
+                Uri newListUri = cr.insert(uri, cv);
                 if (newListUri != null) {
                     newItemID = Long.parseLong(newListUri.getLastPathSegment());
-                    values = new ContentValues();
-                    values.put(COL_MANUAL_SORT_ORDER, newItemID);
-                    updateItemFieldValues(context, newItemID, values);
+                    cv = new ContentValues();
+                    cv.put(COL_MANUAL_SORT_ORDER, newItemID);
+                    updateItemFieldValues(context, newItemID, cv);
                 }
             } catch (Exception e) {
                 MyLog.e("Exception error in CreateNewItem. ", e.toString());
@@ -227,12 +231,11 @@ public class ItemsTable {
         return cursor;
     }
 
-    public static CursorLoader getAllItems(Context context, String sortOrder) {
+    public static CursorLoader getAllItems(Context context, String selection, String sortOrder) {
         CursorLoader cursorLoader = null;
         Uri uri = CONTENT_URI;
         String[] projection = PROJECTION_ALL;
 
-        String selection = null;
         String selectionArgs[] = null;
         try {
             cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
@@ -295,6 +298,12 @@ public class ItemsTable {
         updateItemFieldValues(context, itemID, newFieldValues);
     }*/
 
+    public static void setItemSelectedValue(Context context, long itemID, int selectedValue) {
+        ContentValues cv = new ContentValues();
+        cv.put(COL_SELECTED, selectedValue);
+        updateItemFieldValues(context, itemID, cv);
+    }
+
     public static void toggleStrikeOut(Context context, long itemID) {
         Cursor cursor = getItemCursor(context, itemID);
         if (cursor != null && cursor.getCount() > 0) {
@@ -349,6 +358,16 @@ public class ItemsTable {
         }
     }
 
+
+    public static void setCheckMark(Context context, long itemID, boolean isChecked) {
+        ContentValues cv = new ContentValues();
+        int newCheckedValue = 0;
+        if (isChecked) {
+            newCheckedValue = 1;
+        }
+        cv.put(COL_CHECKED, newCheckedValue);
+        updateItemFieldValues(context, itemID, cv);
+    }
 
     public static int unCheckAllItems(Context context) {
         int numberOfUpdatedRecords = -1;
@@ -515,7 +534,7 @@ public class ItemsTable {
                 numberOfDeletedRecords += deleteItem(context, itemID);
             }
         }
-        if (cursor != null){
+        if (cursor != null) {
             cursor.close();
         }
         return numberOfDeletedRecords;

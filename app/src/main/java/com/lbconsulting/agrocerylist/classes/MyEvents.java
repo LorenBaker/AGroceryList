@@ -51,4 +51,26 @@ public class MyEvents {
             return mMessage;
         }
     }
+
+    public static class onActiveStoreChange {
+        long mActiveStoreID;
+
+        public onActiveStoreChange( long activeStoreID) {
+            mActiveStoreID = activeStoreID;
+        }
+
+        public long getActiveStoreID() {
+            return mActiveStoreID;
+        }
+    }
+
+    public static class onClick_masterListItem {
+        long mItemID;
+        public onClick_masterListItem(long itemID) {
+            mItemID = itemID;
+        }
+        public long getItemID(){
+            return mItemID;
+        }
+    }
 }

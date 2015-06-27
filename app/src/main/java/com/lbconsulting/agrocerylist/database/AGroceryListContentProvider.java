@@ -50,6 +50,9 @@ public class aGroceryListContentProvider extends ContentProvider {
 
     private static final int ITEM_LOCATIONS_MULTI_ROWS = 1000;
     private static final int ITEM_LOCATIONS_SINGLE_ROW = 1001;
+
+
+    private static final int STORES_WITH_CHAIN_NAMES = 2000;
     //endregion
 
     //region UriMatcher
@@ -76,6 +79,8 @@ public class aGroceryListContentProvider extends ContentProvider {
 
         sURIMatcher.addURI(AUTHORITY, StoreItemLocationsTable.CONTENT_PATH, ITEM_LOCATIONS_MULTI_ROWS);
         sURIMatcher.addURI(AUTHORITY, StoreItemLocationsTable.CONTENT_PATH + "/#", ITEM_LOCATIONS_SINGLE_ROW);
+
+        sURIMatcher.addURI(AUTHORITY, StoresTable.CONTENT_PATH_STORES_WITH_CHAIN_NAMES, STORES_WITH_CHAIN_NAMES);
 
     }
     //endregion
@@ -174,6 +179,21 @@ public class aGroceryListContentProvider extends ContentProvider {
                 queryBuilder.appendWhere(StoreItemLocationsTable.COL_STORE_ITEM_LOCATION_ID + "=" + uri.getLastPathSegment());
                 break;
 
+            case STORES_WITH_CHAIN_NAMES:
+/*              SELECT tblStores._id, tblStores.storeRegionalName, tblStoreChains.storeChainName
+                FROM tblStores
+                JOIN tblStoreChains
+                ON tblStores.storeChainID = tblStoreChains._id
+                ORDER BY storeChainName ASC, storeRegionalName ASC  */
+
+                String tables =  StoresTable.TABLE_STORES +
+                        " JOIN " + StoreChainsTable.TABLE_STORE_CHAINS
+                        + " ON "
+                        + StoresTable.TABLE_STORES + "." + StoresTable.COL_STORE_CHAIN_ID + " = "
+                        + StoreChainsTable.TABLE_STORE_CHAINS + "." + StoreChainsTable.COL_STORE_CHAIN_ID;
+                queryBuilder.setTables(tables);
+                break;
+
             default:
                 throw new IllegalArgumentException("Method query. Unknown URI: " + uri);
         }
@@ -226,6 +246,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ProductsTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                     }
                     return newRowUri;
                 }
@@ -246,6 +267,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                     }
                     return newRowUri;
                 }
@@ -264,6 +286,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(SelectedItemsTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                     }
                     return newRowUri;
                 }
@@ -282,6 +305,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(StoreChainsTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                     }
                     return newRowUri;
                 }
@@ -301,6 +325,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                     }
                     return newRowUri;
                 }
@@ -316,6 +341,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                     Uri newRowUri = ContentUris.withAppendedId(StoreItemLocationsTable.CONTENT_URI, newRowId);
                     if (!mSuppressChangeNotification) {
                         getContext().getContentResolver().notifyChange(StoreItemLocationsTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                     }
                     return newRowUri;
                 }
@@ -463,6 +489,7 @@ public class aGroceryListContentProvider extends ContentProvider {
         if (!mSuppressChangeNotification) {
             // Notify and observers of the change in the database.
             getContext().getContentResolver().notifyChange(uri, null);
+            getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
         }
         return deleteCount;
     }
@@ -590,13 +617,12 @@ public class aGroceryListContentProvider extends ContentProvider {
 
             default:
                 throw new IllegalArgumentException("Method update: Unknown URI: " + uri);
-
-
-        }
+                        }
 
         if (!mSuppressChangeNotification) {
             // Notify any observers of the change in the database.
             getContext().getContentResolver().notifyChange(uri, null);
+            getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
         }
         return updateCount;
     }

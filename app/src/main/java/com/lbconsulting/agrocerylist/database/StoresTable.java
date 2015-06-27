@@ -17,6 +17,9 @@ public class StoresTable {
     public static final String COL_STORE_CHAIN_ID = "storeChainID";
     public static final String COL_STORE_REGIONAL_NAME = "storeRegionalName";
     public static final String COL_CHECKED = "storeChecked";
+    public static final String COL_DISPLAYED = "storeDisplayed";
+    public static final String COL_MANUAL_SORT_ORDER = "manualSortOrder";
+    public static final String COL_COLOR_THEME_ID = "colorThemeID";
     public static final String COL_STREET1 = "street1";
     public static final String COL_STREET2 = "street2";
     public static final String COL_CITY = "city";
@@ -28,25 +31,46 @@ public class StoresTable {
     public static final String COL_PHONE_NUMBER = "phoneNumber";
 
     public static final String[] PROJECTION_ALL = {COL_STORE_ID, COL_STORE_CHAIN_ID,
-            COL_STORE_REGIONAL_NAME, COL_CHECKED,
+            COL_STORE_REGIONAL_NAME, COL_CHECKED, COL_DISPLAYED, COL_MANUAL_SORT_ORDER, COL_COLOR_THEME_ID,
             COL_STREET1, COL_STREET2, COL_CITY, COL_STATE, COL_ZIP,
             COL_GPS_LATITUDE, COL_GPS_LONGITUDE, COL_WEBSITE_URL, COL_PHONE_NUMBER
     };
 
+    //tblStores._id, tblStores.storeRegionalName, tblStoreChains.storeChainName
+    private static final String[] PROJECTION_STORES_WITH_CHAIN_NAMES = {
+            TABLE_STORES + "." + COL_STORE_ID,
+            TABLE_STORES + "." + COL_STORE_REGIONAL_NAME,
+            TABLE_STORES + "." + COL_MANUAL_SORT_ORDER,
+            TABLE_STORES + "." + COL_COLOR_THEME_ID,
+            StoreChainsTable.TABLE_STORE_CHAINS + "." + StoreChainsTable.COL_STORE_CHAIN_NAME};
+
     public static final String CONTENT_PATH = TABLE_STORES;
+    public static final String CONTENT_PATH_STORES_WITH_CHAIN_NAMES = "storesWithChainNames";
+
     //public static final String CONTENT_LIST_WITH_GROUP = "listWithGroup";
 
     public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
             + "vnd.lbconsulting." + TABLE_STORES;
     public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/"
             + "vnd.lbconsulting." + TABLE_STORES;
+
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
+    public static final Uri CONTENT_URI_STORES_WITH_CHAIN_NAMES = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
+            + "/" + CONTENT_PATH_STORES_WITH_CHAIN_NAMES);
     /*public static final Uri LIST_WITH_group_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/"
             + CONTENT_LIST_WITH_GROUP);*/
 
     // Version 1
     // TODO: Sort by store chain name then store name
-    public static final String SORT_ORDER_STORE_NAME = COL_STORE_REGIONAL_NAME + " ASC";
+    public static final String SORT_ORDER_STORE_REGIONAL_NAME = COL_STORE_REGIONAL_NAME + " ASC";
+
+    //storeChainName ASC, storeRegionalName ASC
+    public static final String SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME =
+            StoreChainsTable.COL_STORE_CHAIN_NAME + " ASC, " + COL_STORE_REGIONAL_NAME + " ASC";
+
+    public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_ORDER + " ASC";
+
+
     public static final String SORT_ORDER_CITY = COL_CITY + " ASC";
     public static final String SORT_ORDER_STATE = COL_STATE + " ASC";
     public static final String SORT_ORDER_ZIP = COL_ZIP + " ASC";
@@ -59,6 +83,9 @@ public class StoresTable {
                     + COL_STORE_CHAIN_ID + " integer default -1, "
                     + COL_STORE_REGIONAL_NAME + " text collate nocase default '', "
                     + COL_CHECKED + " integer default 0, "
+                    + COL_DISPLAYED + " integer default 1, "
+                    + COL_MANUAL_SORT_ORDER + " integer default 0, "
+                    + COL_COLOR_THEME_ID + " integer default 1, "
                     + COL_STREET1 + " text collate nocase default '', "
                     + COL_STREET2 + " text collate nocase default '', "
                     + COL_CITY + " text collate nocase default '', "
@@ -101,12 +128,16 @@ public class StoresTable {
                 try {
                     ContentResolver cr = context.getContentResolver();
                     Uri uri = CONTENT_URI;
-                    ContentValues values = new ContentValues();
-                    values.put(COL_STORE_CHAIN_ID, storeChainID);
-                    values.put(COL_STORE_REGIONAL_NAME, storeName);
-                    Uri newListUri = cr.insert(uri, values);
+                    ContentValues cv = new ContentValues();
+                    cv.put(COL_STORE_CHAIN_ID, storeChainID);
+                    cv.put(COL_STORE_REGIONAL_NAME, storeName);
+                    Uri newListUri = cr.insert(uri, cv);
                     if (newListUri != null) {
                         newStoreID = Long.parseLong(newListUri.getLastPathSegment());
+                        cv = new ContentValues();
+                        cv.put(COL_MANUAL_SORT_ORDER, newStoreID);
+                        cv.put(COL_COLOR_THEME_ID, getColorThemeID(newStoreID));
+                        updateStoreFieldValues(context, newStoreID, cv);
                     }
                 } catch (Exception e) {
                     MyLog.e("Exception error in CreateNewStore. ", e.toString());
@@ -131,6 +162,11 @@ public class StoresTable {
             }*/
         }
         return newStoreID;
+    }
+
+    private static long getColorThemeID(long newStoreID) {
+        // TODO: implement default color theme selection
+        return 1;
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,13 +226,32 @@ public class StoresTable {
 
     }
 
-    private static Cursor getAllStoresCursor(Context context, long storeChainID, String sortOrder) {
+    public static Cursor getAllStoresCursor(Context context, String sortOrder) {
         Cursor cursor = null;
 
         Uri uri = CONTENT_URI;
         String[] projection = {COL_STORE_ID};
-        String selection = null;
-        String selectionArgs[] = null;
+        String selection = COL_DISPLAYED + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(1)};
+
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllStoresCursor: Exception: " + e.getMessage());
+        }
+
+        return cursor;
+    }
+
+
+    public static Cursor getAllStoresWithChainID(Context context, long storeChainID, String sortOrder) {
+        Cursor cursor = null;
+
+        Uri uri = CONTENT_URI;
+        String[] projection = {COL_STORE_ID};
+        String selection = COL_DISPLAYED + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(1)};
         if (storeChainID > 0) {
             selection = COL_STORE_CHAIN_ID + " = ?";
             selectionArgs = new String[]{String.valueOf(storeChainID)};
@@ -206,7 +261,7 @@ public class StoresTable {
         try {
             cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
         } catch (Exception e) {
-            MyLog.e("StoresTable", "getAllStoresCursor: Exception: " + e.getMessage());
+            MyLog.e("StoresTable", "getAllStoresWithChainID: Exception: " + e.getMessage());
         }
 
         return cursor;
@@ -245,6 +300,40 @@ public class StoresTable {
         return cursorLoader;
     }
 
+    public static Cursor getAllStoresWithChainNames(Context context, String sortOrder) {
+        Cursor cursor = null;
+
+        Uri uri = CONTENT_URI_STORES_WITH_CHAIN_NAMES;
+        String[] projection = PROJECTION_STORES_WITH_CHAIN_NAMES;
+        String selection = null;
+        String selectionArgs[] = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllStoresWithChainNames: Exception: " + e.getMessage());
+        }
+
+        return cursor;
+    }
+
+    public static CursorLoader getAllStoresWithChainNames(Context context) {
+        CursorLoader cursorLoader = null;
+
+        Uri uri = CONTENT_URI_STORES_WITH_CHAIN_NAMES;
+        String[] projection = PROJECTION_STORES_WITH_CHAIN_NAMES;
+        String selection = null;
+        String selectionArgs[] = null;
+        String sortOrder = SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME;
+        try {
+            cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllStoresWithChainNames: Exception: " + e.getMessage());
+        }
+
+        return cursorLoader;
+    }
+
     public static String getStoreDisplayName(Context context, long storeID) {
         // TODO: Should getStoreDisplayName be placed in clsStoreValues?
         String displayName = "";
@@ -276,6 +365,10 @@ public class StoresTable {
             cursor.close();
         }
         return displayName;
+    }
+
+    public static long getStoreChainID(Context context, long storeID) {
+        return 0;
     }
 
     public static String getStoreName(Context context, long storeID) {
@@ -332,7 +425,7 @@ public class StoresTable {
 
     public static int deleteAllStoresWithChainID(Context context, long storeChainID) {
         int numberOfDeletedRecords = 0;
-        Cursor cursor = getAllStoresCursor(context, storeChainID, null);
+        Cursor cursor = getAllStoresWithChainID(context, storeChainID, null);
         long storeID;
         if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {

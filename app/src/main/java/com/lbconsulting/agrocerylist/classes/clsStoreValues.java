@@ -3,6 +3,7 @@ package com.lbconsulting.agrocerylist.classes;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
@@ -32,8 +33,8 @@ public class clsStoreValues {
                 mStoreChainCursor.moveToFirst();
             }
         }
-       /* String cursorContent = DatabaseUtils.dumpCursorToString(mStoreCursor);
-        MyLog.d("clsStoreValues", cursorContent);*/
+       /* String cursorContent = DatabaseUtils.dumpCursorToString(mStoreChainCursor);
+        MyLog.i("clsStoreValues", cursorContent);*/
         cv = new ContentValues();
 
     }
@@ -250,7 +251,9 @@ public class clsStoreValues {
 
     public String getStoreChainName() {
         String result = "";
-        if (mStoreChainCursor != null & mStoreChainCursor.getCount() > 0) {
+        if (mStoreChainCursor != null && mStoreChainCursor.getCount() > 0) {
+            /*String cursorContent = DatabaseUtils.dumpCursorToString(mStoreChainCursor);
+            MyLog.i("clsStoreValues", cursorContent);*/
             result = mStoreChainCursor.getString(mStoreCursor.getColumnIndex(StoreChainsTable.COL_STORE_CHAIN_NAME));
         }
         return result;

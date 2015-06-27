@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 
 import com.lbconsulting.agrocerylist.database.ItemsTable;
+import com.lbconsulting.agrocerylist.database.SelectedItemsTable;
 
 /**
  * This class holds Store information from the database
@@ -15,22 +16,26 @@ public class clsItemValues {
     private ContentValues cv;
 
 
-
     public clsItemValues(Context context, long itemID) {
         mContext = context;
         mItemCursor = ItemsTable.getItemCursor(context, itemID);
         if (mItemCursor != null) {
             mItemCursor.moveToFirst();
         }
-       /* String cursorContent = DatabaseUtils.dumpCursorToString(mItemCursor);
-        MyLog.d("clsStoreValues", cursorContent);*/
         cv = new ContentValues();
+/*        String cursorContent = DatabaseUtils.dumpCursorToString(mItemCursor);
+        MyLog.i("clsItemValues: \n", cursorContent);*/
 
     }
 
     public clsItemValues(Context context, Cursor itemCursor) {
+        mContext = context;
         mItemCursor = itemCursor;
+        if (hasData()) {
+        }
         cv = new ContentValues();
+/*        String cursorContent = DatabaseUtils.dumpCursorToString(mItemCursor);
+        MyLog.i("clsItemValues: \n", cursorContent);*/
     }
 
     public boolean hasData() {
@@ -68,6 +73,26 @@ public class clsItemValues {
             cv.remove(ItemsTable.COL_GROUP_ID);
         }
         cv.put(ItemsTable.COL_GROUP_ID, groupID);
+    }
+
+    public boolean isItemSelected() {
+        boolean result = false;
+        if (hasData()) {
+            int itemSelectedValue = mItemCursor.getInt(mItemCursor.getColumnIndex(ItemsTable.COL_SELECTED));
+            result = itemSelectedValue > 0;
+        }
+        return result;
+    }
+
+    public void putItemSelected(boolean itemSelected) {
+        if (cv.containsKey(ItemsTable.COL_SELECTED)) {
+            cv.remove(ItemsTable.COL_SELECTED);
+        }
+        int itemSelectedValue = 0;
+        if (itemSelected) {
+            itemSelectedValue = 1;
+        }
+        cv.put(ItemsTable.COL_SELECTED, itemSelectedValue);
     }
 
     public boolean isItemChecked() {
@@ -178,7 +203,6 @@ public class clsItemValues {
         }
         cv.put(ItemsTable.COL_MANUAL_SORT_SWITCH, manualSortSwitch);
     }
-
 
     public void update() {
         if (cv.size() > 0) {

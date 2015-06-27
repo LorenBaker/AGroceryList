@@ -11,8 +11,11 @@ import com.lbconsulting.agrocerylist.R;
 public class MySettings {
 
 
-    public static final int FRAG_HOME = 1;
+    public static final int HOME_FRAG_STORE_LIST = 1;
     public static final int FRAG_PRODUCTS_LIST = 2;
+    public static final int FRAG_MASTER_LIST = 3;
+    public static final int FRAG_SET_GROUPS = 4;
+    public static final int FRAG_CULL_ITEMS = 5;
 
     public static final int INITIAL_NUMBER_OF_AISLES = 10;
     public static final int NETWORK_WIFI_ONLY = 0;
@@ -29,6 +32,13 @@ public class MySettings {
     private static final String SETTING_DROPBOX_FOLDER_NAME = "dropboxFolderName";
     private static final String SETTING_IS_VERBOSE = "isVerbose";
     private static final String SETTING_NETWORK_PREFERENCE = "networkPreference";
+    private static final String SETTING_MASTER_LIST_SORT_ORDER = "masterListSortOrder";
+    public static final String SETTING_ACTIVE_STORE_ID = "activeStoreID";
+
+    public static final int MASTER_LIST_SORT_ALPHABETICAL = 0;
+    public static final int MASTER_LIST_SORT_BY_AISLE = 1;
+    public static final int MASTER_LIST_SORT_BY_GROUP = 2;
+    public static final int MASTER_LIST_SORT_MANUAL = 3;
 
 
     private static Context mContext;
@@ -41,7 +51,7 @@ public class MySettings {
     public static int getActiveFragmentID() {
         SharedPreferences passwordsSavedState =
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
-        return passwordsSavedState.getInt(SETTING_ACTIVE_FRAGMENT_ID, FRAG_HOME);
+        return passwordsSavedState.getInt(SETTING_ACTIVE_FRAGMENT_ID, HOME_FRAG_STORE_LIST);
     }
 
     public static void setActiveFragmentID(int activeFragmentID) {
@@ -139,6 +149,35 @@ public class MySettings {
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
         SharedPreferences.Editor editor = passwordsSavedState.edit();
         editor.putInt(SETTING_NETWORK_PREFERENCE, networkPreference);
+        editor.apply();
+    }
+
+
+    public static int getMasterListSortOrder() {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        return passwordsSavedState.getInt(SETTING_MASTER_LIST_SORT_ORDER, MASTER_LIST_SORT_ALPHABETICAL);
+    }
+
+    public static void setMasterListSortOrder(int masterListSortOrder) {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        SharedPreferences.Editor editor = passwordsSavedState.edit();
+        editor.putInt(SETTING_MASTER_LIST_SORT_ORDER, masterListSortOrder);
+        editor.apply();
+    }
+
+    public static long getActiveStoreID() {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        return passwordsSavedState.getLong(SETTING_ACTIVE_STORE_ID, -1);
+    }
+
+    public static void setActiveStoreID(long storeID) {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        SharedPreferences.Editor editor = passwordsSavedState.edit();
+        editor.putLong(SETTING_ACTIVE_STORE_ID, storeID);
         editor.apply();
     }
 }
