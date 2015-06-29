@@ -64,6 +64,16 @@ public class MyEvents {
         }
     }
 
+    public static class restartLoader {
+        int mLoaderID;
+        public restartLoader(int loaderID) {
+            mLoaderID = loaderID;
+        }
+        public int getLoaderID(){
+            return mLoaderID;
+        }
+    }
+
     public static class onClick_masterListItem {
         long mItemID;
         public onClick_masterListItem(long itemID) {

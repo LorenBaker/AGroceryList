@@ -4,10 +4,10 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
@@ -25,8 +25,7 @@ import com.lbconsulting.agrocerylist.database.SelectedItemsTable;
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.database.aGroceryListDatabaseHelper;
-import com.lbconsulting.agrocerylist.fragments.fragStoreList;
-import com.lbconsulting.agrocerylist.fragments.fragProductsList;
+import com.lbconsulting.agrocerylist.dialogs.dialogSortStoreList;
 
 import de.greenrobot.event.EventBus;
 
@@ -40,10 +39,16 @@ public class StoreListsActivity extends Activity {
     private StoreListPagerAdapter mListsPagerAdapter;
     private ViewPager mPager;
 
+
+    private long mActiveStoreID;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MyLog.i("StoreListsActivity", "onCreate");
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_store_lists);
 
         MySettings.setContext(this);
@@ -97,7 +102,7 @@ public class StoreListsActivity extends Activity {
             ItemsTable.createNewItem(this, groceryItem);
         }
 
-/*        long storeIndex = 1;
+        long storeIndex = 1;
         long itemIndex = 1;
         for (String item : groceryItems) {
             SelectedItemsTable.addItemToStore(this, storeIndex, itemIndex);
@@ -106,14 +111,15 @@ public class StoreListsActivity extends Activity {
             if (storeIndex > 18) {
                 storeIndex = 1;
             }
-        }*/
+        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        MyLog.i("StoreListsActivity", "onSaveInstanceState");
+        MyLog.i("StoreListsActivity", "onSaveInstanceState: ActiveStoreID = " + mActiveStoreID);
         // save activity variables
+        outState.putLong(MySettings.SETTING_ACTIVE_STORE_ID, mActiveStoreID);
     }
 
     //region onEvents
@@ -148,33 +154,30 @@ public class StoreListsActivity extends Activity {
                         .commit();
                 MyLog.i("StoreListsActivity", "showFragment: HOME_FRAG_STORE_LIST");*/
 
-                mListsPagerAdapter = new StoreListPagerAdapter(getFragmentManager(), this);
-                mPager = (ViewPager) findViewById(R.id.storeListPager);
-                mPager.setAdapter(mListsPagerAdapter);
-                mPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        mListsPagerAdapter = new StoreListPagerAdapter(getFragmentManager(), this);
+        mPager = (ViewPager) findViewById(R.id.storeListPager);
+        mPager.setAdapter(mListsPagerAdapter);
+        mPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
-                    @Override
-                    public void onPageScrollStateChanged(int state) {
-                    }
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
 
-                    @Override
-                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                    }
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
 
-                    @Override
-                    public void onPageSelected(int position) {
-                        // A list page has been selected
-                        MyLog.i("StoreListsActivity", "onPageSelected: position=" + position);
-/*                        SetActiveListID(position);
-                        SetActiveListBroadcastReceivers();
-                        DynamicListView.setManualSort(mListSettings.isManualSort());
-                        MyLog.d("Lists_ACTIVITY", "onPageSelected() - position = " + position + " ; listID = " + mActiveListID);
+            @Override
+            public void onPageSelected(int position) {
+                // A list page has been selected
+                MyLog.i("StoreListsActivity", "onPageSelected: position=" + position);
+                mActiveStoreID = StoreListPagerAdapter.getStoreID(position);
+            }
+        });
 
-                        if (mTwoFragmentLayout) {
-                            LoadMasterListFragment();
-                        }*/
-                    }
-                });
+        int pagerPosition = StoreListPagerAdapter.findStoreIDPosition(mActiveStoreID);
+        mPager.setCurrentItem(pagerPosition);
+
 /*                break;
 
             case MySettings.FRAG_PRODUCTS_LIST:
@@ -189,6 +192,14 @@ public class StoreListsActivity extends Activity {
         }*/
     }
 
+    private void showSortDialog() {
+        FragmentManager fm = getFragmentManager();
+        dialogSortStoreList dialog = dialogSortStoreList.newInstance(mActiveStoreID,
+                StoresTable.getStoreItemsSortingOrder(this, mActiveStoreID));
+        dialog.show(fm, "dialog_sort_store_list");
+    }
+
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -198,13 +209,16 @@ public class StoreListsActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        MyLog.i("StoreListsActivity", "onPause: ActiveStoreID = " + mActiveStoreID);
+        MySettings.setActiveStoreID(mActiveStoreID);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        MyLog.i("StoreListsActivity", "onResume");
+        MyLog.i("StoreListsActivity", "onResume: ActiveStoreID = " + mActiveStoreID);
 
+        mActiveStoreID = MySettings.getActiveStoreID();
         // show the appropriate fragment
         showFragment(MySettings.getActiveFragmentID());
     }
@@ -213,7 +227,10 @@ public class StoreListsActivity extends Activity {
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        MyLog.i("StoreListsActivity", "onRestoreInstanceState");
+        if (savedInstanceState != null) {
+            mActiveStoreID = savedInstanceState.getLong(MySettings.SETTING_ACTIVE_STORE_ID);
+        }
+        MyLog.i("StoreListsActivity", "onRestoreInstanceState: ActiveStoreID = " + mActiveStoreID);
     }
 
 
@@ -226,7 +243,6 @@ public class StoreListsActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MyLog.i("StoreListsActivity", "onCreateOptionsMenu");
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_store_lists_activity, menu);
         return true;
     }
@@ -237,7 +253,7 @@ public class StoreListsActivity extends Activity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
 
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_removeStruckOffItems:
                 Toast.makeText(this, "action_removeStruckOffItems", Toast.LENGTH_SHORT).show();
                 break;
@@ -252,7 +268,8 @@ public class StoreListsActivity extends Activity {
                 break;
 
             case R.id.action_show_sort_dialog:
-                Toast.makeText(this, "action_show_sort_dialog", Toast.LENGTH_SHORT).show();
+                showSortDialog();
+                // Toast.makeText(this, "action_show_sort_dialog", Toast.LENGTH_SHORT).show();
                 break;
 
             case R.id.action_new_store:
@@ -287,6 +304,7 @@ public class StoreListsActivity extends Activity {
         return true;
 
     }
+
 
     @Override
     protected void onDestroy() {

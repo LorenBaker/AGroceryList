@@ -32,6 +32,17 @@ public class ItemsTable {
             COL_GROUP_ID, COL_SELECTED, COL_STRUCK_OUT, COL_CHECKED,
             COL_MANUAL_SORT_ORDER, COL_MANUAL_SORT_SWITCH, COL_DATE_TIME_LAST_USED};
 
+    //tblSelectedItems._id, tblSelectedItems.itemID,
+    //tblItems.itemName, tblItems.itemNote, tblItems.groupID, tblItems.itemStruckOut
+    public static final String[] PROJECTION_STORE_ITEMS = {
+            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + "_id",
+            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_ITEM_ID,
+            TABLE_ITEMS + "." + COL_ITEM_NAME,
+            TABLE_ITEMS + "." + COL_ITEM_NOTE,
+            TABLE_ITEMS + "." + COL_GROUP_ID,
+            TABLE_ITEMS + "." + COL_STRUCK_OUT
+    };
+
     public static final String[] PROJECTION_WITH_GROUP_NAME = {
             TABLE_ITEMS + "." + COL_ITEM_ID,
             TABLE_ITEMS + "." + COL_ITEM_NAME,
@@ -63,7 +74,7 @@ public class ItemsTable {
             LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_NAME};
 
     public static final String CONTENT_PATH = TABLE_ITEMS;
-
+    public static final String CONTENT_PATH_STORE_ITEMS = "storeItems";
 
 /*    public static final String CONTENT_PATH_ITEMS_WITH_GROUPS = "itemsWithGroups";
     public static final String CONTENT_PATH_ITEMS_WITH_LOCATIONS = "itemsWithLocations";*/
@@ -72,7 +83,9 @@ public class ItemsTable {
             + TABLE_ITEMS;
     public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + "vnd.lbconsulting."
             + TABLE_ITEMS;
+
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
+    public static final Uri CONTENT_URI_STORE_ITEMS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH_STORE_ITEMS);
 
 
 
@@ -235,12 +248,31 @@ public class ItemsTable {
         CursorLoader cursorLoader = null;
         Uri uri = CONTENT_URI;
         String[] projection = PROJECTION_ALL;
-
         String selectionArgs[] = null;
         try {
             cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
         } catch (Exception e) {
             MyLog.e("ItemsTable", "getAllItems: Exception: " + e.getMessage());
+        }
+        return cursorLoader;
+    }
+
+    public static CursorLoader getStoreItems(Context context, long storeID, String sortOrder) {
+        CursorLoader cursorLoader = null;
+        Uri uri = CONTENT_URI_STORE_ITEMS;
+        String[] projection = PROJECTION_STORE_ITEMS;
+
+        String selection = null;
+        String selectionArgs[] = null;
+        if (storeID > 0) {
+            selection = SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_STORE_ID + " = ?";
+            selectionArgs = new String[]{String.valueOf(storeID)};
+        }
+
+        try {
+            cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("ItemsTable", "getStoreItems: Exception: " + e.getMessage());
         }
         return cursorLoader;
     }
@@ -421,8 +453,8 @@ public class ItemsTable {
                 mobileItemCursor.moveToFirst();
                 switchItemCursor.moveToFirst();
 
-                int mobileItemManualSortOrder = mobileItemCursor.getInt(mobileItemCursor.getColumnIndexOrThrow(COL_MANUAL_SORT_ORDER));
-                int switchItemManualSortOrder = switchItemCursor.getInt(switchItemCursor.getColumnIndexOrThrow(COL_MANUAL_SORT_ORDER));
+                int mobileItemManualSortOrder = mobileItemCursor.getInt(mobileItemCursor.getColumnIndexOrThrow(COL_MANUAL_SORT_KEY));
+                int switchItemManualSortOrder = switchItemCursor.getInt(switchItemCursor.getColumnIndexOrThrow(COL_MANUAL_SORT_KEY));
 
                 // TODO remove strings names
                 String mobileItemName = mobileItemCursor.getString(mobileItemCursor.getColumnIndexOrThrow(COL_ITEM_NAME));
@@ -433,12 +465,12 @@ public class ItemsTable {
                 String where = COL_ITEM_ID + " = ?";
                 String[] whereArgsMobileItemCursor = {String.valueOf(mobileItemID)};
                 ContentValues values = new ContentValues();
-                values.put(COL_MANUAL_SORT_ORDER, switchItemManualSortOrder);
+                values.put(COL_MANUAL_SORT_KEY, switchItemManualSortOrder);
                 numberOfUpdatedRecords = cr.update(uri, values, where, whereArgsMobileItemCursor);
 
                 String[] whereArgsSwitchItemCursor = {String.valueOf(switchItemID)};
                 values = new ContentValues();
-                values.put(COL_MANUAL_SORT_ORDER, mobileItemManualSortOrder);
+                values.put(COL_MANUAL_SORT_KEY, mobileItemManualSortOrder);
                 values.put(COL_MANUAL_SORT_SWITCH, MANUAL_SORT_SWITCH_ITEM_SWITCHED);
                 numberOfUpdatedRecords += cr.update(uri, values, where, whereArgsSwitchItemCursor);
 
@@ -479,7 +511,7 @@ public class ItemsTable {
                 String[] whereArgs = {String.valueOf(itemID)};
 
                 ContentValues values = new ContentValues();
-                values.put(COL_MANUAL_SORT_ORDER, manualSortOrder);
+                values.put(COL_MANUAL_SORT_KEY, manualSortOrder);
                 numberOfUpdatedRecords = cr.update(uri, values, where, whereArgs);
             } catch (Exception e) {
                 MyLog.e("ItemsTable", "setManualSortOrder: Exception: " + e.getMessage());
@@ -496,7 +528,7 @@ public class ItemsTable {
             Cursor cursor = getItemCursor(context, itemID);
             if (cursor != null) {
                 cursor.moveToFirst();
-                manualSortOrder = cursor.getInt(cursor.getColumnIndexOrThrow(COL_MANUAL_SORT_ORDER));
+                manualSortOrder = cursor.getInt(cursor.getColumnIndexOrThrow(COL_MANUAL_SORT_KEY));
                 cursor.close();
             }
         }

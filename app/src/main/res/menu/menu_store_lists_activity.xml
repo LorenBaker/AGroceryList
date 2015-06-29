@@ -32,6 +32,20 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_show_store_selected_items"
+        android:title="Show Store items"
+        android:orderInCategory="115"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_show_all_selected_items"
+        android:title="All selected items"
+        android:orderInCategory="116"
+        android:visible="true"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_new_store"
         android:title="New store"
         android:orderInCategory="120"

@@ -34,6 +34,7 @@
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_product.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_spinner.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_spinner_dropdown.xml" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_store_list.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/store_list_title.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/values/mycolors.xml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/core" charset="windows-1252" />

@@ -60,7 +60,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
     private MasterListCursorAdapter mMasterListCursorAdapter;
     private LoaderManager mLoaderManager = null;
 
-    private final int ITEMS_LOADER = 1;
+
     private long mActiveStoreID = -1;
 
     private boolean okToRestartItemsLoader = true;
@@ -149,7 +149,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 /*                MyLog.i("fragMasterList", "afterTextChanged; txtItemName.afterTextChanged -- "
                         + txtItemName.getText().toString());*/
                 if (okToRestartItemsLoader) {
-                    mLoaderManager.restartLoader(ITEMS_LOADER, null, mMasterListFragmentCallbacks);
+                    mLoaderManager.restartLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
                 } else {
                     okToRestartItemsLoader = true;
                 }
@@ -223,7 +223,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         mMasterListCursorAdapter = new MasterListCursorAdapter(getActivity(), null, 0);
         lvItemsListView.setAdapter(mMasterListCursorAdapter);
         mLoaderManager = getLoaderManager();
-        mLoaderManager.initLoader(ITEMS_LOADER, null, mMasterListFragmentCallbacks);
+        mLoaderManager.initLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
 
     }
 
@@ -245,7 +245,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
             cursor.close();
         }
         aGroceryListContentProvider.setSuppressChangeNotification(false);
-        mLoaderManager.restartLoader(ITEMS_LOADER, null, mMasterListFragmentCallbacks);
+        mLoaderManager.restartLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
     }
 
     public void onEvent(MyEvents.onActiveStoreChange event) {
@@ -384,7 +384,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         CursorLoader cursorLoader = null;
         switch (id) {
-            case ITEMS_LOADER:
+            case MySettings.ITEMS_LOADER:
                 MyLog.i("fragMasterList", "onCreateLoader: ITEMS_LOADER");
                 // filter the cursor based on user typed text in txtListItem and the activeListTypeID
                 String selection = null;
@@ -397,22 +397,22 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
                 String sortOrder = "";
                 try {
                     switch (masterListSortOrder) {
-                        case MySettings.MASTER_LIST_SORT_ALPHABETICAL:
+                        case MySettings.SORT_ALPHABETICAL:
                             sortOrder = ItemsTable.SORT_ORDER_ITEM_NAME;
                             cursorLoader = ItemsTable.getAllItems(getActivity(), selection, sortOrder);
                             break;
 
-                        case MySettings.MASTER_LIST_SORT_BY_AISLE:
+                        case MySettings.SORT_BY_AISLE:
                             // TODO: join query master list by aisle
                             //cursorLoader = ItemsTable.getAllItemsInListWithGroups(getActivity(), mActiveListID, selection);
                             break;
 
-                        case MySettings.MASTER_LIST_SORT_BY_GROUP:
+                        case MySettings.SORT_BY_GROUP:
                             //TODO: join query master list by group
                             //cursorLoader = ItemsTable.getAllItemsInListWithGroups(getActivity(), mActiveListID, selection);
                             break;
 
-                        case MySettings.MASTER_LIST_SORT_MANUAL:
+                        case MySettings.SORT_MANUALLY:
                             //TODO: join query master list manual sort order
                             sortOrder = ItemsTable.SORT_ORDER_LAST_USED;
                             //cursorLoader = ItemsTable.getAllItemsInList(getActivity(), mActiveListID, selection, sortOrder);
@@ -441,7 +441,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         // The asynchronous load is complete and the newCursor is now available for use.
         // Update the masterListAdapter to show the changed data.
         switch (loader.getId()) {
-            case ITEMS_LOADER:
+            case MySettings.ITEMS_LOADER:
                 MyLog.i("fragMasterList", "onLoadFinished: ITEMS_LOADER");
                 mMasterListCursorAdapter.swapCursor(newCursor);
                 // TODO: set list view position if first time loading data
@@ -467,7 +467,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         switch (loader.getId()) {
-            case ITEMS_LOADER:
+            case MySettings.ITEMS_LOADER:
                 MyLog.i("fragMasterList", "onLoaderReset: ITEMS_LOADER");
                 mMasterListCursorAdapter.swapCursor(null);
                 break;

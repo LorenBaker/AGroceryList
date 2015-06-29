@@ -2,6 +2,12 @@ package com.lbconsulting.agrocerylist.fragments;
 
 
 import android.app.Fragment;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -13,19 +19,30 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.lbconsulting.agrocerylist.R;
+import com.lbconsulting.agrocerylist.adapters.StoreListCursorAdapter;
+import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
+import com.lbconsulting.agrocerylist.database.ItemsTable;
+
+import de.greenrobot.event.EventBus;
 
 
 /**
  * A fragment showing the store's selected items.
  */
-public class fragStoreList extends Fragment {
+public class fragStoreList extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String ARG_STORE_ID = "argStoreID";
     private static final String ARG_STORE_POSITION = "argStorePosition";
     private static final String ARG_DISPLAY_NAME = "argDisplayName";
     private static final String ARG_COLOR_THEME_ID = "argColorThemeID";
+    private static final String ARG_STORE_ITEMS_SORT_ORDER = "argStoreItemsSortOrder";
+
+
+    private LoaderManager.LoaderCallbacks<Cursor> mStoreListFragmentCallbacks;
+    private StoreListCursorAdapter mStoreListCursorAdapter;
+    private LoaderManager mLoaderManager = null;
 
     private TextView tvStoreTitle;
     private ListView lvStoreItems;
@@ -34,19 +51,22 @@ public class fragStoreList extends Fragment {
     private long mStoreID = -1;
     private String mDisplayName;
     private long mColorThemeID;
+    private int mStoreItemsSortOrder;
     //private clsStoreValues mStoreValues;
 
     public fragStoreList() {
     }
 
-    public static fragStoreList newInstance(int position, long storeID, String displayName, long colorThemeID) {
-
+    public static fragStoreList newInstance(int position, long storeID, String displayName,
+                                            long colorThemeID, int storeItemsSortOrder) {
+        MyLog.i("fragStoreList", "newInstance: storeID = " + storeID);
         fragStoreList fragment = new fragStoreList();
         Bundle args = new Bundle();
         args.putInt(ARG_STORE_POSITION, position);
         args.putLong(ARG_STORE_ID, storeID);
         args.putString(ARG_DISPLAY_NAME, displayName);
         args.putLong(ARG_COLOR_THEME_ID, colorThemeID);
+        args.putInt(ARG_STORE_ITEMS_SORT_ORDER, storeItemsSortOrder);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,16 +74,17 @@ public class fragStoreList extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        MyLog.i("fragStoreList", "onCreate: storeID = " + mStoreID);
         super.onCreate(savedInstanceState);
-        //EventBus.getDefault().register(this);
-        setHasOptionsMenu(true);
+        EventBus.getDefault().register(this);
+        //setHasOptionsMenu(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        MyLog.i("fragStoreList", "onCreateView");
+        MyLog.i("fragStoreList", "onCreateView: storeID = " + mStoreID);
         View rootView = inflater.inflate(R.layout.frag_store_list, container, false);
 
         tvStoreTitle = (TextView) rootView.findViewById(R.id.tvStoreTitle);
@@ -75,7 +96,6 @@ public class fragStoreList extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        MyLog.i("fragStoreList", "onActivityCreated");
         MySettings.setActiveFragmentID(MySettings.HOME_FRAG_STORE_LIST);
 
         if (savedInstanceState == null) {
@@ -85,6 +105,7 @@ public class fragStoreList extends Fragment {
                 mStoreID = args.getLong(ARG_STORE_ID);
                 mDisplayName = args.getString(ARG_DISPLAY_NAME);
                 mColorThemeID = args.getLong(ARG_COLOR_THEME_ID);
+                mStoreItemsSortOrder = args.getInt(ARG_STORE_ITEMS_SORT_ORDER);
             }
 
         } else {
@@ -93,42 +114,57 @@ public class fragStoreList extends Fragment {
                 mStoreID = savedInstanceState.getLong(ARG_STORE_ID);
                 mDisplayName = savedInstanceState.getString(ARG_DISPLAY_NAME);
                 mColorThemeID = savedInstanceState.getLong(ARG_COLOR_THEME_ID);
+                mStoreItemsSortOrder = savedInstanceState.getInt(ARG_STORE_ITEMS_SORT_ORDER);
             }
         }
+        MyLog.i("fragStoreList", "onActivityCreated: storeID = " + mStoreID);
+
+        mStoreListCursorAdapter = new StoreListCursorAdapter(getActivity(), null, 0);
+        lvStoreItems.setAdapter(mStoreListCursorAdapter);
+        mLoaderManager = getLoaderManager();
+        mStoreListFragmentCallbacks = this;
+        mLoaderManager.initLoader(MySettings.ITEMS_LOADER, null, mStoreListFragmentCallbacks);
 
         tvStoreTitle.setText(mDisplayName + ": color=" + mColorThemeID);
     }
 
+    public void onEvent(MyEvents.restartLoader event) {
+        mLoaderManager.restartLoader(event.getLoaderID(), null, mStoreListFragmentCallbacks);
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        MyLog.i("fragStoreList", "onSaveInstanceState");
+        MyLog.i("fragStoreList", "onSaveInstanceState: storeID = " + mStoreID);
         outState.putInt(ARG_STORE_POSITION, mStorePosition);
         outState.putLong(ARG_STORE_ID, mStoreID);
         outState.putString(ARG_DISPLAY_NAME, mDisplayName);
         outState.putLong(ARG_COLOR_THEME_ID, mColorThemeID);
+        outState.putInt(ARG_STORE_ITEMS_SORT_ORDER, mStoreItemsSortOrder);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     public void onPause() {
-        MyLog.i("fragStoreList", "onPause");
+        MyLog.i("fragStoreList", "onPause: storeID = " + mStoreID);
         super.onPause();
     }
 
     @Override
     public void onResume() {
-        MyLog.i("fragStoreList", "onResume");
+        MyLog.i("fragStoreList", "onResume: storeID = " + mStoreID);
         super.onResume();
     }
 
     @Override
     public void onDestroy() {
-        MyLog.i("fragStoreList", "onDestroy");
+        MyLog.i("fragStoreList", "onDestroy: storeID = " + mStoreID);
+        EventBus.getDefault().unregister(this);
+
         super.onDestroy();
     }
 
 
-    @Override
+/*    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -136,6 +172,78 @@ public class fragStoreList extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
+    }*/
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        CursorLoader cursorLoader = null;
+        switch (id) {
+            case MySettings.ITEMS_LOADER:
+                MyLog.i("fragStoreList", "onCreateLoader: ITEMS_LOADER: storeID = " + mStoreID);
+                String sortOrder;
+                boolean showAllSelectedItemsInStoreList = MySettings.showAllSelectedItemsInStoreList();
+                try {
+                    switch (mStoreItemsSortOrder) {
+                        case MySettings.SORT_ALPHABETICAL:
+                            sortOrder = ItemsTable.SORT_ORDER_ITEM_NAME;
+                            if(showAllSelectedItemsInStoreList){
+                                cursorLoader = ItemsTable.getStoreItems(getActivity(), -1, sortOrder);
+                            }else{
+                                cursorLoader = ItemsTable.getStoreItems(getActivity(), mStoreID, sortOrder);
+                            }
+                            break;
+
+                        case MySettings.SORT_BY_AISLE:
+                            // TODO: join query master list by aisle
+                            //cursorLoader = ItemsTable.getAllItemsInListWithGroups(getActivity(), mActiveListID, selection);
+                            break;
+
+                        case MySettings.SORT_BY_GROUP:
+                            //TODO: join query master list by group
+                            //cursorLoader = ItemsTable.getAllItemsInListWithGroups(getActivity(), mActiveListID, selection);
+                            break;
+
+                        case MySettings.SORT_MANUALLY:
+                            //TODO: join query master list manual sort order
+                            sortOrder = ItemsTable.SORT_ORDER_LAST_USED;
+                            //cursorLoader = ItemsTable.getAllItemsInList(getActivity(), mActiveListID, selection, sortOrder);
+                            break;
+
+                    }
+
+                } catch (SQLiteException e) {
+                    MyLog.e("fragStoreList", "onCreateLoader: SQLiteException: " + e.getMessage());
+                    return null;
+
+                } catch (IllegalArgumentException e) {
+                    MyLog.i("fragStoreList", "onCreateLoader: IllegalArgumentException: " + e.getMessage());
+                    return null;
+                }
+                break;
+
+
+        }
+        return cursorLoader;
     }
 
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor newCursor) {
+        switch (loader.getId()) {
+            case MySettings.ITEMS_LOADER:
+                MyLog.i("fragStoreList", "onLoadFinished: ITEMS_LOADER: storeID = " + mStoreID);
+                String result = DatabaseUtils.dumpCursorToString(newCursor);
+                mStoreListCursorAdapter.swapCursor(newCursor);
+                break;
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        switch (loader.getId()) {
+            case MySettings.ITEMS_LOADER:
+                MyLog.i("fragStoreList", "onLoaderReset: ITEMS_LOADER: storeID = " + mStoreID);
+                mStoreListCursorAdapter.swapCursor(null);
+                break;
+        }
+    }
 }

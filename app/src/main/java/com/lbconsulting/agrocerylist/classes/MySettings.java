@@ -17,6 +17,9 @@ public class MySettings {
     public static final int FRAG_SET_GROUPS = 4;
     public static final int FRAG_CULL_ITEMS = 5;
 
+    public static final int ITEMS_LOADER = 1;
+    public static final int PRODUCTS_LOADER = 2;
+
     public static final int INITIAL_NUMBER_OF_AISLES = 10;
     public static final int NETWORK_WIFI_ONLY = 0;
     public static final int NETWORK_ANY = 1;
@@ -34,11 +37,16 @@ public class MySettings {
     private static final String SETTING_NETWORK_PREFERENCE = "networkPreference";
     private static final String SETTING_MASTER_LIST_SORT_ORDER = "masterListSortOrder";
     public static final String SETTING_ACTIVE_STORE_ID = "activeStoreID";
+    private static final String SETTING_STORE_SORTING_ORDER = "storeSortingOrder";
+    public static final String SETTING_SHOW_ALL_ITEMS_IN_STORE_LIST = "showAllItemsInStoreList";
 
-    public static final int MASTER_LIST_SORT_ALPHABETICAL = 0;
-    public static final int MASTER_LIST_SORT_BY_AISLE = 1;
-    public static final int MASTER_LIST_SORT_BY_GROUP = 2;
-    public static final int MASTER_LIST_SORT_MANUAL = 3;
+    public static final int SORT_ALPHABETICAL = 0;
+    public static final int SORT_BY_AISLE = 1;
+    public static final int SORT_BY_GROUP = 2;
+    public static final int SORT_FAVORITES_FIRST = 3;
+    public static final int SORT_LAST_USED = 4;
+    public static final int SORT_MANUALLY = 5;
+    public static final int SORT_STORE_SELECTIONS_FIRST = 6;
 
 
     private static Context mContext;
@@ -156,7 +164,7 @@ public class MySettings {
     public static int getMasterListSortOrder() {
         SharedPreferences passwordsSavedState =
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
-        return passwordsSavedState.getInt(SETTING_MASTER_LIST_SORT_ORDER, MASTER_LIST_SORT_ALPHABETICAL);
+        return passwordsSavedState.getInt(SETTING_MASTER_LIST_SORT_ORDER, SORT_ALPHABETICAL);
     }
 
     public static void setMasterListSortOrder(int masterListSortOrder) {
@@ -178,6 +186,34 @@ public class MySettings {
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
         SharedPreferences.Editor editor = passwordsSavedState.edit();
         editor.putLong(SETTING_ACTIVE_STORE_ID, storeID);
+        editor.apply();
+    }
+
+    public static int getStoreSortingOrder() {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        return passwordsSavedState.getInt(SETTING_STORE_SORTING_ORDER, SORT_ALPHABETICAL);
+    }
+
+    public static void setStoreSortingOrder(int storeSortingOrder) {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        SharedPreferences.Editor editor = passwordsSavedState.edit();
+        editor.putInt(SETTING_STORE_SORTING_ORDER, storeSortingOrder);
+        editor.apply();
+    }
+
+    public static boolean showAllSelectedItemsInStoreList() {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        return passwordsSavedState.getBoolean(SETTING_SHOW_ALL_ITEMS_IN_STORE_LIST, false);
+    }
+
+    public static void setShowAllSelectedItemsInStoreList(boolean showAllSelectedItemsInStoreList) {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        SharedPreferences.Editor editor = passwordsSavedState.edit();
+        editor.putBoolean(SETTING_SHOW_ALL_ITEMS_IN_STORE_LIST, showAllSelectedItemsInStoreList);
         editor.apply();
     }
 }

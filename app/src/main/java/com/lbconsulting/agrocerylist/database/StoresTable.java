@@ -18,7 +18,8 @@ public class StoresTable {
     public static final String COL_STORE_REGIONAL_NAME = "storeRegionalName";
     public static final String COL_CHECKED = "storeChecked";
     public static final String COL_DISPLAYED = "storeDisplayed";
-    public static final String COL_MANUAL_SORT_ORDER = "manualSortOrder";
+    public static final String COL_MANUAL_SORT_KEY = "manualSortKey";
+    public static final String COL_STORE_ITEMS_SORTING_ORDER = "storeItemsSortOrder";
     public static final String COL_COLOR_THEME_ID = "colorThemeID";
     public static final String COL_STREET1 = "street1";
     public static final String COL_STREET2 = "street2";
@@ -31,7 +32,8 @@ public class StoresTable {
     public static final String COL_PHONE_NUMBER = "phoneNumber";
 
     public static final String[] PROJECTION_ALL = {COL_STORE_ID, COL_STORE_CHAIN_ID,
-            COL_STORE_REGIONAL_NAME, COL_CHECKED, COL_DISPLAYED, COL_MANUAL_SORT_ORDER, COL_COLOR_THEME_ID,
+            COL_STORE_REGIONAL_NAME, COL_CHECKED, COL_DISPLAYED,
+            COL_MANUAL_SORT_KEY, COL_STORE_ITEMS_SORTING_ORDER, COL_COLOR_THEME_ID,
             COL_STREET1, COL_STREET2, COL_CITY, COL_STATE, COL_ZIP,
             COL_GPS_LATITUDE, COL_GPS_LONGITUDE, COL_WEBSITE_URL, COL_PHONE_NUMBER
     };
@@ -40,7 +42,8 @@ public class StoresTable {
     private static final String[] PROJECTION_STORES_WITH_CHAIN_NAMES = {
             TABLE_STORES + "." + COL_STORE_ID,
             TABLE_STORES + "." + COL_STORE_REGIONAL_NAME,
-            TABLE_STORES + "." + COL_MANUAL_SORT_ORDER,
+            TABLE_STORES + "." + COL_MANUAL_SORT_KEY,
+            TABLE_STORES + "." + COL_STORE_ITEMS_SORTING_ORDER,
             TABLE_STORES + "." + COL_COLOR_THEME_ID,
             StoreChainsTable.TABLE_STORE_CHAINS + "." + StoreChainsTable.COL_STORE_CHAIN_NAME};
 
@@ -68,7 +71,7 @@ public class StoresTable {
     public static final String SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME =
             StoreChainsTable.COL_STORE_CHAIN_NAME + " ASC, " + COL_STORE_REGIONAL_NAME + " ASC";
 
-    public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_ORDER + " ASC";
+    public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_KEY + " ASC";
 
 
     public static final String SORT_ORDER_CITY = COL_CITY + " ASC";
@@ -84,7 +87,8 @@ public class StoresTable {
                     + COL_STORE_REGIONAL_NAME + " text collate nocase default '', "
                     + COL_CHECKED + " integer default 0, "
                     + COL_DISPLAYED + " integer default 1, "
-                    + COL_MANUAL_SORT_ORDER + " integer default 0, "
+                    + COL_MANUAL_SORT_KEY + " integer default 0, "
+                    + COL_STORE_ITEMS_SORTING_ORDER + " integer default 0, "
                     + COL_COLOR_THEME_ID + " integer default 1, "
                     + COL_STREET1 + " text collate nocase default '', "
                     + COL_STREET2 + " text collate nocase default '', "
@@ -135,7 +139,7 @@ public class StoresTable {
                     if (newListUri != null) {
                         newStoreID = Long.parseLong(newListUri.getLastPathSegment());
                         cv = new ContentValues();
-                        cv.put(COL_MANUAL_SORT_ORDER, newStoreID);
+                        cv.put(COL_MANUAL_SORT_KEY, newStoreID);
                         cv.put(COL_COLOR_THEME_ID, getColorThemeID(newStoreID));
                         updateStoreFieldValues(context, newStoreID, cv);
                     }
@@ -334,7 +338,7 @@ public class StoresTable {
         return cursorLoader;
     }
 
-    public static String getStoreDisplayName(Context context, long storeID) {
+/*    public static String getStoreDisplayName(Context context, long storeID) {
         // TODO: Should getStoreDisplayName be placed in clsStoreValues?
         String displayName = "";
         Cursor cursor = getStoreCursor(context, storeID);
@@ -365,7 +369,7 @@ public class StoresTable {
             cursor.close();
         }
         return displayName;
-    }
+    }*/
 
     public static long getStoreChainID(Context context, long storeID) {
         return 0;
@@ -385,6 +389,18 @@ public class StoresTable {
     }
 
 
+    public static int getStoreItemsSortingOrder(Context context, long storeID) {
+        int itemsSortingOrder = -1;
+        Cursor cursor = getStoreCursor(context, storeID);
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            itemsSortingOrder = cursor.getInt(cursor.getColumnIndexOrThrow(COL_STORE_ITEMS_SORTING_ORDER));
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
+        return itemsSortingOrder;
+    }
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Update Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -399,6 +415,25 @@ public class StoresTable {
         } else {
             MyLog.e("StoresTable", "updateStoreFieldValues: Invalid itemID.");
         }
+        return numberOfUpdatedRecords;
+    }
+
+    public static int updateStoreItemsSortOrder(Context context, long storeID, int storeItemsSortingOrder) {
+        int numberOfUpdatedRecords = -1;
+        String selection = null;
+        String[] selectionArgs = null;
+        if (storeID > 0) {
+            selection = COL_STORE_ID + " = ?";
+            selectionArgs = new String[]{String.valueOf(storeID)};
+        }
+
+        ContentValues cv = new ContentValues();
+        cv.put(COL_STORE_ITEMS_SORTING_ORDER, storeItemsSortingOrder);
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        numberOfUpdatedRecords = cr.update(uri, cv, selection, selectionArgs);
+
         return numberOfUpdatedRecords;
     }
 

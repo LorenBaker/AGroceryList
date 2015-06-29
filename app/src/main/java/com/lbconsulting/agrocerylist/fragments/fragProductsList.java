@@ -27,7 +27,7 @@ import com.lbconsulting.agrocerylist.database.ProductsTable;
  */
 public class fragProductsList extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private static final int PRODUCTS = 1;
+
     private ListView lvProducts;
     private ProductsCursorAdapter mProductsCursorAdapter;
 
@@ -70,7 +70,7 @@ public class fragProductsList extends Fragment implements LoaderManager.LoaderCa
 
         mProductsCursorAdapter = new ProductsCursorAdapter(getActivity(), null, 0);
         lvProducts.setAdapter(mProductsCursorAdapter);
-        mLoaderManager.initLoader(PRODUCTS, null, mProductsCallbacks);
+        mLoaderManager.initLoader(MySettings.PRODUCTS_LOADER, null, mProductsCallbacks);
     }
 
     @Override
@@ -113,8 +113,8 @@ public class fragProductsList extends Fragment implements LoaderManager.LoaderCa
         CursorLoader cursorLoader = null;
         String sortOrder = ProductsTable.SORT_ORDER_TIME_STAMP;
         switch (id) {
-            case PRODUCTS:
-                MyLog.i("fragProductsList", "onCreateLoader. Loading PRODUCTS");
+            case MySettings.PRODUCTS_LOADER:
+                MyLog.i("fragProductsList", "onCreateLoader. Loading MySettings.PRODUCTS_LOADER");
                 cursorLoader = ProductsTable.getAllProductsCursorLoader(getActivity(), sortOrder);
                 break;
         }
@@ -126,8 +126,8 @@ public class fragProductsList extends Fragment implements LoaderManager.LoaderCa
     public void onLoadFinished(Loader<Cursor> loader, Cursor newCursor) {
 
         switch (loader.getId()) {
-            case PRODUCTS:
-                MyLog.i("fragProductsList", "onLoadFinished PRODUCTS");
+            case MySettings.PRODUCTS_LOADER:
+                MyLog.i("fragProductsList", "onLoadFinished MySettings.PRODUCTS_LOADER");
                 mProductsCursorAdapter.swapCursor(newCursor);
                 break;
         }
@@ -137,8 +137,8 @@ public class fragProductsList extends Fragment implements LoaderManager.LoaderCa
     public void onLoaderReset(Loader<Cursor> loader) {
 
         switch (loader.getId()) {
-            case PRODUCTS:
-                MyLog.i("fragProductsList", "onLoaderReset PRODUCTS");
+            case MySettings.PRODUCTS_LOADER:
+                MyLog.i("fragProductsList", "onLoaderReset MySettings.PRODUCTS_LOADER");
                 mProductsCursorAdapter.swapCursor(null);
                 break;
 
