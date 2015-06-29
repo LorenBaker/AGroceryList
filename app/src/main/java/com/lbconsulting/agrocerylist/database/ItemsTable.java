@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
@@ -43,6 +44,16 @@ public class ItemsTable {
             TABLE_ITEMS + "." + COL_STRUCK_OUT
     };
 
+    //SELECT tblSelectedItems._id, tblSelectedItems.storeID, tblSelectedItems.itemID,
+    //tblItems.itemName, tblItems.itemStruckOut
+    public static final String[] PROJECTION_STRUCK_OUT_STORE_ITEMS = {
+            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + "_id",
+            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_STORE_ID,
+            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_ITEM_ID,
+            TABLE_ITEMS + "." + COL_ITEM_NAME,
+            TABLE_ITEMS + "." + COL_STRUCK_OUT
+    };
+
     public static final String[] PROJECTION_WITH_GROUP_NAME = {
             TABLE_ITEMS + "." + COL_ITEM_ID,
             TABLE_ITEMS + "." + COL_ITEM_NAME,
@@ -75,6 +86,7 @@ public class ItemsTable {
 
     public static final String CONTENT_PATH = TABLE_ITEMS;
     public static final String CONTENT_PATH_STORE_ITEMS = "storeItems";
+    public static final String CONTENT_PATH_STRUCK_OUT_STORE_ITEMS = "struckOutStoreItems";
 
 /*    public static final String CONTENT_PATH_ITEMS_WITH_GROUPS = "itemsWithGroups";
     public static final String CONTENT_PATH_ITEMS_WITH_LOCATIONS = "itemsWithLocations";*/
@@ -85,7 +97,10 @@ public class ItemsTable {
             + TABLE_ITEMS;
 
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
-    public static final Uri CONTENT_URI_STORE_ITEMS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH_STORE_ITEMS);
+    public static final Uri CONTENT_URI_STORE_ITEMS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
+            + "/" + CONTENT_PATH_STORE_ITEMS);
+    public static final Uri CONTENT_URI_STRUCK_OUT_STORE_ITEMS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
+            + "/" + CONTENT_PATH_STRUCK_OUT_STORE_ITEMS);
 
 
 
@@ -174,7 +189,7 @@ public class ItemsTable {
         return newItemID;
     }
 
-    private static boolean itemExists(Context context, String itemName) {
+    public static boolean itemExists(Context context, String itemName) {
         mExistingItemID = -1;
         boolean result = false;
         Cursor cursor = getItemCursor(context, itemName);
@@ -573,4 +588,42 @@ public class ItemsTable {
     }
 
 
+    public static void removeStruckOffItems(Context context, long storeID) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI_STRUCK_OUT_STORE_ITEMS;
+        String[] projection = PROJECTION_STRUCK_OUT_STORE_ITEMS;
+
+        //  WHERE tblSelectedItems.storeID=2 AND tblItems.itemStruckOut =1
+        String selection = COL_STRUCK_OUT + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(1)};
+        if (storeID > 0) {
+            selection = selection + " AND "
+                    + SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_STORE_ID + " = ?";
+            selectionArgs = new String[]{String.valueOf(1), String.valueOf(storeID)};
+        }
+
+        aGroceryListContentProvider.setSuppressChangeNotification(true);
+        ContentResolver cr = context.getContentResolver();
+        String sortOrder = null;
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+            String cursorValues = DatabaseUtils.dumpCursorToString(cursor);
+
+            if (cursor != null && cursor.getCount() > 0) {
+                // now have all of the given store's struck out itemIDs
+
+                while (cursor.moveToNext()) {
+                    // delete the item from the selected items table
+                    // and remove the strikeout from the item
+                    long itemID = cursor.getLong(cursor.getColumnIndex(SelectedItemsTable.COL_ITEM_ID));
+                    SelectedItemsTable.removeItem(context, itemID);
+                    removeStrikeOut(context, itemID);
+                }
+            }
+        } catch (Exception e) {
+            MyLog.e("ItemsTable", "removeStruckOffItems: Exception: " + e.getMessage());
+        }finally {
+            aGroceryListContentProvider.setSuppressChangeNotification(false);
+        }
+    }
 }

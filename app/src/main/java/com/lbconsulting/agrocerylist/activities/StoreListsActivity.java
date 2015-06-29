@@ -255,7 +255,9 @@ public class StoreListsActivity extends Activity {
 
         switch (item.getItemId()) {
             case R.id.action_removeStruckOffItems:
-                Toast.makeText(this, "action_removeStruckOffItems", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "action_removeStruckOffItems", Toast.LENGTH_SHORT).show();
+                ItemsTable.removeStruckOffItems(this, mActiveStoreID);
+                EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
                 break;
 
             case R.id.action_addItem:
@@ -264,12 +266,13 @@ public class StoreListsActivity extends Activity {
                 break;
 
             case R.id.action_remove_all_items:
-                Toast.makeText(this, "action_remove_all_items", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "action_remove_all_items", Toast.LENGTH_SHORT).show();
+                SelectedItemsTable.removeAllStoreItems(this,mActiveStoreID);
+                EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
                 break;
 
             case R.id.action_show_sort_dialog:
                 showSortDialog();
-                // Toast.makeText(this, "action_show_sort_dialog", Toast.LENGTH_SHORT).show();
                 break;
 
             case R.id.action_new_store:

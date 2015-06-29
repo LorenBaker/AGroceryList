@@ -11,4 +11,7 @@
     <string name="key_word_title">"Key word: "</string>
     <string name="location_group_title">"Location group: "</string>
     <string name="dropbox_default_path">No Folder Selected</string>
+    <string name="txtItemName_hint">Item Name</string>
+    <string name="txtItemNote_hint">Note</string>
+    <string name="edit_item_dialog_title">Edit Item</string>
 </resources>

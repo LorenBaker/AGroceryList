@@ -54,6 +54,7 @@ public class aGroceryListContentProvider extends ContentProvider {
 
     private static final int STORES_WITH_CHAIN_NAMES = 2000;
     private static final int STORE_ITEMS = 2001;
+    private static final int STRUCK_OUT_STORE_ITEMS = 2002;
     //endregion
 
     //region UriMatcher
@@ -83,6 +84,7 @@ public class aGroceryListContentProvider extends ContentProvider {
 
         sURIMatcher.addURI(AUTHORITY, StoresTable.CONTENT_PATH_STORES_WITH_CHAIN_NAMES, STORES_WITH_CHAIN_NAMES);
         sURIMatcher.addURI(AUTHORITY, ItemsTable.CONTENT_PATH_STORE_ITEMS, STORE_ITEMS);
+        sURIMatcher.addURI(AUTHORITY, ItemsTable.CONTENT_PATH_STRUCK_OUT_STORE_ITEMS, STRUCK_OUT_STORE_ITEMS);
 
     }
     //endregion
@@ -216,6 +218,23 @@ public class aGroceryListContentProvider extends ContentProvider {
                 queryBuilder.setTables(tables);
                 break;
 
+            case STRUCK_OUT_STORE_ITEMS:
+/*              SELECT tblSelectedItems._id, tblSelectedItems.storeID, tblSelectedItems.itemID,
+                    tblItems.itemName, tblItems.itemStruckOut
+                FROM tblSelectedItems
+                JOIN tblItems
+                ON tblSelectedItems.itemID = tblItems._id
+                WHERE tblSelectedItems.storeID=2 AND tblItems.itemStruckOut =1
+                ORDER BY tblItems.itemName ASC*/
+
+                tables =  SelectedItemsTable.TABLE_SELECTED_ITEMS +
+                        " JOIN " + ItemsTable.TABLE_ITEMS
+                        + " ON "
+                        + SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_ITEM_ID + " = "
+                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_ID;
+                queryBuilder.setTables(tables);
+                break;
+
             default:
                 throw new IllegalArgumentException("Method query. Unknown URI: " + uri);
         }
@@ -270,6 +289,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         getContext().getContentResolver().notifyChange(ProductsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
                     }
                     return newRowUri;
                 }
@@ -292,6 +312,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
                     }
                     return newRowUri;
                 }
@@ -312,6 +333,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         getContext().getContentResolver().notifyChange(SelectedItemsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
                     }
                     return newRowUri;
                 }
@@ -332,6 +354,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         getContext().getContentResolver().notifyChange(StoreChainsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
                     }
                     return newRowUri;
                 }
@@ -353,6 +376,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
                     }
                     return newRowUri;
                 }
@@ -370,6 +394,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         getContext().getContentResolver().notifyChange(StoreItemLocationsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
                     }
                     return newRowUri;
                 }
@@ -519,6 +544,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             getContext().getContentResolver().notifyChange(uri, null);
             getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
             getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+            getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
         }
         return deleteCount;
     }
@@ -653,6 +679,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             getContext().getContentResolver().notifyChange(uri, null);
             getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
             getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+            getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
         }
         return updateCount;
     }

@@ -2,6 +2,7 @@ package com.lbconsulting.agrocerylist.fragments;
 
 
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.LoaderManager;
 import android.app.Service;
 import android.content.ContentValues;
@@ -35,7 +36,10 @@ import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
 import com.lbconsulting.agrocerylist.database.SelectedItemsTable;
+import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.database.aGroceryListContentProvider;
+import com.lbconsulting.agrocerylist.dialogs.dialogSortStoreList;
+import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
 
 import de.greenrobot.event.EventBus;
 
@@ -118,8 +122,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         lvItemsListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getActivity(), "TO COME: Edit Item.", Toast.LENGTH_SHORT).show();
-
+               showEditItemDialog(id);
                 return true;
             }
         });
@@ -174,6 +177,12 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         });
 
         return rootView;
+    }
+
+    private void showEditItemDialog(long itemID) {
+        FragmentManager fm = getFragmentManager();
+        dialog_edit_item dialog = dialog_edit_item.newInstance(itemID, getActivity().getString(R.string.edit_item_dialog_title));
+        dialog.show(fm, "dialog_edit_item");
     }
 
     private void addItemToActiveList() {

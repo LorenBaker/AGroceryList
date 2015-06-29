@@ -2,6 +2,7 @@ package com.lbconsulting.agrocerylist.fragments;
 
 
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Loader;
@@ -15,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -24,6 +26,7 @@ import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
+import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
 
 import de.greenrobot.event.EventBus;
 
@@ -89,6 +92,22 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
 
         tvStoreTitle = (TextView) rootView.findViewById(R.id.tvStoreTitle);
         lvStoreItems = (ListView) rootView.findViewById(R.id.lvStoreItems);
+        lvStoreItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                long itemID = (long)view.getTag();
+                ItemsTable.toggleStrikeOut(getActivity(), itemID);
+            }
+        });
+
+        lvStoreItems.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                long itemID = (long)view.getTag();
+                showEditItemDialog(itemID);
+                return true;
+            }
+        });
 
         return rootView;
     }
@@ -126,6 +145,12 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
         mLoaderManager.initLoader(MySettings.ITEMS_LOADER, null, mStoreListFragmentCallbacks);
 
         tvStoreTitle.setText(mDisplayName + ": color=" + mColorThemeID);
+    }
+
+    private void showEditItemDialog(long itemID) {
+        FragmentManager fm = getFragmentManager();
+        dialog_edit_item dialog = dialog_edit_item.newInstance(itemID, getActivity().getString(R.string.edit_item_dialog_title));
+        dialog.show(fm, "dialog_edit_item");
     }
 
     public void onEvent(MyEvents.restartLoader event) {
@@ -231,7 +256,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
         switch (loader.getId()) {
             case MySettings.ITEMS_LOADER:
                 MyLog.i("fragStoreList", "onLoadFinished: ITEMS_LOADER: storeID = " + mStoreID);
-                String result = DatabaseUtils.dumpCursorToString(newCursor);
+                //String result = DatabaseUtils.dumpCursorToString(newCursor);
                 mStoreListCursorAdapter.swapCursor(newCursor);
                 break;
         }

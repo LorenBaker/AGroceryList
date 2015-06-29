@@ -241,6 +241,18 @@ public class SelectedItemsTable {
     // Delete Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public static int removeSelectedItem(Context context, long selectedItemsID) {
+        int numberOfDeletedRecords = 0;
+
+        // delete the selected item
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = COL_SELECTED_ITEMS_ID + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(selectedItemsID)};
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+        return numberOfDeletedRecords;
+    }
+
     public static int removeSelectedItem(Context context, long storeID, long itemID) {
         int numberOfDeletedRecords = 0;
 
@@ -271,30 +283,40 @@ public class SelectedItemsTable {
         String selectionArgs[] = new String[]{String.valueOf(storeID)};
         String[] projection = {COL_ITEM_ID};
         String sortOrder = null;
+        Cursor cursor = null;
 
-        // get a cursor that contains all the itemIDs that are in the store
-        Cursor cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        aGroceryListContentProvider.setSuppressChangeNotification(true);
 
-        // delete all records with the provided storeID
-        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+        try {
+            // get a cursor that contains all the itemIDs that are in the store
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
 
-        // check if any of the items are still selected.
-        // if not set item as not selected
-        if (cursor != null && cursor.getCount() > 0) {
-            long itemID;
-            while (cursor.moveToNext()) {
-                itemID = cursor.getLong(cursor.getColumnIndex(COL_ITEM_ID));
-                boolean isSelected = isItemSelected(context, itemID);
-                if (!isSelected) {
-                    // set item as not selected
-                    setItemSelectedFlag(context, itemID);
-                    //ItemsTable.setItemSelectedValue(context, itemID, false);
+            // delete all records with the provided storeID
+            numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+
+            // check if any of the items are still selected.
+            // if not set item as not selected
+            if (cursor != null && cursor.getCount() > 0) {
+                long itemID;
+                while (cursor.moveToNext()) {
+                    itemID = cursor.getLong(cursor.getColumnIndex(COL_ITEM_ID));
+                    boolean isSelected = isItemSelected(context, itemID);
+                    if (!isSelected) {
+                        // set item as not selected
+                        setItemSelectedFlag(context, itemID);
+                    }
                 }
             }
+        } catch (Exception e) {
+            MyLog.e("SelectedItemsTable", "removeAllStoreItems: Exception: " + e.getMessage());
+
+        }finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            aGroceryListContentProvider.setSuppressChangeNotification(false);
         }
-        if (cursor != null) {
-            cursor.close();
-        }
+
         return numberOfDeletedRecords;
     }
 
@@ -314,6 +336,7 @@ public class SelectedItemsTable {
 
         return numberOfDeletedRecords;
     }
+
 
 
 }

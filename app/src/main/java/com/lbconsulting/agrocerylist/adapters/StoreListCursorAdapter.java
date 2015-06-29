@@ -2,6 +2,7 @@ package com.lbconsulting.agrocerylist.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,7 +59,19 @@ public class StoreListCursorAdapter extends CursorAdapter {
             itemName = itemName + " (" + itemNote + ")";
         }
         tvItemName.setText(itemName);
+        boolean isStruckOut = cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_STRUCK_OUT))>0;
 
+        if (isStruckOut) {
+            // item has been struck out
+            tvItemName.setTypeface(null, Typeface.ITALIC);
+            //tvItemName.setTextColor(this.mListSettings.getItemStrikeoutTextColor());
+            tvItemName.setPaintFlags(tvItemName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+        } else {
+            // item is NOT struck out
+            tvItemName.setTypeface(null, Typeface.NORMAL);
+            //tvItemName.setTextColor(this.mListSettings.getItemNormalTextColor());
+            tvItemName.setPaintFlags(tvItemName.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+        }
 
         // save the item's ID so it can be received later
         long itemID = cursor.getLong(cursor.getColumnIndex(SelectedItemsTable.COL_ITEM_ID));
