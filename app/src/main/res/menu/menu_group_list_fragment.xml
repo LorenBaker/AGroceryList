@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+
+    <item
+        android:id="@+id/action_deleteCheckedGroups"
+        android:icon="@drawable/ic_action_discard"
+        android:showAsAction="ifRoom"
+        android:title="Delete checked groups"
+        android:orderInCategory="15"/>
+
+    <item
+        android:id="@+id/action_addNewGroup"
+        android:icon="@drawable/ic_action_new"
+        android:showAsAction="ifRoom"
+        android:title="New store"
+        android:orderInCategory="20"/>
+
+    <item
+        android:id="@+id/action_clear_all_check_marks"
+        android:title="Clear check marks"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+
+
+</menu>

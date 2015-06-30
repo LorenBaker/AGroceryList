@@ -47,6 +47,9 @@ public class aGroceryListContentProvider extends ContentProvider {
     private static final int STORES_MULTI_ROWS = 50;
     private static final int STORES_SINGLE_ROW = 51;
 
+    private static final int GROUPS_MULTI_ROWS = 60;
+    private static final int GROUPS_SINGLE_ROW = 61;
+
 
     private static final int ITEM_LOCATIONS_MULTI_ROWS = 1000;
     private static final int ITEM_LOCATIONS_SINGLE_ROW = 1001;
@@ -77,6 +80,9 @@ public class aGroceryListContentProvider extends ContentProvider {
 
         sURIMatcher.addURI(AUTHORITY, StoresTable.CONTENT_PATH, STORES_MULTI_ROWS);
         sURIMatcher.addURI(AUTHORITY, StoresTable.CONTENT_PATH + "/#", STORES_SINGLE_ROW);
+
+        sURIMatcher.addURI(AUTHORITY, GroupsTable.CONTENT_PATH, GROUPS_MULTI_ROWS);
+        sURIMatcher.addURI(AUTHORITY, GroupsTable.CONTENT_PATH + "/#", GROUPS_SINGLE_ROW);
 
 
         sURIMatcher.addURI(AUTHORITY, StoreItemLocationsTable.CONTENT_PATH, ITEM_LOCATIONS_MULTI_ROWS);
@@ -170,6 +176,17 @@ public class aGroceryListContentProvider extends ContentProvider {
                 queryBuilder.setTables(StoresTable.TABLE_STORES);
                 checkColumnNames(projection, STORES_SINGLE_ROW);
                 queryBuilder.appendWhere(StoresTable.COL_STORE_ID + "=" + uri.getLastPathSegment());
+                break;
+
+            case GROUPS_MULTI_ROWS:
+                queryBuilder.setTables(GroupsTable.TABLE_GROUPS);
+                checkColumnNames(projection, GROUPS_MULTI_ROWS);
+                break;
+
+            case GROUPS_SINGLE_ROW:
+                queryBuilder.setTables(GroupsTable.TABLE_GROUPS);
+                checkColumnNames(projection, GROUPS_SINGLE_ROW);
+                queryBuilder.appendWhere(GroupsTable.COL_GROUP_ID + "=" + uri.getLastPathSegment());
                 break;
 
 
@@ -386,6 +403,27 @@ public class aGroceryListContentProvider extends ContentProvider {
                         "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
 
 
+
+            case GROUPS_MULTI_ROWS:
+                newRowId = db.insertOrThrow(GroupsTable.TABLE_GROUPS, nullColumnHack, values);
+                if (newRowId > 0) {
+                    // Construct and return the URI of the newly inserted row.
+                    Uri newRowUri = ContentUris.withAppendedId(GroupsTable.CONTENT_URI, newRowId);
+
+                    if (!mSuppressChangeNotification) {
+                        // Notify and observers of the change in the database.
+                        getContext().getContentResolver().notifyChange(GroupsTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+                    }
+                    return newRowUri;
+                }
+
+            case GROUPS_SINGLE_ROW:
+                throw new IllegalArgumentException(
+                        "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
+
             case ITEM_LOCATIONS_MULTI_ROWS:
                 newRowId = db.insertOrThrow(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS, nullColumnHack, values);
                 if (newRowId > 0) {
@@ -512,6 +550,25 @@ public class aGroceryListContentProvider extends ContentProvider {
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
                 deleteCount = db.delete(StoresTable.TABLE_STORES, selection, selectionArgs);
+                break;
+
+            case GROUPS_MULTI_ROWS:
+                // To return the number of deleted items you must specify a where clause.
+                // To delete all rows and return a value pass in "1".
+                if (selection == null) {
+                    selection = "1";
+                }
+                // Perform the deletion
+                deleteCount = db.delete(GroupsTable.TABLE_GROUPS, selection, selectionArgs);
+                break;
+
+            case GROUPS_SINGLE_ROW:
+                // Limit deletion to a single row
+                rowID = uri.getLastPathSegment();
+                selection = GroupsTable.COL_GROUP_ID + "=" + rowID
+                        + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
+                // Perform the deletion
+                deleteCount = db.delete(GroupsTable.TABLE_GROUPS, selection, selectionArgs);
                 break;
 
 
@@ -647,7 +704,23 @@ public class aGroceryListContentProvider extends ContentProvider {
                 updateCount = db.update(StoresTable.TABLE_STORES, values, selection, selectionArgs);
                 break;
 
+            case GROUPS_MULTI_ROWS:
+                updateCount = db.update(GroupsTable.TABLE_GROUPS, values, selection, selectionArgs);
 
+                break;
+
+            case GROUPS_SINGLE_ROW:
+                // Limit update to a single row
+                rowID = uri.getLastPathSegment();
+                if (selection == null) {
+                    selection = GroupsTable.COL_GROUP_ID + "=" + rowID;
+                } else {
+                    selection = GroupsTable.COL_GROUP_ID + "=" + rowID
+                            + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
+                }
+                // Perform the update
+            updateCount = db.update(GroupsTable.TABLE_GROUPS, values, selection, selectionArgs);
+                break;
 
 
 
@@ -712,6 +785,11 @@ public class aGroceryListContentProvider extends ContentProvider {
             case STORES_SINGLE_ROW:
                 return StoresTable.CONTENT_ITEM_TYPE;
 
+            case GROUPS_MULTI_ROWS:
+                return GroupsTable.CONTENT_TYPE;
+            case GROUPS_SINGLE_ROW:
+                return GroupsTable.CONTENT_ITEM_TYPE;
+
             case ITEM_LOCATIONS_MULTI_ROWS:
                 return StoreItemLocationsTable.CONTENT_TYPE;
             case ITEM_LOCATIONS_SINGLE_ROW:
@@ -752,6 +830,11 @@ public class aGroceryListContentProvider extends ContentProvider {
             case STORES_MULTI_ROWS:
             case STORES_SINGLE_ROW:
                 availableColumns = new HashSet<>(Arrays.asList(StoresTable.PROJECTION_ALL));
+                break;
+
+            case GROUPS_MULTI_ROWS:
+            case GROUPS_SINGLE_ROW:
+                availableColumns = new HashSet<>(Arrays.asList(GroupsTable.PROJECTION_ALL));
                 break;
 
 

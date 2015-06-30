@@ -16,9 +16,11 @@ public class MySettings {
     public static final int FRAG_MASTER_LIST = 3;
     public static final int FRAG_SET_GROUPS = 4;
     public static final int FRAG_CULL_ITEMS = 5;
+    public static final int FRAG_GROUPS_LIST = 6;
 
     public static final int ITEMS_LOADER = 1;
     public static final int PRODUCTS_LOADER = 2;
+    public static final int GROUPS_LOADER = 3;
 
     public static final int INITIAL_NUMBER_OF_AISLES = 10;
     public static final int NETWORK_WIFI_ONLY = 0;

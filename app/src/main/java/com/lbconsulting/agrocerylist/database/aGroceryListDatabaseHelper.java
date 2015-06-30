@@ -37,6 +37,7 @@ public class aGroceryListDatabaseHelper extends SQLiteOpenHelper {
         StoreChainsTable.onCreate(database);
         StoresTable.onCreate(database);
         StoreItemLocationsTable.onCreate(database);
+        GroupsTable.onCreate(database);
 
     }
 
@@ -49,6 +50,7 @@ public class aGroceryListDatabaseHelper extends SQLiteOpenHelper {
         StoreChainsTable.onUpgrade(database, oldVersion, newVersion);
         StoresTable.onUpgrade(database, oldVersion, newVersion);
         StoreItemLocationsTable.onUpgrade(database, oldVersion, newVersion);
+        GroupsTable.onUpgrade(database, oldVersion, newVersion);
     }
 
     public static boolean databaseExists() {

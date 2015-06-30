@@ -10,11 +10,8 @@ import android.widget.CheckBox;
 import android.widget.CursorAdapter;
 
 import com.lbconsulting.agrocerylist.R;
-import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
-
-import de.greenrobot.event.EventBus;
 
 
 /**
@@ -41,7 +38,7 @@ public class MasterListCursorAdapter extends CursorAdapter {
     @Override
     public View newView(final Context context, Cursor cursor, ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.row_master_list, parent, false);
+        View view = inflater.inflate(R.layout.row_items_list, parent, false);
         return view;
     }
 

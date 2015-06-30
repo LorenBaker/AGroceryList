@@ -456,7 +456,11 @@ public class ItemsTable {
         return numberOfCheckedItems;
     }
 
-
+    public static void putItemInGroup(Context context, long itemID, long groupID) {
+        ContentValues cv = new ContentValues();
+        cv.put(COL_GROUP_ID, groupID);
+        updateItemFieldValues(context, itemID, cv);
+    }
 /*
     public static void swapManualSortOrder(Context context, long mobileItemID, long switchItemID, long previousSwitchItemID) {
         int numberOfUpdatedRecords = -1;
@@ -622,8 +626,10 @@ public class ItemsTable {
             }
         } catch (Exception e) {
             MyLog.e("ItemsTable", "removeStruckOffItems: Exception: " + e.getMessage());
-        }finally {
+        } finally {
             aGroceryListContentProvider.setSuppressChangeNotification(false);
         }
     }
+
+
 }

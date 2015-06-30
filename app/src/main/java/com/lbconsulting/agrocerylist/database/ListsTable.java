@@ -172,7 +172,7 @@ public class ListsTable {
 				if (cursor != null && cursor.getCount() > 0) {
 					// listTitle already exists in the table
 					cursor.moveToFirst();
-					newListID = cursor.getLong(cursor.getColumnIndexOrThrow(COL_LIST_ID));
+					newListID = cursor.getLong(cursor.getColumnIndexOrThrow(COL_STORE_ID));
 					cursor.close();
 				} else {
 					// listTitle does not exists in the table ... so add it
@@ -253,7 +253,7 @@ public class ListsTable {
 	public static Cursor getAllLists(Context context) {
 		Uri uri = CONTENT_URI;
 		String[] projection = PROJECTION_ALL;
-		String selection = COL_LIST_ID + "> ?";
+		String selection = COL_STORE_ID + "> ?";
 		String[] selectionArgs = { String.valueOf(DEFAULT_LIST_PREFERENCES) }; // DEFAULT_LIST_PREFERENCES=1
 		String sortOrder = SORT_ORDER_LIST_TITLE;
 
@@ -270,8 +270,8 @@ public class ListsTable {
 	public static CursorLoader loadAllLists(Context context) {
 		CursorLoader cursorLoader = null;
 		Uri uri = CONTENT_URI;
-		String[] projection = { COL_LIST_ID, COL_LIST_TITLE };
-		String selection = COL_LIST_ID + "> ?";
+		String[] projection = { COL_STORE_ID, COL_LIST_TITLE };
+		String selection = COL_STORE_ID + "> ?";
 		String[] selectionArgs = { String.valueOf(DEFAULT_LIST_PREFERENCES) }; // DEFAULT_LIST_PREFERENCES=1
 		String sortOrder = SORT_ORDER_LIST_TITLE;
 		try {
@@ -294,8 +294,8 @@ public class ListsTable {
 	public static CursorLoader getMoveItemListSelection(Context context, long activeListID) {
 		CursorLoader cursorLoader = null;
 		Uri uri = CONTENT_URI;
-		String[] projection = { COL_LIST_ID, COL_LIST_TITLE };
-		String selection = COL_LIST_ID + "> ? AND " + COL_LIST_ID + " !=  ?";
+		String[] projection = { COL_STORE_ID, COL_LIST_TITLE };
+		String selection = COL_STORE_ID + "> ? AND " + COL_STORE_ID + " !=  ?";
 		String[] selectionArgs = { String.valueOf(DEFAULT_LIST_PREFERENCES), String.valueOf(activeListID) }; // DEFAULT_LIST_PREFERENCES=1
 		String sortOrder = SORT_ORDER_LIST_TITLE;
 		try {
@@ -331,7 +331,7 @@ public class ListsTable {
 	public static Cursor getDefaultListPreferencesCursor(Context context) {
 		Uri uri = CONTENT_URI;
 		String[] projection = PROJECTION_ALL;
-		String selection = COL_LIST_ID + "= ?";
+		String selection = COL_STORE_ID + "= ?";
 		String[] selectionArgs = { String.valueOf(DEFAULT_LIST_PREFERENCES) };
 		String sortOrder = SORT_ORDER_LIST_TITLE;
 
@@ -351,7 +351,7 @@ public class ListsTable {
 		Cursor allListsCursor = getAllLists(context);
 		if (allListsCursor != null && allListsCursor.getCount() > 0) {
 			allListsCursor.moveToFirst();
-			firstListID = allListsCursor.getLong(allListsCursor.getColumnIndexOrThrow(COL_LIST_ID));
+			firstListID = allListsCursor.getLong(allListsCursor.getColumnIndexOrThrow(COL_STORE_ID));
 			allListsCursor.close();
 		}
 		return firstListID;
@@ -656,19 +656,19 @@ public class ListsTable {
 	 * if (listTitlesCursor != null && listTitlesCursor.getCount() > 0) { long
 	 * id = -1; boolean foundID = false; do { id =
 	 * listTitlesCursor.getLong(listTitlesCursor
-	 * .getColumnIndexOrThrow(ListTitlesTable.COL_LIST_ID)); if (id ==
+	 * .getColumnIndexOrThrow(ListTitlesTable.COL_STORE_ID)); if (id ==
 	 * listTitleID) { foundID = true; break; } } while
 	 * (listTitlesCursor.moveToNext());
 	 * 
 	 * if (foundID) { if (listTitlesCursor.moveToNext()) { nextListTitleID =
 	 * listTitlesCursor.getLong(listTitlesCursor
-	 * .getColumnIndexOrThrow(ListTitlesTable.COL_LIST_ID));
+	 * .getColumnIndexOrThrow(ListTitlesTable.COL_STORE_ID));
 	 * 
 	 * } else if (listTitlesCursor.moveToPrevious() &&
 	 * listTitlesCursor.moveToPrevious()) {
 	 * 
 	 * nextListTitleID = listTitlesCursor.getLong(listTitlesCursor
-	 * .getColumnIndexOrThrow(ListTitlesTable.COL_LIST_ID)); } } } if
+	 * .getColumnIndexOrThrow(ListTitlesTable.COL_STORE_ID)); } } } if
 	 * (listTitlesCursor != null) { listTitlesCursor.close(); } return
 	 * nextListTitleID; }
 	 *//*
@@ -687,7 +687,7 @@ public class ListsTable {
 
 			ContentResolver cr = context.getContentResolver();
 			Uri uri = CONTENT_URI;
-			String where = COL_LIST_ID + " = ?";
+			String where = COL_STORE_ID + " = ?";
 			String[] selectionArgs = { String.valueOf(listID) };
 			numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
 		}

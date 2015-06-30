@@ -100,7 +100,7 @@ public class BridgeTable {
 		ContentResolver cr = context.getContentResolver();
 		Uri uri = CONTENT_URI;
 		ContentValues values = new ContentValues();
-		values.put(COL_LIST_ID, listID);
+		values.put(COL_STORE_ID, listID);
 		values.put(COL_STORE_ID, storeID);
 		values.put(COL_GROUP_ID, groupID);
 		try {
@@ -122,7 +122,7 @@ public class BridgeTable {
 		Cursor cursor = null;
 		Uri uri = CONTENT_URI;
 		String[] projection = PROJECTION_ALL;
-		String selection = COL_LIST_ID + " = ? AND " + COL_STORE_ID + " = ? AND " + COL_GROUP_ID + " = ?";
+		String selection = COL_STORE_ID + " = ? AND " + COL_STORE_ID + " = ? AND " + COL_GROUP_ID + " = ?";
 		String selectionArgs[] = new String[] { String.valueOf(listID), String.valueOf(storeID), String.valueOf(groupID) };
 		String sortOrder = null;
 		ContentResolver cr = context.getContentResolver();
@@ -170,7 +170,7 @@ public class BridgeTable {
 		if (listID > 1) {
 			Uri uri = CONTENT_URI;
 			String[] projection = new String[] { "DISTINCT " + COL_STORE_ID };
-			String selection = COL_LIST_ID + " = ?";
+			String selection = COL_STORE_ID + " = ?";
 			String selectionArgs[] = { String.valueOf(listID) };
 			String sortOrder = null;
 			ContentResolver cr = context.getContentResolver();
@@ -262,7 +262,7 @@ public class BridgeTable {
 		int numberOfDeletedRecords = -1;
 		if (listID > 1) {
 			Uri uri = CONTENT_URI;
-			String where = COL_LIST_ID + " = ?";
+			String where = COL_STORE_ID + " = ?";
 			String selectionArgs[] = new String[] { String.valueOf(listID) };
 			ContentResolver cr = context.getContentResolver();
 			numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);

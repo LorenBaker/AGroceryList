@@ -20,6 +20,7 @@ import com.lbconsulting.agrocerylist.barcodescanner.ScannerFragmentActivity;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
+import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
 import com.lbconsulting.agrocerylist.database.SelectedItemsTable;
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
@@ -102,14 +103,26 @@ public class StoreListsActivity extends Activity {
             ItemsTable.createNewItem(this, groceryItem);
         }
 
+        String[] groceryGroups = getResources().getStringArray(R.array.grocery_groups);
+        for (String groceryGroup : groceryGroups) {
+            GroupsTable.createNewGroup(this, groceryGroup);
+        }
+
+
+        long groupIndex = 1;
         long storeIndex = 1;
         long itemIndex = 1;
         for (String item : groceryItems) {
             SelectedItemsTable.addItemToStore(this, storeIndex, itemIndex);
+            ItemsTable.putItemInGroup(this, itemIndex, groupIndex);
             itemIndex++;
             storeIndex++;
             if (storeIndex > 18) {
                 storeIndex = 1;
+            }
+            groupIndex++;
+            if (groupIndex > groceryGroups.length) {
+                groupIndex = 1;
             }
         }
     }
@@ -267,7 +280,7 @@ public class StoreListsActivity extends Activity {
 
             case R.id.action_remove_all_items:
                 //Toast.makeText(this, "action_remove_all_items", Toast.LENGTH_SHORT).show();
-                SelectedItemsTable.removeAllStoreItems(this,mActiveStoreID);
+                SelectedItemsTable.removeAllStoreItems(this, mActiveStoreID);
                 EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
                 break;
 

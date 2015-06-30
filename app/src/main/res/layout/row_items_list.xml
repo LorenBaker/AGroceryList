@@ -16,13 +16,5 @@
         android:focusableInTouchMode="false"
         android:text="Item Name (Item Note)"/>
 
-<!--    <TextView
-        android:id="@+id/tvItemName"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"
-        android:textSize="17sp"
-        android:textColor="@color/white"/>
-        android:text="Item Name (Item Note)" />-->
 
 </LinearLayout>

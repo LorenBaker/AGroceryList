@@ -33,6 +33,20 @@
         <item>Yogurt</item>
     </string-array>
 
+    <string-array name="grocery_groups">
+        <item>Baking goods</item>
+        <item>Bread</item>
+        <item>Canned goods</item>
+        <item>Cereal</item>
+        <item>Condiments</item>
+        <item>Dairy</item>
+        <item>Frozen items</item>
+        <item>Meat/Seafood</item>
+        <item>Paper products</item>
+        <item>Produce</item>
+        <item>Spices</item>
+    </string-array>
+
     <string-array name="grocery_store_chains">
         <item>Albertsons</item>
         <item>Fred Meyer</item>
