@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="10dp"
-    android:background="@drawable/rec_genoa_no_stroke">
+    android:clickable="false"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingLeft="5dp"
+    android:paddingRight="5dp"
+    android:gravity="center_vertical">
 
-<!--    <CheckBox
-        android:id="@+id/ckBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="false"
-        android:textColor="@color/white"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:text="Item Name (Item Note)"/>-->
-
+    <include layout="@layout/row_items_separator" />
     <TextView
         android:id="@+id/tvItemName"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="17sp"
         android:textColor="@color/white"
+
+        android:gravity="center_vertical"
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="5dp"
         android:text="Item Name (Item Note)" />
 </LinearLayout>

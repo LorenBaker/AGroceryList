@@ -7,13 +7,9 @@ import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -26,6 +22,7 @@ import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
+import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
 
 import de.greenrobot.event.EventBus;
@@ -40,7 +37,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
     private static final String ARG_STORE_POSITION = "argStorePosition";
     private static final String ARG_DISPLAY_NAME = "argDisplayName";
     private static final String ARG_COLOR_THEME_ID = "argColorThemeID";
-    private static final String ARG_STORE_ITEMS_SORT_ORDER = "argStoreItemsSortOrder";
+    // private static final String ARG_STORE_ITEMS_SORT_ORDER = "argStoreItemsSortOrder";
 
 
     private LoaderManager.LoaderCallbacks<Cursor> mStoreListFragmentCallbacks;
@@ -54,14 +51,14 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
     private long mStoreID = -1;
     private String mDisplayName;
     private long mColorThemeID;
-    private int mStoreItemsSortOrder;
+    // private int mStoreItemsSortOrder;
     //private clsStoreValues mStoreValues;
 
     public fragStoreList() {
     }
 
     public static fragStoreList newInstance(int position, long storeID, String displayName,
-                                            long colorThemeID, int storeItemsSortOrder) {
+                                            long colorThemeID) {
         MyLog.i("fragStoreList", "newInstance: storeID = " + storeID);
         fragStoreList fragment = new fragStoreList();
         Bundle args = new Bundle();
@@ -69,7 +66,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
         args.putLong(ARG_STORE_ID, storeID);
         args.putString(ARG_DISPLAY_NAME, displayName);
         args.putLong(ARG_COLOR_THEME_ID, colorThemeID);
-        args.putInt(ARG_STORE_ITEMS_SORT_ORDER, storeItemsSortOrder);
+        //args.putInt(ARG_STORE_ITEMS_SORT_ORDER, storeItemsSortOrder);
         fragment.setArguments(args);
         return fragment;
     }
@@ -92,22 +89,20 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
 
         tvStoreTitle = (TextView) rootView.findViewById(R.id.tvStoreTitle);
         lvStoreItems = (ListView) rootView.findViewById(R.id.lvStoreItems);
-        lvStoreItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+/*        lvStoreItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                long itemID = (long)view.getTag();
-                ItemsTable.toggleStrikeOut(getActivity(), itemID);
+                ItemsTable.toggleStrikeOut(getActivity(), id);
             }
         });
 
         lvStoreItems.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                long itemID = (long)view.getTag();
-                showEditItemDialog(itemID);
+                showEditItemDialog(id);
                 return true;
             }
-        });
+        });*/
 
         return rootView;
     }
@@ -115,8 +110,6 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        MySettings.setActiveFragmentID(MySettings.HOME_FRAG_STORE_LIST);
-
         if (savedInstanceState == null) {
             Bundle args = getArguments();
             if (args.containsKey(ARG_STORE_ID)) {
@@ -124,7 +117,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
                 mStoreID = args.getLong(ARG_STORE_ID);
                 mDisplayName = args.getString(ARG_DISPLAY_NAME);
                 mColorThemeID = args.getLong(ARG_COLOR_THEME_ID);
-                mStoreItemsSortOrder = args.getInt(ARG_STORE_ITEMS_SORT_ORDER);
+                //mStoreItemsSortOrder = args.getInt(ARG_STORE_ITEMS_SORT_ORDER);
             }
 
         } else {
@@ -133,12 +126,12 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
                 mStoreID = savedInstanceState.getLong(ARG_STORE_ID);
                 mDisplayName = savedInstanceState.getString(ARG_DISPLAY_NAME);
                 mColorThemeID = savedInstanceState.getLong(ARG_COLOR_THEME_ID);
-                mStoreItemsSortOrder = savedInstanceState.getInt(ARG_STORE_ITEMS_SORT_ORDER);
+                //mStoreItemsSortOrder = savedInstanceState.getInt(ARG_STORE_ITEMS_SORT_ORDER);
             }
         }
         MyLog.i("fragStoreList", "onActivityCreated: storeID = " + mStoreID);
 
-        mStoreListCursorAdapter = new StoreListCursorAdapter(getActivity(), null, 0);
+        mStoreListCursorAdapter = new StoreListCursorAdapter(getActivity(), null, 0, mStoreID);
         lvStoreItems.setAdapter(mStoreListCursorAdapter);
         mLoaderManager = getLoaderManager();
         mStoreListFragmentCallbacks = this;
@@ -164,7 +157,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
         outState.putLong(ARG_STORE_ID, mStoreID);
         outState.putString(ARG_DISPLAY_NAME, mDisplayName);
         outState.putLong(ARG_COLOR_THEME_ID, mColorThemeID);
-        outState.putInt(ARG_STORE_ITEMS_SORT_ORDER, mStoreItemsSortOrder);
+        //outState.putInt(ARG_STORE_ITEMS_SORT_ORDER, mStoreItemsSortOrder);
         super.onSaveInstanceState(outState);
     }
 
@@ -204,18 +197,15 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
         CursorLoader cursorLoader = null;
         switch (id) {
             case MySettings.ITEMS_LOADER:
-                MyLog.i("fragStoreList", "onCreateLoader: ITEMS_LOADER: storeID = " + mStoreID);
+                int storeItemsSortOrder = StoresTable.getStoreItemsSortingOrder(getActivity(), mStoreID);
+                MyLog.i("fragStoreList", "onCreateLoader: ITEMS_LOADER: storeID = " + mStoreID + " sort order = " + storeItemsSortOrder);
                 String sortOrder;
-                boolean showAllSelectedItemsInStoreList = MySettings.showAllSelectedItemsInStoreList();
                 try {
-                    switch (mStoreItemsSortOrder) {
+                    switch (storeItemsSortOrder) {
                         case MySettings.SORT_ALPHABETICAL:
+                            mStoreListCursorAdapter.setStoreItemsSortingOrder(MySettings.SORT_ALPHABETICAL, mStoreID);
                             sortOrder = ItemsTable.SORT_ORDER_ITEM_NAME;
-                            if(showAllSelectedItemsInStoreList){
-                                cursorLoader = ItemsTable.getStoreItems(getActivity(), -1, sortOrder);
-                            }else{
-                                cursorLoader = ItemsTable.getStoreItems(getActivity(), mStoreID, sortOrder);
-                            }
+                            cursorLoader = ItemsTable.getAllSelectedItems(getActivity(), sortOrder);
                             break;
 
                         case MySettings.SORT_BY_AISLE:
@@ -224,8 +214,8 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
                             break;
 
                         case MySettings.SORT_BY_GROUP:
-                            //TODO: join query master list by group
-                            //cursorLoader = ItemsTable.getAllItemsInListWithGroups(getActivity(), mActiveListID, selection);
+                            mStoreListCursorAdapter.setStoreItemsSortingOrder(MySettings.SORT_BY_GROUP, mStoreID);
+                            cursorLoader = ItemsTable.getAllSelectedItemsByGroups(getActivity());
                             break;
 
                         case MySettings.SORT_MANUALLY:

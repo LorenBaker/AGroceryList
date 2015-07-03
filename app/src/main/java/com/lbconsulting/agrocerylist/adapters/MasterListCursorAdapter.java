@@ -1,5 +1,6 @@
 package com.lbconsulting.agrocerylist.adapters;
 
+import android.app.FragmentManager;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Typeface;
@@ -8,10 +9,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CursorAdapter;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import com.lbconsulting.agrocerylist.R;
+import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
+import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
+
+import de.greenrobot.event.EventBus;
 
 
 /**
@@ -48,6 +55,10 @@ public class MasterListCursorAdapter extends CursorAdapter {
             return;
         }
         CheckBox ckBox = (CheckBox) view.findViewById(R.id.ckBox);
+        ImageButton btnFavorite = (ImageButton) view.findViewById(R.id.btnFavorite);
+        if (ckBox == null || btnFavorite == null) {
+            return;
+        }
 
         // set the checkbox text to the item's name
         String itemName = cursor.getString(cursor.getColumnIndex(ItemsTable.COL_ITEM_NAME));
@@ -57,35 +68,54 @@ public class MasterListCursorAdapter extends CursorAdapter {
         }
         ckBox.setText(itemName);
 
-
-        // A check mark means the item is selected for the active store
-        int checkMarkValue = cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_CHECKED));
-        ckBox.setChecked(checkMarkValue > 0);
-
-
-        int selectedValue = cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_SELECTED));
-        switch (selectedValue){
-            case 0:
-                // white normal font means the item is not selected in any store
-                ckBox.setTextColor(context.getResources().getColor(R.color.white));
-                ckBox.setTypeface(null, Typeface.NORMAL);
-                break;
-
-            case 1:
-                // grey italic means the item is selected for only one store
-                ckBox.setTextColor(context.getResources().getColor(R.color.grey));
-                ckBox.setTypeface(null, Typeface.ITALIC);
-                break;
-            case 2:
-                // red italic means the item is selected for more than one store
-                ckBox.setTextColor(context.getResources().getColor(R.color.redDark));
-                ckBox.setTypeface(null, Typeface.ITALIC);
-                break;
+        boolean isSelected = cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_SELECTED)) > 0;
+        if (isSelected) {
+            ckBox.setTextColor(context.getResources().getColor(R.color.grey));
+            ckBox.setTypeface(null, Typeface.ITALIC);
+        } else {
+            ckBox.setTextColor(context.getResources().getColor(R.color.white));
+            ckBox.setTypeface(null, Typeface.NORMAL);
         }
+        ckBox.setChecked(isSelected);
+        ckBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinearLayout viewParent = (LinearLayout) v.getParent();
+                long itemID = (long) viewParent.getTag();
+                EventBus.getDefault().post(new MyEvents.toggleItemSelection(itemID));
+            }
+        });
+
+        ckBox.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                LinearLayout viewParent = (LinearLayout) v.getParent();
+                long itemID = (long) viewParent.getTag();
+                EventBus.getDefault().post(new MyEvents.showEditItemDialog(itemID));
+                return true;
+            }
+        });
+
+        boolean isFavorite = cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_FAVORITE)) > 0;
+        if (isFavorite) {
+            btnFavorite.setImageResource(R.drawable.ic_action_favorite_light);
+        } else {
+            btnFavorite.setImageResource(R.drawable.ic_action_favorite_dark);
+        }
+
+        btnFavorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinearLayout viewParent = (LinearLayout) v.getParent();
+                long itemID = (long) viewParent.getTag();
+                ItemsTable.toggleFavorite(mContext, itemID);
+            }
+        });
 
         // save the item's ID so it can be received later
         long itemID = cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_ITEM_ID));
         view.setTag(itemID);
+        //btnFavorite.setTag(itemID);
 
     }
 

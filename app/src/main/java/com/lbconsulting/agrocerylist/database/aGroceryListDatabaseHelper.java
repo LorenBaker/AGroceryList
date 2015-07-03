@@ -33,7 +33,6 @@ public class aGroceryListDatabaseHelper extends SQLiteOpenHelper {
         MyLog.i("aGroceryListDatabaseHelper", "onCreate");
         ProductsTable.onCreate(database);
         ItemsTable.onCreate(database);
-        SelectedItemsTable.onCreate(database);
         StoreChainsTable.onCreate(database);
         StoresTable.onCreate(database);
         StoreItemLocationsTable.onCreate(database);
@@ -46,7 +45,6 @@ public class aGroceryListDatabaseHelper extends SQLiteOpenHelper {
         MyLog.i("aGroceryListDatabaseHelper", "onUpgrade");
         ProductsTable.onUpgrade(database, oldVersion, newVersion);
         ItemsTable.onUpgrade(database, oldVersion, newVersion);
-        SelectedItemsTable.onUpgrade(database, oldVersion, newVersion);
         StoreChainsTable.onUpgrade(database, oldVersion, newVersion);
         StoresTable.onUpgrade(database, oldVersion, newVersion);
         StoreItemLocationsTable.onUpgrade(database, oldVersion, newVersion);

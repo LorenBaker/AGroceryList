@@ -26,7 +26,7 @@ public class MyEvents {
         final String mTitle;
         final String mMessage;
 
-        public showOkDialog( String title, String message) {
+        public showOkDialog(String title, String message) {
             mTitle = title;
             mMessage = message;
         }
@@ -43,7 +43,7 @@ public class MyEvents {
     public static class showToast {
         final String mMessage;
 
-        public showToast( String message) {
+        public showToast(String message) {
             mMessage = message;
         }
 
@@ -55,7 +55,7 @@ public class MyEvents {
     public static class onActiveStoreChange {
         long mActiveStoreID;
 
-        public onActiveStoreChange( long activeStoreID) {
+        public onActiveStoreChange(long activeStoreID) {
             mActiveStoreID = activeStoreID;
         }
 
@@ -66,15 +66,66 @@ public class MyEvents {
 
     public static class restartLoader {
         int mLoaderID;
+
         public restartLoader(int loaderID) {
             mLoaderID = loaderID;
         }
-        public int getLoaderID(){
+
+        public int getLoaderID() {
             return mLoaderID;
         }
     }
 
-    public static class onClick_masterListItem {
+    public static class showFragment {
+        int mFragmentID;
+
+        public showFragment(int fragmentID) {
+            mFragmentID = fragmentID;
+        }
+
+        public int getFragmentID() {
+            return mFragmentID;
+        }
+
+    }
+
+    public static class toggleItemSelection {
+        long mItemID;
+
+        public toggleItemSelection(long itemID) {
+            mItemID = itemID;
+        }
+
+        public long getItemID() {
+            return mItemID;
+        }
+    }
+
+    public static class showEditItemDialog {
+        long mItemID;
+
+        public showEditItemDialog(long itemID) {
+            mItemID = itemID;
+        }
+
+        public long getItemID() {
+            return mItemID;
+        }
+    }
+
+    public static class toggleItemStrikeOut {
+        long mItemID;
+
+        public toggleItemStrikeOut(long itemID) {
+            mItemID = itemID;
+        }
+
+        public long getItemID() {
+            return mItemID;
+        }
+    }
+
+/*    public static class onClick_masterListItem {
         long mItemID;
         public onClick_masterListItem(long itemID) {
             mItemID = itemID;
@@ -82,5 +133,5 @@ public class MyEvents {
         public long getItemID(){
             return mItemID;
         }
-    }
+    }*/
 }

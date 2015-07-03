@@ -1,11 +1,11 @@
 package com.lbconsulting.agrocerylist.database;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
@@ -25,71 +25,17 @@ public class ItemsTable {
     public static final String COL_SELECTED = "itemSelected";
     public static final String COL_STRUCK_OUT = "itemStruckOut";
     public static final String COL_CHECKED = "itemChecked";
+    public static final String COL_FAVORITE = "itemIsFavorite";
     public static final String COL_MANUAL_SORT_ORDER = "manualSortOrder";
-    public static final String COL_MANUAL_SORT_SWITCH = "manualSortSwitch";
     public static final String COL_DATE_TIME_LAST_USED = "dateTimeLastUsed";
 
     public static final String[] PROJECTION_ALL = {COL_ITEM_ID, COL_ITEM_NAME, COL_ITEM_NOTE,
-            COL_GROUP_ID, COL_SELECTED, COL_STRUCK_OUT, COL_CHECKED,
-            COL_MANUAL_SORT_ORDER, COL_MANUAL_SORT_SWITCH, COL_DATE_TIME_LAST_USED};
-
-    //tblSelectedItems._id, tblSelectedItems.itemID,
-    //tblItems.itemName, tblItems.itemNote, tblItems.groupID, tblItems.itemStruckOut
-    public static final String[] PROJECTION_STORE_ITEMS = {
-            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + "_id",
-            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_ITEM_ID,
-            TABLE_ITEMS + "." + COL_ITEM_NAME,
-            TABLE_ITEMS + "." + COL_ITEM_NOTE,
-            TABLE_ITEMS + "." + COL_GROUP_ID,
-            TABLE_ITEMS + "." + COL_STRUCK_OUT
-    };
-
-    //SELECT tblSelectedItems._id, tblSelectedItems.storeID, tblSelectedItems.itemID,
-    //tblItems.itemName, tblItems.itemStruckOut
-    public static final String[] PROJECTION_STRUCK_OUT_STORE_ITEMS = {
-            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + "_id",
-            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_STORE_ID,
-            SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_ITEM_ID,
-            TABLE_ITEMS + "." + COL_ITEM_NAME,
-            TABLE_ITEMS + "." + COL_STRUCK_OUT
-    };
-
-    public static final String[] PROJECTION_WITH_GROUP_NAME = {
-            TABLE_ITEMS + "." + COL_ITEM_ID,
-            TABLE_ITEMS + "." + COL_ITEM_NAME,
-            TABLE_ITEMS + "." + COL_ITEM_NOTE,
-            TABLE_ITEMS + "." + COL_GROUP_ID,
-            TABLE_ITEMS + "." + COL_SELECTED,
-            TABLE_ITEMS + "." + COL_STRUCK_OUT,
-            TABLE_ITEMS + "." + COL_CHECKED,
-            TABLE_ITEMS + "." + COL_MANUAL_SORT_ORDER,
-            TABLE_ITEMS + "." + COL_MANUAL_SORT_SWITCH,
-            GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_NAME};
-
-    public static final String[] PROJECTION_WITH_ITEM_NAME_AND_GROUP_NAME = {
-            TABLE_ITEMS + "." + COL_ITEM_ID,
-            TABLE_ITEMS + "." + COL_ITEM_NAME,
-            GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_NAME};
-
-    public static final String[] PROJECTION_WITH_LOCATION_NAME = {
-            TABLE_ITEMS + "." + COL_ITEM_ID,
-            TABLE_ITEMS + "." + COL_ITEM_NAME,
-            TABLE_ITEMS + "." + COL_ITEM_NOTE,
-            TABLE_ITEMS + "." + COL_GROUP_ID,
-            TABLE_ITEMS + "." + COL_SELECTED,
-            TABLE_ITEMS + "." + COL_STRUCK_OUT,
-            TABLE_ITEMS + "." + COL_CHECKED,
-            TABLE_ITEMS + "." + COL_MANUAL_SORT_ORDER,
-            TABLE_ITEMS + "." + COL_MANUAL_SORT_SWITCH,
-            BridgeTable.TABLE_BRIDGE + "." + BridgeTable.COL_LOCATION_ID,
-            LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_NAME};
+            COL_GROUP_ID, COL_SELECTED, COL_STRUCK_OUT, COL_CHECKED,COL_FAVORITE,
+            COL_MANUAL_SORT_ORDER, COL_DATE_TIME_LAST_USED};
 
     public static final String CONTENT_PATH = TABLE_ITEMS;
-    public static final String CONTENT_PATH_STORE_ITEMS = "storeItems";
-    public static final String CONTENT_PATH_STRUCK_OUT_STORE_ITEMS = "struckOutStoreItems";
-
-/*    public static final String CONTENT_PATH_ITEMS_WITH_GROUPS = "itemsWithGroups";
-    public static final String CONTENT_PATH_ITEMS_WITH_LOCATIONS = "itemsWithLocations";*/
+    public static final String CONTENT_PATH_ITEMS_WITH_GROUPS = "itemsWithGroups";
+    public static final String CONTENT_PATH_ITEMS_WITH_LOCATIONS = "itemsWithLocations";
 
     public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + "vnd.lbconsulting."
             + TABLE_ITEMS;
@@ -97,44 +43,36 @@ public class ItemsTable {
             + TABLE_ITEMS;
 
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
-    public static final Uri CONTENT_URI_STORE_ITEMS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
-            + "/" + CONTENT_PATH_STORE_ITEMS);
-    public static final Uri CONTENT_URI_STRUCK_OUT_STORE_ITEMS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
-            + "/" + CONTENT_PATH_STRUCK_OUT_STORE_ITEMS);
 
+    public static final Uri CONTENT_URI_ITEMS_WITH_GROUPS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
+            + "/" + CONTENT_PATH_ITEMS_WITH_GROUPS);
 
-
-/*    public static final Uri CONTENT_URI_ITEMS_WITH_LOCATIONS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
-            + "/" + CONTENT_PATH_ITEMS_WITH_LOCATIONS);*/
+    public static final Uri CONTENT_URI_ITEMS_WITH_LOCATIONS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
+            + "/" + CONTENT_PATH_ITEMS_WITH_LOCATIONS);
 
     public static final String SORT_ORDER_ITEM_NAME = COL_ITEM_NAME + " ASC";
     public static final String SORT_ORDER_LAST_USED = COL_DATE_TIME_LAST_USED + " DESC, " + SORT_ORDER_ITEM_NAME;
     public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_ORDER + " ASC";
 
-    // TODO: SORT by group name not id!
-    //public static final String SORT_ORDER_BY_GROUP = COL_GROUP_ID + " ASC, "+ SORT_ORDER_ITEM_NAME;
-
     public static final int FALSE = 0;
     public static final int TRUE = 1;
 
-    public static final int MANUAL_SORT_SWITCH_INVISIBLE = 0;
-    public static final int MANUAL_SORT_SWITCH_VISIBLE = 1;
-    public static final int MANUAL_SORT_SWITCH_ITEM_SWITCHED = 2;
-
     private static final long milliSecondsPerDay = 1000 * 60 * 60 * 24;
+
     // Database creation SQL statements
     private static final String CREATE_TABLE =
             "create table " + TABLE_ITEMS
                     + " ("
                     + COL_ITEM_ID + " integer primary key autoincrement, "
-                    + COL_ITEM_NAME + " text collate nocase, "
-                    + COL_ITEM_NOTE + " text collate nocase  default '', "
+                    + COL_ITEM_NAME + " text collate nocase default '', "
+                    + COL_ITEM_NOTE + " text collate nocase default '', "
                     + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default -1, "
+                   // + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + "  default 1, "
                     + COL_SELECTED + " integer default 0, "
                     + COL_STRUCK_OUT + " integer default 0, "
                     + COL_CHECKED + " integer default 0, "
+                    + COL_FAVORITE + " integer default 0, "
                     + COL_MANUAL_SORT_ORDER + " integer default -1, "
-                    + COL_MANUAL_SORT_SWITCH + " integer default 1, "
                     + COL_DATE_TIME_LAST_USED + " integer default 0"
                     + ");";
 
@@ -189,6 +127,24 @@ public class ItemsTable {
         return newItemID;
     }
 
+    public static void createNewItem(Context context, String itemName, String strGroupID) {
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ITEM_NAME, itemName);
+        int groupID = Integer.parseInt(strGroupID);
+        cv.put(COL_DATE_TIME_LAST_USED, System.currentTimeMillis());
+        cv.put(COL_GROUP_ID,groupID);
+
+        Uri newListUri = cr.insert(uri, cv);
+        if (newListUri != null) {
+            long newItemID = Long.parseLong(newListUri.getLastPathSegment());
+            cv = new ContentValues();
+            cv.put(COL_MANUAL_SORT_ORDER, newItemID);
+            updateItemFieldValues(context, newItemID, cv);
+        }
+
+    }
     public static boolean itemExists(Context context, String itemName) {
         mExistingItemID = -1;
         boolean result = false;
@@ -204,7 +160,7 @@ public class ItemsTable {
         return result;
     }
 
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Read Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static Cursor getItemCursor(Context context, long itemID) {
@@ -243,6 +199,36 @@ public class ItemsTable {
         return cursor;
     }
 
+    public static Cursor getAllSelectedItemsCursor(Context context, String sortOrder) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = COL_SELECTED + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("ItemsTable", "getAllSelectedItemsCursor: Exception: " + e.getMessage());
+        }
+        return cursor;
+    }
+
+    public static Cursor getAllStruckOutItemsCursor(Context context, String sortOrder) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = COL_STRUCK_OUT + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("ItemsTable", "getAllSelectedItemsCursor: Exception: " + e.getMessage());
+        }
+        return cursor;
+    }
+
     public static Cursor getAllCheckedItemsCursor(Context context) {
         Cursor cursor = null;
         Uri uri = CONTENT_URI;
@@ -272,49 +258,70 @@ public class ItemsTable {
         return cursorLoader;
     }
 
-    public static CursorLoader getStoreItems(Context context, long storeID, String sortOrder) {
+    public static CursorLoader getAllSelectedItems(Context context, String sortOrder) {
         CursorLoader cursorLoader = null;
-        Uri uri = CONTENT_URI_STORE_ITEMS;
-        String[] projection = PROJECTION_STORE_ITEMS;
-
-        String selection = null;
-        String selectionArgs[] = null;
-        if (storeID > 0) {
-            selection = SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_STORE_ID + " = ?";
-            selectionArgs = new String[]{String.valueOf(storeID)};
-        }
-
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = COL_SELECTED + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
         try {
             cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
         } catch (Exception e) {
-            MyLog.e("ItemsTable", "getStoreItems: Exception: " + e.getMessage());
+            MyLog.e("ItemsTable", "getAllSelectedItems: Exception: " + e.getMessage());
         }
         return cursorLoader;
     }
 
-/*    public static boolean isItemSwitched(Context context, long itemID) {
-        boolean result = false;
-        Cursor itemCursor = getItemCursor(context, itemID);
-        if (itemCursor != null) {
-            itemCursor.moveToFirst();
-            int switchValue = itemCursor.getInt(itemCursor.getColumnIndexOrThrow(COL_MANUAL_SORT_SWITCH));
-            result = switchValue > 1;
-            itemCursor.close();
+    public static Cursor getAllItemsByGroupsCursor(Context context) {
+        Cursor cursor = null;
+
+        Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS;
+        String[] projection = JoinedTables.PROJECTION_ITEMS_BY_GROUPS;
+        String selection = null;
+        String selectionArgs[] = null;
+        String sortOrder = JoinedTables.SORT_ORDER_ITEMS_BY_GROUP;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllItemsByGroupsCursor: Exception: " + e.getMessage());
         }
-        return result;
+        return cursor;
     }
 
-    public static boolean isItemVisible(Context context, long itemID) {
-        boolean result = false;
-        Cursor itemCursor = getItemCursor(context, itemID);
-        if (itemCursor != null) {
-            itemCursor.moveToFirst();
-            int switchValue = itemCursor.getInt(itemCursor.getColumnIndexOrThrow(COL_MANUAL_SORT_SWITCH));
-            result = switchValue > 0;
-            itemCursor.close();
+    public static CursorLoader getAllItemsByGroups(Context context) {
+        CursorLoader cursorLoader = null;
+
+        Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS;
+        String[] projection = JoinedTables.PROJECTION_ITEMS_BY_GROUPS;
+        String selection = null;
+        String selectionArgs[] = null;
+        String sortOrder = JoinedTables.SORT_ORDER_ITEMS_BY_GROUP;
+        try {
+            cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllItemsByGroups: Exception: " + e.getMessage());
         }
-        return result;
-    }*/
+
+        return cursorLoader;
+    }
+
+    public static CursorLoader getAllSelectedItemsByGroups(Context context) {
+        CursorLoader cursorLoader = null;
+
+        Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS;
+        String[] projection = JoinedTables.PROJECTION_ITEMS_BY_GROUPS;
+        String selection = COL_SELECTED + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
+        String sortOrder = JoinedTables.SORT_ORDER_ITEMS_BY_GROUP;
+        try {
+            cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllSelectedItemsByGroups: Exception: " + e.getMessage());
+        }
+
+        return cursorLoader;
+    }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update Methods
@@ -333,21 +340,63 @@ public class ItemsTable {
         return numberOfUpdatedRecords;
     }
 
-/*    public static void setItemInvisible(Context context, long itemID) {
-        ContentValues newFieldValues = new ContentValues();
-        newFieldValues.put(COL_MANUAL_SORT_SWITCH, MANUAL_SORT_SWITCH_INVISIBLE);
-        updateItemFieldValues(context, itemID, newFieldValues);
+    public static void setItemSelected(Context context, long itemID, boolean isSelected) {
+        int value = FALSE;
+        if (isSelected) {
+            value = TRUE;
+        }
+        ContentValues cv = new ContentValues();
+        cv.put(COL_SELECTED, value);
+        updateItemFieldValues(context, itemID, cv);
     }
 
-    public static void setItemVisible(Context context, long itemID) {
-        ContentValues newFieldValues = new ContentValues();
-        newFieldValues.put(COL_MANUAL_SORT_SWITCH, MANUAL_SORT_SWITCH_VISIBLE);
-        updateItemFieldValues(context, itemID, newFieldValues);
-    }*/
+    public static int deselectAllItems(Context context) {
+        int numberOfUpdatedRecords = -1;
 
-    public static void setItemSelectedValue(Context context, long itemID, int selectedValue) {
+        try {
+            ContentResolver cr = context.getContentResolver();
+            Uri uri = CONTENT_URI;
+            String selection = null;
+            String selectionArgs[] = null;
+            ContentValues newFieldValues = new ContentValues();
+            newFieldValues.put(COL_SELECTED, FALSE);
+            newFieldValues.put(COL_CHECKED, FALSE);
+            numberOfUpdatedRecords = cr.update(uri, newFieldValues, selection, selectionArgs);
+
+        } catch (Exception e) {
+            MyLog.e("ItemsTable", "deselectAllItems: Exception: " + e.getMessage());
+        }
+
+        return numberOfUpdatedRecords;
+    }
+
+    public static void toggleItemSelection(Context context, long itemID) {
+        Cursor cursor = getItemCursor(context, itemID);
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            int selectedValue = cursor.getInt(cursor.getColumnIndex(COL_SELECTED));
+            int newSelectedValue = FALSE;
+            if (selectedValue == FALSE) {
+                newSelectedValue = TRUE;
+            }
+            ContentValues cv = new ContentValues();
+            cv.put(COL_SELECTED, newSelectedValue);
+            cv.put(COL_CHECKED, newSelectedValue);
+            updateItemFieldValues(context, itemID, cv);
+
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
+    }
+
+    public static void setItemStruckOut(Context context, long itemID, boolean isStruckOut) {
+        int selectedValue = FALSE;
+        if (isStruckOut) {
+            selectedValue = TRUE;
+        }
         ContentValues cv = new ContentValues();
-        cv.put(COL_SELECTED, selectedValue);
+        cv.put(COL_STRUCK_OUT, selectedValue);
         updateItemFieldValues(context, itemID, cv);
     }
 
@@ -370,22 +419,44 @@ public class ItemsTable {
         }
     }
 
-    public static void removeStrikeOut(Context context, long itemID) {
+    public static void setItemFavorite(Context context, long itemID, boolean isFavorite) {
+        int value = FALSE;
+        if (isFavorite) {
+            value = TRUE;
+        }
+        ContentValues cv = new ContentValues();
+        cv.put(COL_FAVORITE, value);
+        updateItemFieldValues(context, itemID, cv);
+    }
 
+    public static void toggleFavorite(Context context, long itemID) {
         Cursor cursor = getItemCursor(context, itemID);
         if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
-            int strikeOutValue = cursor.getInt(cursor.getColumnIndex(COL_STRUCK_OUT));
-            int newStrikeOutValue = FALSE;
+            int isFavoriteValue = cursor.getInt(cursor.getColumnIndex(COL_FAVORITE));
+            int newIsFavoriteValue = FALSE;
+            if (isFavoriteValue == FALSE) {
+                newIsFavoriteValue = TRUE;
+            }
             ContentValues cv = new ContentValues();
-            cv.put(COL_STRUCK_OUT, newStrikeOutValue);
+            cv.put(COL_FAVORITE, newIsFavoriteValue);
             updateItemFieldValues(context, itemID, cv);
+
         }
         if (cursor != null) {
             cursor.close();
         }
     }
 
+    public static void setItemChecked(Context context, long itemID, boolean isChecked) {
+        int value = FALSE;
+        if (isChecked) {
+            value = TRUE;
+        }
+        ContentValues cv = new ContentValues();
+        cv.put(COL_CHECKED, value);
+        updateItemFieldValues(context, itemID, cv);
+    }
 
     public static void toggleCheckBox(Context context, long itemID) {
         Cursor cursor = getItemCursor(context, itemID);
@@ -403,17 +474,6 @@ public class ItemsTable {
         if (cursor != null) {
             cursor.close();
         }
-    }
-
-
-    public static void setCheckMark(Context context, long itemID, boolean isChecked) {
-        ContentValues cv = new ContentValues();
-        int newCheckedValue = 0;
-        if (isChecked) {
-            newCheckedValue = 1;
-        }
-        cv.put(COL_CHECKED, newCheckedValue);
-        updateItemFieldValues(context, itemID, cv);
     }
 
     public static int unCheckAllItems(Context context) {
@@ -460,6 +520,70 @@ public class ItemsTable {
         ContentValues cv = new ContentValues();
         cv.put(COL_GROUP_ID, groupID);
         updateItemFieldValues(context, itemID, cv);
+    }
+
+    public static int removeStruckOffItems(Context context) {
+        int numberOfUpdatedRecords = -1;
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = COL_STRUCK_OUT + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
+
+        ContentValues newFieldValues = new ContentValues();
+        newFieldValues.put(COL_STRUCK_OUT, FALSE);
+        newFieldValues.put(COL_SELECTED, FALSE);
+        numberOfUpdatedRecords = cr.update(uri, newFieldValues, selection, selectionArgs);
+
+        return numberOfUpdatedRecords;
+    }
+
+    public static int removeAllItems(Context context) {
+        int numberOfUpdatedRecords = -1;
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = COL_SELECTED + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
+
+        ContentValues newFieldValues = new ContentValues();
+        newFieldValues.put(COL_STRUCK_OUT, FALSE);
+        newFieldValues.put(COL_SELECTED, FALSE);
+        numberOfUpdatedRecords = cr.update(uri, newFieldValues, selection, selectionArgs);
+
+        return numberOfUpdatedRecords;
+    }
+
+    public static int addAllItems(Context context) {
+        int numberOfUpdatedRecords = -1;
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = null;
+        String selectionArgs[] = null;
+
+        ContentValues newFieldValues = new ContentValues();
+        newFieldValues.put(COL_SELECTED, TRUE);
+        newFieldValues.put(COL_CHECKED, TRUE);
+        numberOfUpdatedRecords = cr.update(uri, newFieldValues, selection, selectionArgs);
+
+        return numberOfUpdatedRecords;
+    }
+
+    public static int addAllFavoritesItems(Context context) {
+        int numberOfUpdatedRecords = -1;
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = COL_FAVORITE + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
+
+        ContentValues newFieldValues = new ContentValues();
+        newFieldValues.put(COL_SELECTED, TRUE);
+        newFieldValues.put(COL_CHECKED, TRUE);
+        numberOfUpdatedRecords = cr.update(uri, newFieldValues, selection, selectionArgs);
+
+        return numberOfUpdatedRecords;
     }
 /*
     public static void swapManualSortOrder(Context context, long mobileItemID, long switchItemID, long previousSwitchItemID) {
@@ -560,13 +684,11 @@ public class ItemsTable {
     public static int deleteItem(Context context, long itemID) {
         int numberOfDeletedRecords = 0;
         if (itemID > 0) {
-            numberOfDeletedRecords += SelectedItemsTable.removeItem(context, itemID);
-
             ContentResolver cr = context.getContentResolver();
             Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(itemID));
             String selection = null;
             String[] selectionArgs = null;
-            numberOfDeletedRecords += cr.delete(uri, selection, selectionArgs);
+            numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
         } else {
             MyLog.e("ItemsTable", "deleteItem: Invalid itemID");
         }
@@ -577,59 +699,15 @@ public class ItemsTable {
     public static int deleteAllCheckedItems(Context context) {
         int numberOfDeletedRecords = 0;
 
-        Cursor cursor = getAllCheckedItemsCursor(context);
-        long itemID;
-        if (cursor != null && cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                itemID = cursor.getLong(cursor.getColumnIndex(COL_ITEM_ID));
-                numberOfDeletedRecords += deleteItem(context, itemID);
-            }
-        }
-        if (cursor != null) {
-            cursor.close();
-        }
+        Uri uri = CONTENT_URI;
+        String selection = COL_CHECKED + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
+        ContentResolver cr = context.getContentResolver();
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+
         return numberOfDeletedRecords;
     }
 
-
-    public static void removeStruckOffItems(Context context, long storeID) {
-        Cursor cursor = null;
-        Uri uri = CONTENT_URI_STRUCK_OUT_STORE_ITEMS;
-        String[] projection = PROJECTION_STRUCK_OUT_STORE_ITEMS;
-
-        //  WHERE tblSelectedItems.storeID=2 AND tblItems.itemStruckOut =1
-        String selection = COL_STRUCK_OUT + " = ?";
-        String selectionArgs[] = new String[]{String.valueOf(1)};
-        if (storeID > 0) {
-            selection = selection + " AND "
-                    + SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_STORE_ID + " = ?";
-            selectionArgs = new String[]{String.valueOf(1), String.valueOf(storeID)};
-        }
-
-        aGroceryListContentProvider.setSuppressChangeNotification(true);
-        ContentResolver cr = context.getContentResolver();
-        String sortOrder = null;
-        try {
-            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
-            String cursorValues = DatabaseUtils.dumpCursorToString(cursor);
-
-            if (cursor != null && cursor.getCount() > 0) {
-                // now have all of the given store's struck out itemIDs
-
-                while (cursor.moveToNext()) {
-                    // delete the item from the selected items table
-                    // and remove the strikeout from the item
-                    long itemID = cursor.getLong(cursor.getColumnIndex(SelectedItemsTable.COL_ITEM_ID));
-                    SelectedItemsTable.removeItem(context, itemID);
-                    removeStrikeOut(context, itemID);
-                }
-            }
-        } catch (Exception e) {
-            MyLog.e("ItemsTable", "removeStruckOffItems: Exception: " + e.getMessage());
-        } finally {
-            aGroceryListContentProvider.setSuppressChangeNotification(false);
-        }
-    }
 
 
 }

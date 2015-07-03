@@ -16,17 +16,18 @@ import android.widget.Toast;
 
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.adapters.StoreListPagerAdapter;
-import com.lbconsulting.agrocerylist.barcodescanner.ScannerFragmentActivity;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
-import com.lbconsulting.agrocerylist.database.SelectedItemsTable;
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.database.aGroceryListDatabaseHelper;
-import com.lbconsulting.agrocerylist.dialogs.dialogSortStoreList;
+import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
+import com.lbconsulting.agrocerylist.dialogs.sortListDialog;
+
+import java.lang.reflect.Array;
 
 import de.greenrobot.event.EventBus;
 
@@ -41,8 +42,10 @@ public class StoreListsActivity extends Activity {
     private ViewPager mPager;
 
 
-    private long mActiveStoreID;
-
+    private static long mActiveStoreID;
+    public static long getActiveStoreID() {
+        return mActiveStoreID;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +58,7 @@ public class StoreListsActivity extends Activity {
         MySettings.setContext(this);
         EventBus.getDefault().register(this);
         mActionBar = getActionBar();
+        MySettings.setActiveFragmentID(MySettings.HOME_FRAG_STORE_LIST);
 
         if (savedInstanceState != null) {
             // set activity variables
@@ -98,33 +102,31 @@ public class StoreListsActivity extends Activity {
         StoresTable.createNewStore(this, 9, "Bellevue");
         StoresTable.createNewStore(this, 9, "Redmond");
 
-        String[] groceryItems = getResources().getStringArray(R.array.grocery_items);
-        for (String groceryItem : groceryItems) {
-            ItemsTable.createNewItem(this, groceryItem);
-        }
-
         String[] groceryGroups = getResources().getStringArray(R.array.grocery_groups);
         for (String groceryGroup : groceryGroups) {
             GroupsTable.createNewGroup(this, groceryGroup);
         }
 
+        String[] groceryItems = getResources().getStringArray(R.array.grocery_items);
+        for (String groceryItem : groceryItems) {
+            String[] item = groceryItem.split(", ");
+            String itemName = item[0];
+            String groupID=item[1];
+            ItemsTable.createNewItem(this, itemName, groupID);
+        }
 
+
+/*
         long groupIndex = 1;
-        long storeIndex = 1;
         long itemIndex = 1;
         for (String item : groceryItems) {
-            SelectedItemsTable.addItemToStore(this, storeIndex, itemIndex);
             ItemsTable.putItemInGroup(this, itemIndex, groupIndex);
             itemIndex++;
-            storeIndex++;
-            if (storeIndex > 18) {
-                storeIndex = 1;
-            }
             groupIndex++;
             if (groupIndex > groceryGroups.length) {
                 groupIndex = 1;
             }
-        }
+        }*/
     }
 
     @Override
@@ -135,6 +137,19 @@ public class StoreListsActivity extends Activity {
         outState.putLong(MySettings.SETTING_ACTIVE_STORE_ID, mActiveStoreID);
     }
 
+    public void onEvent(MyEvents.toggleItemStrikeOut event) {
+        ItemsTable.toggleStrikeOut(this,event.getItemID());
+    }
+
+    public void onEvent(MyEvents.showEditItemDialog event) {
+        showEditItemDialog(event.getItemID());
+    }
+
+    private void showEditItemDialog(long itemID) {
+        FragmentManager fm = getFragmentManager();
+        dialog_edit_item dialog = dialog_edit_item.newInstance(itemID, getString(R.string.edit_item_dialog_title));
+        dialog.show(fm, "dialog_edit_item");
+    }
     //region onEvents
     public void onEvent(MyEvents.setActionBarTitle event) {
         setActionBarTitle(event.getTitle());
@@ -149,10 +164,7 @@ public class StoreListsActivity extends Activity {
     }
     //endregion
 
-    public void launchScannerActivity() {
-        Intent intent = new Intent(this, ScannerFragmentActivity.class);
-        startActivity(intent);
-    }
+
 
     private void showFragment(int fragmentID) {
 
@@ -207,9 +219,8 @@ public class StoreListsActivity extends Activity {
 
     private void showSortDialog() {
         FragmentManager fm = getFragmentManager();
-        dialogSortStoreList dialog = dialogSortStoreList.newInstance(mActiveStoreID,
-                StoresTable.getStoreItemsSortingOrder(this, mActiveStoreID));
-        dialog.show(fm, "dialog_sort_store_list");
+        sortListDialog dialog = sortListDialog.newInstance(MySettings.HOME_FRAG_STORE_LIST);
+        dialog.show(fm, "dialog_sort_list");
     }
 
 
@@ -269,8 +280,8 @@ public class StoreListsActivity extends Activity {
         switch (item.getItemId()) {
             case R.id.action_removeStruckOffItems:
                 //Toast.makeText(this, "action_removeStruckOffItems", Toast.LENGTH_SHORT).show();
-                ItemsTable.removeStruckOffItems(this, mActiveStoreID);
-                EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
+                ItemsTable.removeStruckOffItems(this);
+                //EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
                 break;
 
             case R.id.action_addItem:
@@ -280,8 +291,8 @@ public class StoreListsActivity extends Activity {
 
             case R.id.action_remove_all_items:
                 //Toast.makeText(this, "action_remove_all_items", Toast.LENGTH_SHORT).show();
-                SelectedItemsTable.removeAllStoreItems(this, mActiveStoreID);
-                EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
+                ItemsTable.removeAllItems(this);
+                //EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
                 break;
 
             case R.id.action_show_sort_dialog:
@@ -294,18 +305,6 @@ public class StoreListsActivity extends Activity {
 
             case R.id.action_edit_store:
                 Toast.makeText(this, "action_edit_store", Toast.LENGTH_SHORT).show();
-                break;
-
-            case R.id.action_set_store_favorites:
-                Toast.makeText(this, "action_set_store_favorites", Toast.LENGTH_SHORT).show();
-                break;
-
-            case R.id.action_scan_barcodes:
-                launchScannerActivity();
-                break;
-
-            case R.id.action_show_products:
-                showFragment(MySettings.FRAG_PRODUCTS_LIST);
                 break;
 
             case R.id.action_settings:

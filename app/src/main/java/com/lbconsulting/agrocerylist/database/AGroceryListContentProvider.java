@@ -38,9 +38,6 @@ public class aGroceryListContentProvider extends ContentProvider {
     private static final int ITEMS_MULTI_ROWS = 20;
     private static final int ITEMS_SINGLE_ROW = 21;
 
-    private static final int SELECTED_ITEMS_MULTI_ROWS = 30;
-    private static final int SELECTED_ITEMS_SINGLE_ROW = 31;
-
     private static final int STORE_CHAINS_MULTI_ROWS = 40;
     private static final int STORE_CHAINS_SINGLE_ROW = 41;
 
@@ -56,8 +53,8 @@ public class aGroceryListContentProvider extends ContentProvider {
 
 
     private static final int STORES_WITH_CHAIN_NAMES = 2000;
-    private static final int STORE_ITEMS = 2001;
-    private static final int STRUCK_OUT_STORE_ITEMS = 2002;
+    private static final int ITEMS_BY_GROUPS = 2001;
+
     //endregion
 
     //region UriMatcher
@@ -72,9 +69,6 @@ public class aGroceryListContentProvider extends ContentProvider {
         sURIMatcher.addURI(AUTHORITY, ItemsTable.CONTENT_PATH, ITEMS_MULTI_ROWS);
         sURIMatcher.addURI(AUTHORITY, ItemsTable.CONTENT_PATH + "/#", ITEMS_SINGLE_ROW);
 
-        sURIMatcher.addURI(AUTHORITY, SelectedItemsTable.CONTENT_PATH, SELECTED_ITEMS_MULTI_ROWS);
-        sURIMatcher.addURI(AUTHORITY, SelectedItemsTable.CONTENT_PATH + "/#", SELECTED_ITEMS_SINGLE_ROW);
-
         sURIMatcher.addURI(AUTHORITY, StoreChainsTable.CONTENT_PATH, STORE_CHAINS_MULTI_ROWS);
         sURIMatcher.addURI(AUTHORITY, StoreChainsTable.CONTENT_PATH + "/#", STORE_CHAINS_SINGLE_ROW);
 
@@ -88,9 +82,9 @@ public class aGroceryListContentProvider extends ContentProvider {
         sURIMatcher.addURI(AUTHORITY, StoreItemLocationsTable.CONTENT_PATH, ITEM_LOCATIONS_MULTI_ROWS);
         sURIMatcher.addURI(AUTHORITY, StoreItemLocationsTable.CONTENT_PATH + "/#", ITEM_LOCATIONS_SINGLE_ROW);
 
-        sURIMatcher.addURI(AUTHORITY, StoresTable.CONTENT_PATH_STORES_WITH_CHAIN_NAMES, STORES_WITH_CHAIN_NAMES);
-        sURIMatcher.addURI(AUTHORITY, ItemsTable.CONTENT_PATH_STORE_ITEMS, STORE_ITEMS);
-        sURIMatcher.addURI(AUTHORITY, ItemsTable.CONTENT_PATH_STRUCK_OUT_STORE_ITEMS, STRUCK_OUT_STORE_ITEMS);
+        sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_STORES_WITH_CHAIN_NAMES, STORES_WITH_CHAIN_NAMES);
+        sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_ITEMS_BY_GROUPS, ITEMS_BY_GROUPS);
+
 
     }
     //endregion
@@ -143,18 +137,6 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
 
-            case SELECTED_ITEMS_MULTI_ROWS:
-                queryBuilder.setTables(SelectedItemsTable.TABLE_SELECTED_ITEMS);
-                checkColumnNames(projection, SELECTED_ITEMS_MULTI_ROWS);
-                break;
-
-            case SELECTED_ITEMS_SINGLE_ROW:
-                queryBuilder.setTables(SelectedItemsTable.TABLE_SELECTED_ITEMS);
-                checkColumnNames(projection, SELECTED_ITEMS_SINGLE_ROW);
-                queryBuilder.appendWhere(SelectedItemsTable.COL_SELECTED_ITEMS_ID + "=" + uri.getLastPathSegment());
-                break;
-
-
             case STORE_CHAINS_MULTI_ROWS:
                 queryBuilder.setTables(StoreChainsTable.TABLE_STORE_CHAINS);
                 checkColumnNames(projection, STORE_CHAINS_MULTI_ROWS);
@@ -202,11 +184,11 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
             case STORES_WITH_CHAIN_NAMES:
-/*              SELECT tblStores._id, tblStores.storeRegionalName, tblStoreChains.storeChainName
-                FROM tblStores
-                JOIN tblStoreChains
-                ON tblStores.storeChainID = tblStoreChains._id
-                ORDER BY storeChainName ASC, storeRegionalName ASC  */
+/*          SELECT tblStores._id, tblStores.storeRegionalName, tblStoreChains.storeChainName
+            FROM tblStores
+            JOIN tblStoreChains
+            ON tblStores.storeChainID = tblStoreChains._id
+            ORDER BY storeChainName ASC, storeRegionalName ASC  */
 
                 String tables =  StoresTable.TABLE_STORES +
                         " JOIN " + StoreChainsTable.TABLE_STORE_CHAINS
@@ -216,39 +198,15 @@ public class aGroceryListContentProvider extends ContentProvider {
                 queryBuilder.setTables(tables);
                 break;
 
-            case STORE_ITEMS:
-/*              SELECT tblSelectedItems._id, tblSelectedItems.itemID,
-                    tblItems.itemName, tblItems.itemNote, tblItems.groupID, tblItems.itemStruckOut
-                FROM tblSelectedItems
-                JOIN tblItems
-                ON tblSelectedItems.itemID = tblItems._id
-                WHERE tblSelectedItems.storeID =2
-                ORDER BY tblItems.itemName ASC*/
-                // GROUP BY clause is used in collaboration with the SELECT statement to arrange identical data into groups.
-                // In this case, it fetches unique itemIDs
-                groupBy = SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_ITEM_ID;
-                tables =  SelectedItemsTable.TABLE_SELECTED_ITEMS +
-                        " JOIN " + ItemsTable.TABLE_ITEMS
+            case ITEMS_BY_GROUPS:
+    /*      SELECT tblItems._id, groupName, itemName, itemNote, groupID, itemSelected, itemStruckOut, itemChecked
+            FROM tblItems JOIN tblGroups
+            ON (tblItems.groupID = tblGroups._id)
+            ORDER BY groupName, itemName*/
+                tables =  ItemsTable.TABLE_ITEMS + " JOIN " + GroupsTable.TABLE_GROUPS
                         + " ON "
-                        + SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_ITEM_ID + " = "
-                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_ID;
-                queryBuilder.setTables(tables);
-                break;
-
-            case STRUCK_OUT_STORE_ITEMS:
-/*              SELECT tblSelectedItems._id, tblSelectedItems.storeID, tblSelectedItems.itemID,
-                    tblItems.itemName, tblItems.itemStruckOut
-                FROM tblSelectedItems
-                JOIN tblItems
-                ON tblSelectedItems.itemID = tblItems._id
-                WHERE tblSelectedItems.storeID=2 AND tblItems.itemStruckOut =1
-                ORDER BY tblItems.itemName ASC*/
-
-                tables =  SelectedItemsTable.TABLE_SELECTED_ITEMS +
-                        " JOIN " + ItemsTable.TABLE_ITEMS
-                        + " ON "
-                        + SelectedItemsTable.TABLE_SELECTED_ITEMS + "." + SelectedItemsTable.COL_ITEM_ID + " = "
-                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_ID;
+                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID + " = "
+                        + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_ID;
                 queryBuilder.setTables(tables);
                 break;
 
@@ -304,9 +262,9 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ProductsTable.CONTENT_URI, null);
-                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+/*                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);*/
                     }
                     return newRowUri;
                 }
@@ -327,35 +285,13 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI, null);
-                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
                     }
                     return newRowUri;
                 }
 
             case ITEMS_SINGLE_ROW:
-                throw new IllegalArgumentException(
-                        "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
-
-
-            case SELECTED_ITEMS_MULTI_ROWS:
-                newRowId = db.insertOrThrow(SelectedItemsTable.TABLE_SELECTED_ITEMS, nullColumnHack, values);
-                if (newRowId > 0) {
-                    // Construct and return the URI of the newly inserted row.
-                    Uri newRowUri = ContentUris.withAppendedId(SelectedItemsTable.CONTENT_URI, newRowId);
-
-                    if (!mSuppressChangeNotification) {
-                        // Notify and observers of the change in the database.
-                        getContext().getContentResolver().notifyChange(SelectedItemsTable.CONTENT_URI, null);
-                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
-                    }
-                    return newRowUri;
-                }
-
-            case SELECTED_ITEMS_SINGLE_ROW:
                 throw new IllegalArgumentException(
                         "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
 
@@ -369,9 +305,9 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(StoreChainsTable.CONTENT_URI, null);
-                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+/*                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);*/
                     }
                     return newRowUri;
                 }
@@ -391,9 +327,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI, null);
-                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                     }
                     return newRowUri;
                 }
@@ -413,9 +347,8 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(GroupsTable.CONTENT_URI, null);
-                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -430,9 +363,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                     Uri newRowUri = ContentUris.withAppendedId(StoreItemLocationsTable.CONTENT_URI, newRowId);
                     if (!mSuppressChangeNotification) {
                         getContext().getContentResolver().notifyChange(StoreItemLocationsTable.CONTENT_URI, null);
-                        getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                     }
                     return newRowUri;
                 }
@@ -493,25 +424,6 @@ public class aGroceryListContentProvider extends ContentProvider {
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
                 deleteCount = db.delete(ItemsTable.TABLE_ITEMS, selection, selectionArgs);
-                break;
-
-            case SELECTED_ITEMS_MULTI_ROWS:
-                // To return the number of deleted items you must specify a where clause.
-                // To delete all rows and return a value pass in "1".
-                if (selection == null) {
-                    selection = "1";
-                }
-                // Perform the deletion
-                deleteCount = db.delete(SelectedItemsTable.TABLE_SELECTED_ITEMS, selection, selectionArgs);
-                break;
-
-            case SELECTED_ITEMS_SINGLE_ROW:
-                // Limit deletion to a single row
-                rowID = uri.getLastPathSegment();
-                selection = SelectedItemsTable.COL_SELECTED_ITEMS_ID + "=" + rowID
-                        + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
-                // Perform the deletion
-                deleteCount = db.delete(SelectedItemsTable.TABLE_SELECTED_ITEMS, selection, selectionArgs);
                 break;
 
             case STORE_CHAINS_MULTI_ROWS:
@@ -599,9 +511,8 @@ public class aGroceryListContentProvider extends ContentProvider {
         if (!mSuppressChangeNotification) {
             // Notify and observers of the change in the database.
             getContext().getContentResolver().notifyChange(uri, null);
-            getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-            getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-            getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+            getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+            getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
         }
         return deleteCount;
     }
@@ -651,23 +562,6 @@ public class aGroceryListContentProvider extends ContentProvider {
                 }
                 // Perform the update
                 updateCount = db.update(ItemsTable.TABLE_ITEMS, values, selection, selectionArgs);
-                break;
-
-            case SELECTED_ITEMS_MULTI_ROWS:
-                updateCount = db.update(SelectedItemsTable.TABLE_SELECTED_ITEMS, values, selection, selectionArgs);
-                break;
-
-            case SELECTED_ITEMS_SINGLE_ROW:
-                // Limit update to a single row
-                rowID = uri.getLastPathSegment();
-                if (selection == null) {
-                    selection = SelectedItemsTable.COL_SELECTED_ITEMS_ID + "=" + rowID;
-                } else {
-                    selection = SelectedItemsTable.COL_SELECTED_ITEMS_ID + "=" + rowID
-                            + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
-                }
-                // Perform the update
-                updateCount = db.update(SelectedItemsTable.TABLE_SELECTED_ITEMS, values, selection, selectionArgs);
                 break;
 
             case STORE_CHAINS_MULTI_ROWS:
@@ -723,9 +617,6 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
 
-
-
-
             case ITEM_LOCATIONS_MULTI_ROWS:
                 updateCount = db.update(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS, values, selection, selectionArgs);
                 break;
@@ -750,9 +641,8 @@ public class aGroceryListContentProvider extends ContentProvider {
         if (!mSuppressChangeNotification) {
             // Notify any observers of the change in the database.
             getContext().getContentResolver().notifyChange(uri, null);
-            getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-            getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-            getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);
+            getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+            getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
         }
         return updateCount;
     }
@@ -769,11 +659,6 @@ public class aGroceryListContentProvider extends ContentProvider {
                 return ItemsTable.CONTENT_TYPE;
             case ITEMS_SINGLE_ROW:
                 return ItemsTable.CONTENT_ITEM_TYPE;
-
-            case SELECTED_ITEMS_MULTI_ROWS:
-                return SelectedItemsTable.CONTENT_TYPE;
-            case SELECTED_ITEMS_SINGLE_ROW:
-                return SelectedItemsTable.CONTENT_ITEM_TYPE;
 
             case STORE_CHAINS_MULTI_ROWS:
                 return StoreChainsTable.CONTENT_TYPE;
@@ -814,12 +699,6 @@ public class aGroceryListContentProvider extends ContentProvider {
             case ITEMS_SINGLE_ROW:
                 availableColumns = new HashSet<>(Arrays.asList(ItemsTable.PROJECTION_ALL));
                 break;
-
-            case SELECTED_ITEMS_MULTI_ROWS:
-            case SELECTED_ITEMS_SINGLE_ROW:
-                availableColumns = new HashSet<>(Arrays.asList(SelectedItemsTable.PROJECTION_ALL));
-                break;
-
 
             case STORE_CHAINS_MULTI_ROWS:
             case STORE_CHAINS_SINGLE_ROW:

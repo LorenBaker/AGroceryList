@@ -28,7 +28,7 @@ import com.lbconsulting.agrocerylist.database.ProductsTable;
 
 
 /**
- * A placeholder fragment containing a simple view.
+ * A fragment that shows the apps Groups.
  */
 public class fragGroupsList extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 

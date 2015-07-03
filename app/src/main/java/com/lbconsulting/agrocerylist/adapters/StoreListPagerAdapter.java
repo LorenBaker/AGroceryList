@@ -8,6 +8,7 @@ import android.support.v13.app.FragmentStatePagerAdapter;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
+import com.lbconsulting.agrocerylist.database.JoinedTables;
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.fragments.fragStoreList;
@@ -24,7 +25,7 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
     private long mStoreID;
     private String mDisplayName;
     private long mColorThemeID;
-    private int mStoreItemsSortOrder;
+    //private int mStoreItemsSortOrder;
 
     public StoreListPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
@@ -37,7 +38,7 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
         getFragmentArgs(position);
         MyLog.d("StoreListPagerAdapter", "getItem:  position=" + position + "; storeID=" + mStoreID);
         Fragment newStoreListFragment = fragStoreList.newInstance(position, mStoreID, mDisplayName,
-                mColorThemeID, mStoreItemsSortOrder);
+                mColorThemeID);
         return newStoreListFragment;
     }
 
@@ -45,7 +46,7 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
         mStoreID = -1;
         mDisplayName = "";
         mColorThemeID = -1;
-        mStoreItemsSortOrder = 0;
+        //mStoreItemsSortOrder = 0;
         try {
             mAllStoresCursor.moveToPosition(position);
             mStoreID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_STORE_ID));
@@ -56,7 +57,7 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
 
             mColorThemeID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_COLOR_THEME_ID));
 
-            mStoreItemsSortOrder = mAllStoresCursor.getInt(mAllStoresCursor.getColumnIndex(StoresTable.COL_STORE_ITEMS_SORTING_ORDER));
+            //mStoreItemsSortOrder = mAllStoresCursor.getInt(mAllStoresCursor.getColumnIndex(StoresTable.COL_STORE_ITEMS_SORTING_ORDER));
 
         } catch (Exception e) {
             MyLog.e("StoreListPagerAdapter", "getFragmentArgs: Exception: " + e.getMessage());
@@ -82,7 +83,7 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
 
     private Cursor setAllStoresCursor() {
         mCount = 0;
-        String sortOrder = StoresTable.SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME;
+        String sortOrder = JoinedTables.SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME;
         switch (MySettings.getStoreSortingOrder()) {
             case MySettings.SORT_MANUALLY:
                 sortOrder = StoresTable.SORT_ORDER_MANUAL;

@@ -31,23 +31,35 @@
             android:text="By Group" />
 
         <RadioButton
+            android:id="@+id/rbFavoritesFirst"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Favorites first" />
+
+        <RadioButton
+            android:id="@+id/rbLastUsed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Last used" />
+
+        <RadioButton
             android:id="@+id/rbManual"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Manual" />
+
+        <RadioButton
+            android:id="@+id/rbSelectedFirst"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Selected first" />
     </RadioGroup>
-    
-    <CheckBox
-        android:id="@+id/ckShowAllSelectedItemsInStoreList"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/view_vertical_margin"
-        android:text="Show all selected items in store list"/>
 
     <CheckBox
         android:id="@+id/ckApplyToAllStores"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Apply to all stores"/>
+        android:layout_marginTop="10dp"
+        android:text="Apply to all stores" />
 
 </LinearLayout>

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 
 import com.lbconsulting.agrocerylist.database.ItemsTable;
-import com.lbconsulting.agrocerylist.database.SelectedItemsTable;
 
 /**
  * This class holds Store information from the database
@@ -189,20 +188,6 @@ public class clsItemValues {
         cv.put(ItemsTable.COL_MANUAL_SORT_ORDER, manualSortOrder);
     }
 
-    public int getManualSortSwitch() {
-        int result = -1;
-        if (hasData()) {
-            result = mItemCursor.getInt(mItemCursor.getColumnIndex(ItemsTable.COL_MANUAL_SORT_SWITCH));
-        }
-        return result;
-    }
-
-    public void putManualSortSwitch(int manualSortSwitch) {
-        if (cv.containsKey(ItemsTable.COL_MANUAL_SORT_SWITCH)) {
-            cv.remove(ItemsTable.COL_MANUAL_SORT_SWITCH);
-        }
-        cv.put(ItemsTable.COL_MANUAL_SORT_SWITCH, manualSortSwitch);
-    }
 
     public void update() {
         if (cv.size() > 0) {

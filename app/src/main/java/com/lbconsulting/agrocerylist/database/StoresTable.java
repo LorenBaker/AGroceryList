@@ -38,19 +38,7 @@ public class StoresTable {
             COL_GPS_LATITUDE, COL_GPS_LONGITUDE, COL_WEBSITE_URL, COL_PHONE_NUMBER
     };
 
-    //tblStores._id, tblStores.storeRegionalName, tblStoreChains.storeChainName
-    private static final String[] PROJECTION_STORES_WITH_CHAIN_NAMES = {
-            TABLE_STORES + "." + COL_STORE_ID,
-            TABLE_STORES + "." + COL_STORE_REGIONAL_NAME,
-            TABLE_STORES + "." + COL_MANUAL_SORT_KEY,
-            TABLE_STORES + "." + COL_STORE_ITEMS_SORTING_ORDER,
-            TABLE_STORES + "." + COL_COLOR_THEME_ID,
-            StoreChainsTable.TABLE_STORE_CHAINS + "." + StoreChainsTable.COL_STORE_CHAIN_NAME};
-
     public static final String CONTENT_PATH = TABLE_STORES;
-    public static final String CONTENT_PATH_STORES_WITH_CHAIN_NAMES = "storesWithChainNames";
-
-    //public static final String CONTENT_LIST_WITH_GROUP = "listWithGroup";
 
     public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
             + "vnd.lbconsulting." + TABLE_STORES;
@@ -58,32 +46,20 @@ public class StoresTable {
             + "vnd.lbconsulting." + TABLE_STORES;
 
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
-    public static final Uri CONTENT_URI_STORES_WITH_CHAIN_NAMES = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
-            + "/" + CONTENT_PATH_STORES_WITH_CHAIN_NAMES);
-    /*public static final Uri LIST_WITH_group_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/"
-            + CONTENT_LIST_WITH_GROUP);*/
-
-    // Version 1
-    // TODO: Sort by store chain name then store name
-    public static final String SORT_ORDER_STORE_REGIONAL_NAME = COL_STORE_REGIONAL_NAME + " ASC";
-
-    //storeChainName ASC, storeRegionalName ASC
-    public static final String SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME =
-            StoreChainsTable.COL_STORE_CHAIN_NAME + " ASC, " + COL_STORE_REGIONAL_NAME + " ASC";
 
     public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_KEY + " ASC";
-
-
     public static final String SORT_ORDER_CITY = COL_CITY + " ASC";
     public static final String SORT_ORDER_STATE = COL_STATE + " ASC";
     public static final String SORT_ORDER_ZIP = COL_ZIP + " ASC";
 
+    // TODO: add references to Theme Table
     // Database creation SQL statements
     private static final String CREATE_TABLE =
             "create table " + TABLE_STORES
                     + " ("
                     + COL_STORE_ID + " integer primary key autoincrement, "
-                    + COL_STORE_CHAIN_ID + " integer default -1, "
+                    //+ COL_STORE_CHAIN_ID + " integer default -1, "
+                    + COL_STORE_CHAIN_ID + " integer not null references " + StoreChainsTable.TABLE_STORE_CHAINS + "  default -1, "
                     + COL_STORE_REGIONAL_NAME + " text collate nocase default '', "
                     + COL_CHECKED + " integer default 0, "
                     + COL_DISPLAYED + " integer default 1, "
@@ -148,22 +124,6 @@ public class StoresTable {
                 }
 
             }
-            // Fill the bridge table with default location
-            // TODO: Fill the bridge table with default location
-/*            if (newStoreID > 0) {
-                Cursor groupsCursor = GroupsTable.getAllGroupIDsInList(context, listID);
-                if (groupsCursor != null) {
-                    if (groupsCursor.getCount() > 0) {
-                        groupsCursor.moveToPosition(-1);
-                        long groupID = -1;
-                        while (groupsCursor.moveToNext()) {
-                            groupID = groupsCursor.getLong(groupsCursor.getColumnIndexOrThrow(GroupsTable.COL_GROUP_ID));
-                            BridgeTable.CreateNewBridgeRow(context, listID, newStoreID, groupID, 1);
-                        }
-                    }
-                    groupsCursor.close();
-                }
-            }*/
         }
         return newStoreID;
     }
@@ -307,8 +267,8 @@ public class StoresTable {
     public static Cursor getAllStoresWithChainNames(Context context, String sortOrder) {
         Cursor cursor = null;
 
-        Uri uri = CONTENT_URI_STORES_WITH_CHAIN_NAMES;
-        String[] projection = PROJECTION_STORES_WITH_CHAIN_NAMES;
+        Uri uri = JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES;
+        String[] projection = JoinedTables.PROJECTION_STORES_WITH_CHAIN_NAMES;
         String selection = null;
         String selectionArgs[] = null;
         ContentResolver cr = context.getContentResolver();
@@ -324,11 +284,11 @@ public class StoresTable {
     public static CursorLoader getAllStoresWithChainNames(Context context) {
         CursorLoader cursorLoader = null;
 
-        Uri uri = CONTENT_URI_STORES_WITH_CHAIN_NAMES;
-        String[] projection = PROJECTION_STORES_WITH_CHAIN_NAMES;
+        Uri uri = JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES;
+        String[] projection = JoinedTables.PROJECTION_STORES_WITH_CHAIN_NAMES;
         String selection = null;
         String selectionArgs[] = null;
-        String sortOrder = SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME;
+        String sortOrder = JoinedTables.SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME;
         try {
             cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
         } catch (Exception e) {
@@ -337,39 +297,6 @@ public class StoresTable {
 
         return cursorLoader;
     }
-
-/*    public static String getStoreDisplayName(Context context, long storeID) {
-        // TODO: Should getStoreDisplayName be placed in clsStoreValues?
-        String displayName = "";
-        Cursor cursor = getStoreCursor(context, storeID);
-
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            StringBuilder sb = new StringBuilder();
-
-            long storeChainID = cursor.getLong(cursor.getColumnIndex(COL_STORE_CHAIN_ID));
-            sb.append(StoreChainsTable.getStoreChainName(context, storeChainID));
-            sb.append(" - ");
-
-            sb.append(cursor.getString(cursor.getColumnIndexOrThrow(COL_STORE_REGIONAL_NAME)));
-            String city = cursor.getString(cursor.getColumnIndexOrThrow(COL_CITY));
-            if (city != null && !city.isEmpty()) {
-                sb.append(", ");
-                sb.append(city);
-            }
-            String state = cursor.getString(cursor.getColumnIndexOrThrow(COL_STATE));
-            if (state != null && !state.isEmpty()) {
-                sb.append(", ");
-                sb.append(state);
-            }
-            displayName = sb.toString();
-        }
-
-        if (cursor != null) {
-            cursor.close();
-        }
-        return displayName;
-    }*/
 
     public static long getStoreChainID(Context context, long storeID) {
         return 0;
@@ -391,16 +318,19 @@ public class StoresTable {
 
     public static int getStoreItemsSortingOrder(Context context, long storeID) {
         int itemsSortingOrder = -1;
-        Cursor cursor = getStoreCursor(context, storeID);
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            itemsSortingOrder = cursor.getInt(cursor.getColumnIndexOrThrow(COL_STORE_ITEMS_SORTING_ORDER));
-        }
-        if (cursor != null) {
-            cursor.close();
+        if (storeID > 0) {
+            Cursor cursor = getStoreCursor(context, storeID);
+            if (cursor != null && cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                itemsSortingOrder = cursor.getInt(cursor.getColumnIndexOrThrow(COL_STORE_ITEMS_SORTING_ORDER));
+            }
+            if (cursor != null) {
+                cursor.close();
+            }
         }
         return itemsSortingOrder;
     }
+
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Update Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -444,9 +374,6 @@ public class StoresTable {
 
     public static int deleteStore(Context context, long storeID) {
         int numberOfDeletedRecords;
-
-        // reset all the items that use the storeID
-        SelectedItemsTable.removeAllStoreItems(context, storeID);
 
         // delete the store
         ContentResolver cr = context.getContentResolver();

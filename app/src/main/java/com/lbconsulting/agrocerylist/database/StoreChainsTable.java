@@ -195,20 +195,20 @@ public class StoreChainsTable {
         int numberOfDeletedRecords = -1;
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;
-        String where = COL_STORE_CHAIN_ID + " = ?";
+        String selection = COL_STORE_CHAIN_ID + " = ?";
         String[] selectionArgs = {String.valueOf(storeChainID)};
-        numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
         return numberOfDeletedRecords;
     }
 
-    public static int deleteCheckedStoreChains(Context context) {
+    public static int deleteAllCheckedStoreChains(Context context) {
         int numberOfDeletedRecords = -1;
 
         Uri uri = CONTENT_URI;
-        String where = COL_CHECKED + " = ?";
+        String selection = COL_CHECKED + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(1)};
         ContentResolver cr = context.getContentResolver();
-        numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
 
         return numberOfDeletedRecords;
     }

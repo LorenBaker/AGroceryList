@@ -14,4 +14,5 @@
     <string name="txtItemName_hint">Item Name</string>
     <string name="txtItemNote_hint">Note</string>
     <string name="edit_item_dialog_title">Edit Item</string>
+    <string name="sortListDialog_title">Sort List</string>
 </resources>

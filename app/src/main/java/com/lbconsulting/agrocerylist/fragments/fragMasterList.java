@@ -22,7 +22,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -31,14 +30,12 @@ import android.widget.Toast;
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.activities.StoreListsActivity;
 import com.lbconsulting.agrocerylist.adapters.MasterListCursorAdapter;
+import com.lbconsulting.agrocerylist.barcodescanner.ScannerFragmentActivity;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
-import com.lbconsulting.agrocerylist.database.SelectedItemsTable;
-import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.database.aGroceryListContentProvider;
-import com.lbconsulting.agrocerylist.dialogs.dialogSortStoreList;
 import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
 
 import de.greenrobot.event.EventBus;
@@ -50,12 +47,8 @@ import de.greenrobot.event.EventBus;
 public class fragMasterList extends Fragment implements View.OnClickListener,
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    private static final String ARG_STORE_ID = "argStoreID";
-
     private EditText txtItemName;
     private EditText txtItemNote;
-    private Button btnAddToMasterList;
-    private Button btnClearEditText;
     private ListView lvItemsListView;
 
 
@@ -64,20 +57,13 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
     private MasterListCursorAdapter mMasterListCursorAdapter;
     private LoaderManager mLoaderManager = null;
 
-
-    private long mActiveStoreID = -1;
-
     private boolean okToRestartItemsLoader = true;
 
     public fragMasterList() {
     }
 
-    public static fragMasterList newInstance(long storeID) {
-        fragMasterList fragment = new fragMasterList();
-        Bundle args = new Bundle();
-        args.putLong(ARG_STORE_ID, storeID);
-        fragment.setArguments(args);
-        return fragment;
+    public static fragMasterList newInstance() {
+        return new fragMasterList();
     }
 
 
@@ -86,6 +72,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         MyLog.i("fragMasterList", "onCreate");
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
+
         setHasOptionsMenu(true);
     }
 
@@ -101,8 +88,8 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         txtItemName = (EditText) rootView.findViewById(R.id.txtItemName);
 
         txtItemNote = (EditText) rootView.findViewById(R.id.txtItemNote);
-        btnAddToMasterList = (Button) rootView.findViewById(R.id.btnAddToMasterList);
-        btnClearEditText = (Button) rootView.findViewById(R.id.btnClearEditText);
+        Button btnAddToMasterList = (Button) rootView.findViewById(R.id.btnAddToMasterList);
+        Button btnClearEditText = (Button) rootView.findViewById(R.id.btnClearEditText);
 
         btnAddToMasterList.setOnClickListener(this);
         btnClearEditText.setOnClickListener(this);
@@ -110,24 +97,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         lvItemsListView = (ListView) rootView.findViewById(R.id.lvItemsListView);
         lvItemsListView.setItemsCanFocus(true);
 
-        lvItemsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long itemID) {
-                SelectedItemsTable.toggleSelection(getActivity(), mActiveStoreID, itemID);
-                txtItemName.setText("");
-                txtItemNote.setText("");
-            }
-        });
-
-        lvItemsListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-               showEditItemDialog(id);
-                return true;
-            }
-        });
         mMasterListFragmentCallbacks = this;
-
 
         // setup txtItemName Listeners
         txtItemName.setOnKeyListener(new View.OnKeyListener() {
@@ -138,7 +108,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
                         && (keyCode == KeyEvent.KEYCODE_ENTER ||
                         keyCode == KeyEvent.FLAG_EDITOR_ACTION ||
                         keyCode == KeyEvent.KEYCODE_DPAD_CENTER)) {
-                    addItemToActiveList();
+                    addItemToMasterList();
                     result = true;
                 }
                 return result;
@@ -149,8 +119,6 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
             // filter master list as the user inputs text
             @Override
             public void afterTextChanged(Editable s) {
-/*                MyLog.i("fragMasterList", "afterTextChanged; txtItemName.afterTextChanged -- "
-                        + txtItemName.getText().toString());*/
                 if (okToRestartItemsLoader) {
                     mLoaderManager.restartLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
                 } else {
@@ -160,23 +128,26 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-/*                MyLog.i("MasterListFragment", "onActivityCreated; txtItemName.beforeTextChanged -- "
-                        + txtItemName.getText().toString());*/
                 // Do nothing
-
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-/*                MyLog.i("MasterListFragment", "onActivityCreated; txtItemName.onTextChanged -- "
-                        + txtItemName.getText().toString());*/
                 // Do nothing
-
             }
-
         });
 
         return rootView;
+    }
+
+    public void onEvent(MyEvents.toggleItemSelection event) {
+        ItemsTable.toggleItemSelection(getActivity(), event.getItemID());
+        txtItemName.setText("");
+        txtItemNote.setText("");
+    }
+
+    public void onEvent(MyEvents.showEditItemDialog event) {
+        showEditItemDialog(event.getItemID());
     }
 
     private void showEditItemDialog(long itemID) {
@@ -185,12 +156,10 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         dialog.show(fm, "dialog_edit_item");
     }
 
-    private void addItemToActiveList() {
+    private void addItemToMasterList() {
         String newItemName = txtItemName.getText().toString().trim();
         if (!newItemName.isEmpty()) {
             long newItemID = ItemsTable.createNewItem(getActivity(), newItemName);
-            SelectedItemsTable.addItemToStore(getActivity(), mActiveStoreID, newItemID);
-
             String newItemNote = txtItemNote.getText().toString().trim();
             ContentValues newFieldValues = new ContentValues();
             newFieldValues.put(ItemsTable.COL_ITEM_NOTE, newItemNote);
@@ -212,7 +181,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         super.onActivityCreated(savedInstanceState);
         MyLog.i("fragMasterList", "onActivityCreated");
 
-        if (savedInstanceState == null) {
+/*        if (savedInstanceState == null) {
             Bundle args = getArguments();
             if (args.containsKey(ARG_STORE_ID)) {
                 mActiveStoreID = args.getLong(ARG_STORE_ID);
@@ -222,7 +191,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
             if (savedInstanceState.containsKey(ARG_STORE_ID)) {
                 mActiveStoreID = savedInstanceState.getLong(ARG_STORE_ID);
             }
-        }
+        }*/
 
         MySettings.setActiveFragmentID(MySettings.FRAG_MASTER_LIST);
         if (getActivity().getActionBar() != null) {
@@ -236,42 +205,10 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
     }
 
-    private void checkStoreSelectedItems() {
-        aGroceryListContentProvider.setSuppressChangeNotification(true);
-        ItemsTable.unCheckAllItems(getActivity());
-        Cursor cursor = SelectedItemsTable.getAllItemsSelectedInStoreCursor(getActivity(), mActiveStoreID);
-       /* String cursorContent = DatabaseUtils.dumpCursorToString(cursor);
-        MyLog.i("clsItemValues: \n", cursorContent);*/
-        long itemID;
-        if (cursor != null && cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                itemID = cursor.getLong(cursor.getColumnIndex(SelectedItemsTable.COL_ITEM_ID));
-                ItemsTable.setCheckMark(getActivity(), itemID, true);
-            }
-        }
-
-        if (cursor != null) {
-            cursor.close();
-        }
-        aGroceryListContentProvider.setSuppressChangeNotification(false);
-        mLoaderManager.restartLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
-    }
-
-    public void onEvent(MyEvents.onActiveStoreChange event) {
-        mActiveStoreID = event.getActiveStoreID();
-        checkStoreSelectedItems();
-    }
-
-    public void onEvent(MyEvents.onClick_masterListItem event) {
-        SelectedItemsTable.toggleSelection(getActivity(), mActiveStoreID, event.getItemID());
-        txtItemName.setText("");
-        txtItemNote.setText("");
-    }
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         MyLog.i("fragMasterList", "onSaveInstanceState");
-        outState.putLong(ARG_STORE_ID, mActiveStoreID);
+        //outState.putLong(ARG_STORE_ID, mActiveStoreID);
         super.onSaveInstanceState(outState);
     }
 
@@ -303,44 +240,85 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_master_list_fragment, menu);
         super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_master_list_fragment, menu);
+        MyLog.i("fragMasterList", "onCreateOptionsMenu");
+
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MyLog.i("fragMasterList", "onPrepareOptionsMenu");
+        MenuItem showFavorites = menu.findItem(R.id.action_show_favorites);
+        MenuItem showAllItems = menu.findItem(R.id.action_show_all_items);
+        if (MySettings.showFavorites()) {
+            showFavorites.setVisible(false);
+            showAllItems.setVisible(true);
+        } else {
+            showFavorites.setVisible(true);
+            showAllItems.setVisible(false);
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
-            case R.id.action_addNewStore:
-                Toast.makeText(getActivity(), "action_addNewStore", Toast.LENGTH_SHORT).show();
-                return true;
-
             case R.id.action_show_favorites:
-                Toast.makeText(getActivity(), "action_show_favorites", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getActivity(), "action_show_favorites", Toast.LENGTH_SHORT).show();
+                MySettings.setShowFavorites(true);
+                mLoaderManager.restartLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
+                getActivity().invalidateOptionsMenu();
                 return true;
 
-            case R.id.action_show_master_list:
-                Toast.makeText(getActivity(), "action_show_master_list", Toast.LENGTH_SHORT).show();
+            case R.id.action_show_all_items:
+                //Toast.makeText(getActivity(), "action_show_master_list", Toast.LENGTH_SHORT).show();
+                MySettings.setShowFavorites(false);
+                mLoaderManager.restartLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
+                getActivity().invalidateOptionsMenu();
+                return true;
+
+            case R.id.action_add_all:
+                ItemsTable.addAllItems(getActivity());
+                return true;
+
+            case R.id.action_add_all_favorites:
+                ItemsTable.addAllFavoritesItems(getActivity());
+                return true;
+
+            case R.id.action_clear_all:
+                //Toast.makeText(getActivity(), "action_clear_all", Toast.LENGTH_SHORT).show();
+                ItemsTable.deselectAllItems(getActivity());
                 return true;
 
             case R.id.action_show_sort_dialog:
                 Toast.makeText(getActivity(), "action_show_sort_dialog", Toast.LENGTH_SHORT).show();
                 return true;
 
-            case R.id.action_manual_sort_order:
-                Toast.makeText(getActivity(), "action_manual_sort_order", Toast.LENGTH_SHORT).show();
-                return true;
-
-            case R.id.action_clear_all:
-                Toast.makeText(getActivity(), "action_clear_all", Toast.LENGTH_SHORT).show();
+            case R.id.action_set_manual_sort_order:
+                Toast.makeText(getActivity(), "action_set_manual_sort_order", Toast.LENGTH_SHORT).show();
                 return true;
 
             case R.id.action_cull_items:
                 Toast.makeText(getActivity(), "action_cull_items", Toast.LENGTH_SHORT).show();
                 return true;
 
-            case R.id.action_set_groups:
-                Toast.makeText(getActivity(), "action_set_groups", Toast.LENGTH_SHORT).show();
+            case R.id.action_manage_groups:
+                //EventBus.getDefault().post(new MyEvents.showFragment(MySettings.FRAG_ITEMS_BY_GROUP));
+                Toast.makeText(getActivity(), "action_manage_groups", Toast.LENGTH_SHORT).show();
+                return true;
+
+            case R.id.action_manage_item_location:
+                Toast.makeText(getActivity(), "action_manage_item_location", Toast.LENGTH_SHORT).show();
+                return true;
+
+            case R.id.action_scan_barcodes:
+                launchScannerActivity();
+                return true;
+
+            case R.id.action_show_scanned_items:
+                EventBus.getDefault().post(new MyEvents.showFragment(MySettings.FRAG_PRODUCTS_LIST));
                 return true;
 
             case android.R.id.home:
@@ -351,9 +329,15 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
                 // Not implemented here
                 return false;
         }
+
     }
 
-    public void launchHomeActivity() {
+    public void launchScannerActivity() {
+        Intent intent = new Intent(getActivity(), ScannerFragmentActivity.class);
+        startActivity(intent);
+    }
+
+    private void launchHomeActivity() {
         Intent intent = new Intent(getActivity(), StoreListsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -364,7 +348,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         switch (v.getId()) {
             case R.id.btnAddToMasterList:
                 //Toast.makeText(getActivity(), "btnAddToMasterList.click", Toast.LENGTH_SHORT).show();
-                addItemToActiveList();
+                addItemToMasterList();
                 // hide the soft input keyboard
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(
                         Service.INPUT_METHOD_SERVICE);
@@ -401,9 +385,16 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
                 if (!itemNameText.isEmpty()) {
                     selection = ItemsTable.COL_ITEM_NAME + " Like '%" + itemNameText + "%'";
                 }
+                if (MySettings.showFavorites()) {
+                    if (selection == null) {
+                        selection = ItemsTable.COL_FAVORITE + " = 1";
+                    } else {
+                        selection = selection + " AND " + ItemsTable.COL_FAVORITE + " = 1";
+                    }
+                }
 
                 int masterListSortOrder = MySettings.getMasterListSortOrder();
-                String sortOrder = "";
+                String sortOrder;
                 try {
                     switch (masterListSortOrder) {
                         case MySettings.SORT_ALPHABETICAL:
@@ -446,7 +437,6 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor newCursor) {
-        int id = loader.getId();
         // The asynchronous load is complete and the newCursor is now available for use.
         // Update the masterListAdapter to show the changed data.
         switch (loader.getId()) {

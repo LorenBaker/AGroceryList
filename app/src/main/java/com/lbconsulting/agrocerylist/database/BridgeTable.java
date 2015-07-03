@@ -12,12 +12,11 @@ public class BridgeTable {
 	// Version 4
 	public static final String TABLE_BRIDGE = "tblBridge";
 	public static final String COL_BRIDGE_ID = "_id";
-	public static final String COL_LIST_ID = "listID";
 	public static final String COL_GROUP_ID = "groupID";
 	public static final String COL_STORE_ID = "storeID";
 	public static final String COL_LOCATION_ID = "locationID";
 
-	public static final String[] PROJECTION_ALL = { COL_BRIDGE_ID, COL_LIST_ID, COL_GROUP_ID, COL_STORE_ID, COL_LOCATION_ID };
+	public static final String[] PROJECTION_ALL = { COL_BRIDGE_ID, COL_GROUP_ID, COL_STORE_ID, COL_LOCATION_ID };
 
 	public static final String CONTENT_PATH = TABLE_BRIDGE;
 
@@ -28,7 +27,6 @@ public class BridgeTable {
 	// Database creation SQL statements
 	private static final String DATATABLE_CREATE = "create table " + TABLE_BRIDGE + " ("
 			+ COL_BRIDGE_ID + " integer primary key autoincrement, "
-			+ COL_LIST_ID + " integer not null references " + ListsTable.TABLE_LISTS + " (" + ListsTable.COL_LIST_ID + ") default 1, "
 			+ COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default 1, "
 			+ COL_STORE_ID + " integer not null references " + StoresTable.TABLE_STORES + " (" + StoresTable.COL_STORE_ID + ") default 1, "
 			+ COL_LOCATION_ID + " integer not null references " + LocationsTable.TABLE_LOCATIONS + " (" + LocationsTable.COL_LOCATION_ID + ") default 1 "
