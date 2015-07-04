@@ -3,7 +3,7 @@ package com.lbconsulting.agrocerylist.database;
 import android.net.Uri;
 
 /**
- * Created by Loren on 6/30/2015.
+ * This class holds information related to the app's joined queries.
  */
 public class JoinedTables {
 
@@ -30,6 +30,7 @@ public class JoinedTables {
             StoreChainsTable.COL_STORE_CHAIN_NAME + " ASC, " + StoresTable.COL_STORE_REGIONAL_NAME + " ASC";
     //endregion
 
+
     //region ITEMS_BY_GROUPS
     /*  SELECT tblItems._id, groupName, itemName, itemNote, groupID, itemSelected, itemStruckOut, itemChecked
         FROM tblItems JOIN tblGroups
@@ -45,6 +46,41 @@ public class JoinedTables {
     public static final Uri CONTENT_URI_ITEMS_BY_GROUPS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
             + "/" + CONTENT_PATH_ITEMS_BY_GROUPS);
     public static final String SORT_ORDER_ITEMS_BY_GROUP =
+            GroupsTable.COL_GROUP_NAME + " ASC, " + ItemsTable.COL_ITEM_NAME + " ASC";
+    //endregion
+
+
+    //region ITEMS_BY_LOCATIONS_AND_GROUPS
+/*  SELECT tblItems._id, tblItems.itemName, tblItems.itemNote, tblItems.groupID,
+        tblGroups.groupName, tblLocationsBridge.locationID, tblLocations.locationName
+    FROM tblItems
+    JOIN tblLocationsBridge ON tblItems.groupID = tblLocationsBridge.groupID
+    JOIN tblLocations ON tblLocationsBridge.locationID = tblLocations._id
+    JOIN tblGroups ON tblLocationsBridge.groupID = tblGroups._id
+    WHERE   tblItems.itemSelected=1 AND tblLocationsBridge.storeID =6
+    ORDER BY   tblLocations._id, tblItems.itemName*/
+
+    public static final String[] PROJECTION_ITEMS_BY_LOCATIONS_AND_GROUPS = {
+            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_ID,
+            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_NAME,
+            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_NOTE,
+            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID,
+            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_STRUCK_OUT,
+
+            GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_NAME,
+            LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_LOCATION_ID,
+            LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_NAME
+    };
+    public static final String CONTENT_PATH_ITEMS_BY_LOCATIONS_AND_GROUPS = "itemsByLocationsAndGroups";
+    public static final Uri CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS = Uri.parse("content://"
+            + aGroceryListContentProvider.AUTHORITY
+            + "/" + CONTENT_PATH_ITEMS_BY_LOCATIONS_AND_GROUPS);
+
+    public static final String SORT_ORDER_BY_LOCATIONS =
+            LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_LOCATION_ID
+                    + " ASC, " + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_NAME + " ASC";
+
+    public static final String SORT_ORDER_BY_GROUPS =
             GroupsTable.COL_GROUP_NAME + " ASC, " + ItemsTable.COL_ITEM_NAME + " ASC";
     //endregion
 

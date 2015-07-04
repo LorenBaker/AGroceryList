@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -209,13 +208,13 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
                             break;
 
                         case MySettings.SORT_BY_AISLE:
-                            // TODO: join query master list by aisle
-                            //cursorLoader = ItemsTable.getAllItemsInListWithGroups(getActivity(), mActiveListID, selection);
+                            mStoreListCursorAdapter.setStoreItemsSortingOrder(MySettings.SORT_BY_AISLE, mStoreID);
+                            cursorLoader = ItemsTable.getAllSelectedItemsByLocations(getActivity(), mStoreID);
                             break;
 
                         case MySettings.SORT_BY_GROUP:
                             mStoreListCursorAdapter.setStoreItemsSortingOrder(MySettings.SORT_BY_GROUP, mStoreID);
-                            cursorLoader = ItemsTable.getAllSelectedItemsByGroups(getActivity());
+                            cursorLoader = ItemsTable.getAllSelectedItemsByGroups(getActivity(), mStoreID);
                             break;
 
                         case MySettings.SORT_MANUALLY:

@@ -21,16 +21,6 @@
     <string name="ok_button">OK</string>
     <string name="cancel_button">Cancel</string>
 
-    <!--Do not change the order of the item location list-->
-    <string-array name="initial_location_list">
-        <item>Front-Left</item>
-        <item>Front-Mid</item>
-        <item>Front-Right</item>
-        <item>Middle-Left</item>
-        <item>Middle-Right</item>
-        <item>Rear-Left</item>
-        <item>Rear-Mid</item>
-        <item>Rear-Right</item>
-    </string-array>
+
 
 </resources>

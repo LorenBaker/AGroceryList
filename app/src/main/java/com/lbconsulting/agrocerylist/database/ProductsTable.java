@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
-import com.lbconsulting.agrocerylist.classes.clsProductValues;
 
 
 /**
@@ -23,9 +22,9 @@ public class ProductsTable {
     // Version 1
     public static final String TABLE_PRODUCTS = "tblProducts";
     public static final String COL_PRODUCT_ID = "_id";
+    public static final String COL_ITEM_ID = "itemID";
     public static final String COL_BAR_CODE_FORMAT = "barCodeFormat";
     public static final String COL_BAR_CODE_NUMBER = "barCodeNumber"; // UPC_A, EAN, or ISBN codes
-    public static final String COL_PRODUCT_CATEGORY_ID = "productCategoryID";
     public static final String COL_PRODUCT_TITLE = "productTitle";
     public static final String COL_TIME_STAMP = "timeStamp";
 
@@ -33,8 +32,8 @@ public class ProductsTable {
     public static final String UPC_E = "UPC_E";
     public static final String ISBN = "ISBN";
 
-    public static final String[] PROJECTION_ALL = {COL_PRODUCT_ID, COL_BAR_CODE_FORMAT, COL_BAR_CODE_NUMBER,
-            COL_PRODUCT_CATEGORY_ID, COL_PRODUCT_TITLE, COL_TIME_STAMP};
+    public static final String[] PROJECTION_ALL = {COL_PRODUCT_ID, COL_ITEM_ID, COL_BAR_CODE_FORMAT,
+            COL_BAR_CODE_NUMBER, COL_PRODUCT_TITLE, COL_TIME_STAMP};
 
     public static final String CONTENT_PATH = TABLE_PRODUCTS;
 
@@ -48,14 +47,16 @@ public class ProductsTable {
     public static final String SORT_ORDER_PRODUCT_TITLE = COL_PRODUCT_TITLE + " ASC ";
     public static final String SORT_ORDER_TIME_STAMP = COL_TIME_STAMP + " ASC ";
 
+    private static final int ITEM_ID_DEFAULT = -1;
+
     // Database creation SQL statements
     private static final String CREATE_DATA_TABLE = "create table "
             + TABLE_PRODUCTS
             + " ("
             + COL_PRODUCT_ID + " integer primary key autoincrement, "
+            + COL_ITEM_ID + " integer DEFAULT " + ITEM_ID_DEFAULT + ", "
             + COL_BAR_CODE_FORMAT + " text  DEFAULT '', "
             + COL_BAR_CODE_NUMBER + " text  DEFAULT '', "
-            + COL_PRODUCT_CATEGORY_ID + " integer DEFAULT 0, "
             + COL_PRODUCT_TITLE + " text  DEFAULT '', "
             + COL_TIME_STAMP + " integer DEFAULT 0 "
             + ");";
@@ -216,6 +217,11 @@ public class ProductsTable {
         return numberOfRecordsUpdated;
     }
 
+    public static void setItemID(Context context, long productID, long itemID) {
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ITEM_ID, itemID);
+        updateProductFields(context, productID, cv);
+    }
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Delete Methods
@@ -225,9 +231,20 @@ public class ProductsTable {
         int numberOfDeletedRecords = 0;
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;
-        String where = null;
+        String selection = null;
         String[] selectionArgs = null;
-        numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+
+        return numberOfDeletedRecords;
+    }
+
+    public static int deleteAllUnlinkedProducts(Context context) {
+        int numberOfDeletedRecords = 0;
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = COL_ITEM_ID;
+        String[] selectionArgs = new String[]{String.valueOf(ITEM_ID_DEFAULT)};
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
 
         return numberOfDeletedRecords;
     }

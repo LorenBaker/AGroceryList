@@ -69,14 +69,14 @@ public class clsProductValues {
 
 
     public long getProductCategoryID() {
-        return mCursor.getLong(mCursor.getColumnIndex(ProductsTable.COL_PRODUCT_CATEGORY_ID));
+        return mCursor.getLong(mCursor.getColumnIndex(ProductsTable.COL_ITEM_ID));
     }
 
     public void setProductCategoryID(long productCategoryID) {
-        if (cv.containsKey(ProductsTable.COL_PRODUCT_CATEGORY_ID)) {
-            cv.remove(ProductsTable.COL_PRODUCT_CATEGORY_ID);
+        if (cv.containsKey(ProductsTable.COL_ITEM_ID)) {
+            cv.remove(ProductsTable.COL_ITEM_ID);
         }
-        cv.put(ProductsTable.COL_PRODUCT_CATEGORY_ID, productCategoryID);
+        cv.put(ProductsTable.COL_ITEM_ID, productCategoryID);
     }
 
     public String getProductTitle() {

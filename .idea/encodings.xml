@@ -17,10 +17,10 @@
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/classes/OutpanRequest.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/classes/clsUtils.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/AListDatabaseHelper.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/BridgeTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/GroupsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/ItemsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/ListsTable.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/LocationsBridgeTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/LocationsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoreChainsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoresTable.java" charset="windows-1252" />

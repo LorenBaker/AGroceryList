@@ -47,13 +47,16 @@ public class aGroceryListContentProvider extends ContentProvider {
     private static final int GROUPS_MULTI_ROWS = 60;
     private static final int GROUPS_SINGLE_ROW = 61;
 
+    private static final int LOCATIONS_MULTI_ROWS = 70;
+    private static final int LOCATIONS_SINGLE_ROW = 71;
 
-    private static final int ITEM_LOCATIONS_MULTI_ROWS = 1000;
-    private static final int ITEM_LOCATIONS_SINGLE_ROW = 1001;
+    private static final int LOCATIONS_BRIDGE_MULTI_ROWS = 80;
+    private static final int LOCATIONS_BRIDGE_SINGLE_ROW = 81;
 
 
     private static final int STORES_WITH_CHAIN_NAMES = 2000;
     private static final int ITEMS_BY_GROUPS = 2001;
+    private static final int ITEMS_BY_LOCATIONS_AND_GROUPS = 2002;
 
     //endregion
 
@@ -78,13 +81,15 @@ public class aGroceryListContentProvider extends ContentProvider {
         sURIMatcher.addURI(AUTHORITY, GroupsTable.CONTENT_PATH, GROUPS_MULTI_ROWS);
         sURIMatcher.addURI(AUTHORITY, GroupsTable.CONTENT_PATH + "/#", GROUPS_SINGLE_ROW);
 
+        sURIMatcher.addURI(AUTHORITY, LocationsTable.CONTENT_PATH, LOCATIONS_MULTI_ROWS);
+        sURIMatcher.addURI(AUTHORITY, LocationsTable.CONTENT_PATH + "/#", LOCATIONS_SINGLE_ROW);
 
-        sURIMatcher.addURI(AUTHORITY, StoreItemLocationsTable.CONTENT_PATH, ITEM_LOCATIONS_MULTI_ROWS);
-        sURIMatcher.addURI(AUTHORITY, StoreItemLocationsTable.CONTENT_PATH + "/#", ITEM_LOCATIONS_SINGLE_ROW);
+        sURIMatcher.addURI(AUTHORITY, LocationsBridgeTable.CONTENT_PATH, LOCATIONS_BRIDGE_MULTI_ROWS);
+        sURIMatcher.addURI(AUTHORITY, LocationsBridgeTable.CONTENT_PATH + "/#", LOCATIONS_BRIDGE_SINGLE_ROW);
 
         sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_STORES_WITH_CHAIN_NAMES, STORES_WITH_CHAIN_NAMES);
         sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_ITEMS_BY_GROUPS, ITEMS_BY_GROUPS);
-
+        sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_ITEMS_BY_LOCATIONS_AND_GROUPS, ITEMS_BY_LOCATIONS_AND_GROUPS);
 
     }
     //endregion
@@ -172,15 +177,26 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
 
-            case ITEM_LOCATIONS_MULTI_ROWS:
-                queryBuilder.setTables(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS);
-                checkColumnNames(projection, ITEM_LOCATIONS_MULTI_ROWS);
+            case LOCATIONS_MULTI_ROWS:
+                queryBuilder.setTables(LocationsTable.TABLE_LOCATIONS);
+                checkColumnNames(projection, LOCATIONS_MULTI_ROWS);
                 break;
 
-            case ITEM_LOCATIONS_SINGLE_ROW:
-                queryBuilder.setTables(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS);
-                checkColumnNames(projection, ITEM_LOCATIONS_SINGLE_ROW);
-                queryBuilder.appendWhere(StoreItemLocationsTable.COL_STORE_ITEM_LOCATION_ID + "=" + uri.getLastPathSegment());
+            case LOCATIONS_SINGLE_ROW:
+                queryBuilder.setTables(LocationsTable.TABLE_LOCATIONS);
+                checkColumnNames(projection, LOCATIONS_SINGLE_ROW);
+                queryBuilder.appendWhere(LocationsTable.COL_LOCATION_ID + "=" + uri.getLastPathSegment());
+                break;
+
+            case LOCATIONS_BRIDGE_MULTI_ROWS:
+                queryBuilder.setTables(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE);
+                checkColumnNames(projection, LOCATIONS_BRIDGE_MULTI_ROWS);
+                break;
+
+            case LOCATIONS_BRIDGE_SINGLE_ROW:
+                queryBuilder.setTables(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE);
+                checkColumnNames(projection, LOCATIONS_BRIDGE_SINGLE_ROW);
+                queryBuilder.appendWhere(LocationsBridgeTable.COL_BRIDGE_ROW_ID + "=" + uri.getLastPathSegment());
                 break;
 
             case STORES_WITH_CHAIN_NAMES:
@@ -190,7 +206,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             ON tblStores.storeChainID = tblStoreChains._id
             ORDER BY storeChainName ASC, storeRegionalName ASC  */
 
-                String tables =  StoresTable.TABLE_STORES +
+                String tables = StoresTable.TABLE_STORES +
                         " JOIN " + StoreChainsTable.TABLE_STORE_CHAINS
                         + " ON "
                         + StoresTable.TABLE_STORES + "." + StoresTable.COL_STORE_CHAIN_ID + " = "
@@ -203,10 +219,37 @@ public class aGroceryListContentProvider extends ContentProvider {
             FROM tblItems JOIN tblGroups
             ON (tblItems.groupID = tblGroups._id)
             ORDER BY groupName, itemName*/
-                tables =  ItemsTable.TABLE_ITEMS + " JOIN " + GroupsTable.TABLE_GROUPS
+                tables = ItemsTable.TABLE_ITEMS + " JOIN " + GroupsTable.TABLE_GROUPS
                         + " ON "
                         + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID + " = "
                         + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_ID;
+                queryBuilder.setTables(tables);
+                break;
+
+            case ITEMS_BY_LOCATIONS_AND_GROUPS:
+/*          SELECT tblItems._id,tblItems.itemName, tblItems.itemNote, tblItems.groupID, tblGroups.groupName, tblLocationsBridge.locationID, tblLocations.locationName
+            FROM tblItems
+            JOIN tblLocationsBridge ON tblItems.groupID = tblLocationsBridge.groupID
+
+            JOIN tblLocations ON tblLocationsBridge.locationID = tblLocations._id
+
+            JOIN tblGroups ON tblLocationsBridge.groupID = tblGroups._id
+
+            WHERE   tblItems.itemSelected=1 AND tblLocationsBridge.storeID =6
+            ORDER BY   tblGroups.groupName, tblItems.itemName*/
+                tables = ItemsTable.TABLE_ITEMS
+                        + " JOIN " + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + " ON "
+                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID + " = "
+                        + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_GROUP_ID
+
+                        + " JOIN " + LocationsTable.TABLE_LOCATIONS + " ON "
+                        + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_LOCATION_ID + " = "
+                        + LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_ID
+
+                        + " JOIN " + GroupsTable.TABLE_GROUPS + " ON "
+                        + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_GROUP_ID + " = "
+                        + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_ID;
+
                 queryBuilder.setTables(tables);
                 break;
 
@@ -263,8 +306,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ProductsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-/*                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);*/
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -272,8 +314,6 @@ public class aGroceryListContentProvider extends ContentProvider {
             case PRODUCTS_SINGLE_ROW:
                 throw new IllegalArgumentException(
                         "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
-
-
 
 
             case ITEMS_MULTI_ROWS:
@@ -306,8 +346,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(StoreChainsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-/*                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STORE_ITEMS, null);
-                        getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI_STRUCK_OUT_STORE_ITEMS, null);*/
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -315,7 +354,6 @@ public class aGroceryListContentProvider extends ContentProvider {
             case STORE_CHAINS_SINGLE_ROW:
                 throw new IllegalArgumentException(
                         "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
-
 
 
             case STORES_MULTI_ROWS:
@@ -328,6 +366,8 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+
                     }
                     return newRowUri;
                 }
@@ -335,7 +375,6 @@ public class aGroceryListContentProvider extends ContentProvider {
             case STORES_SINGLE_ROW:
                 throw new IllegalArgumentException(
                         "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
-
 
 
             case GROUPS_MULTI_ROWS:
@@ -357,18 +396,36 @@ public class aGroceryListContentProvider extends ContentProvider {
                 throw new IllegalArgumentException(
                         "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
 
-            case ITEM_LOCATIONS_MULTI_ROWS:
-                newRowId = db.insertOrThrow(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS, nullColumnHack, values);
+            case LOCATIONS_MULTI_ROWS:
+                newRowId = db.insertOrThrow(LocationsTable.TABLE_LOCATIONS, nullColumnHack, values);
                 if (newRowId > 0) {
-                    Uri newRowUri = ContentUris.withAppendedId(StoreItemLocationsTable.CONTENT_URI, newRowId);
+                    Uri newRowUri = ContentUris.withAppendedId(LocationsTable.CONTENT_URI, newRowId);
                     if (!mSuppressChangeNotification) {
-                        getContext().getContentResolver().notifyChange(StoreItemLocationsTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(LocationsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
                     }
                     return newRowUri;
                 }
 
-            case ITEM_LOCATIONS_SINGLE_ROW:
+            case LOCATIONS_SINGLE_ROW:
+                throw new IllegalArgumentException(
+                        "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
+
+
+            case LOCATIONS_BRIDGE_MULTI_ROWS:
+                newRowId = db.insertOrThrow(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, nullColumnHack, values);
+                if (newRowId > 0) {
+                    Uri newRowUri = ContentUris.withAppendedId(LocationsBridgeTable.CONTENT_URI, newRowId);
+                    if (!mSuppressChangeNotification) {
+                        getContext().getContentResolver().notifyChange(LocationsBridgeTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                    }
+                    return newRowUri;
+                }
+
+            case LOCATIONS_BRIDGE_SINGLE_ROW:
                 throw new IllegalArgumentException(
                         "Cannot insert a new row with a single row URI. Illegal URI: " + uri);
 
@@ -484,23 +541,42 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
 
-            case ITEM_LOCATIONS_MULTI_ROWS:
+            case LOCATIONS_MULTI_ROWS:
                 // To return the number of deleted items you must specify a where clause.
                 // To delete all rows and return a value pass in "1".
                 if (selection == null) {
                     selection = "1";
                 }
                 // Perform the deletion
-                deleteCount = db.delete(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS, selection, selectionArgs);
+                deleteCount = db.delete(LocationsTable.TABLE_LOCATIONS, selection, selectionArgs);
                 break;
 
-            case ITEM_LOCATIONS_SINGLE_ROW:
+            case LOCATIONS_SINGLE_ROW:
                 // Limit deletion to a single row
                 rowID = uri.getLastPathSegment();
-                selection = ProductsTable.COL_PRODUCT_ID + "=" + rowID
+                selection = LocationsTable.COL_LOCATION_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
-                deleteCount = db.delete(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS, selection, selectionArgs);
+                deleteCount = db.delete(LocationsTable.TABLE_LOCATIONS, selection, selectionArgs);
+                break;
+
+            case LOCATIONS_BRIDGE_MULTI_ROWS:
+                // To return the number of deleted items you must specify a where clause.
+                // To delete all rows and return a value pass in "1".
+                if (selection == null) {
+                    selection = "1";
+                }
+                // Perform the deletion
+                deleteCount = db.delete(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
+                break;
+
+            case LOCATIONS_BRIDGE_SINGLE_ROW:
+                // Limit deletion to a single row
+                rowID = uri.getLastPathSegment();
+                selection = LocationsBridgeTable.COL_BRIDGE_ROW_ID + "=" + rowID
+                        + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
+                // Perform the deletion
+                deleteCount = db.delete(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
                 break;
 
             default:
@@ -543,8 +619,6 @@ public class aGroceryListContentProvider extends ContentProvider {
                 // Perform the update
                 updateCount = db.update(ProductsTable.TABLE_PRODUCTS, values, selection, selectionArgs);
                 break;
-
-
 
 
             case ITEMS_MULTI_ROWS:
@@ -613,30 +687,48 @@ public class aGroceryListContentProvider extends ContentProvider {
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update
-            updateCount = db.update(GroupsTable.TABLE_GROUPS, values, selection, selectionArgs);
+                updateCount = db.update(GroupsTable.TABLE_GROUPS, values, selection, selectionArgs);
                 break;
 
 
-            case ITEM_LOCATIONS_MULTI_ROWS:
-                updateCount = db.update(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS, values, selection, selectionArgs);
+            case LOCATIONS_MULTI_ROWS:
+                updateCount = db.update(LocationsTable.TABLE_LOCATIONS, values, selection, selectionArgs);
                 break;
 
-            case ITEM_LOCATIONS_SINGLE_ROW:
+            case LOCATIONS_SINGLE_ROW:
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
-                    selection = StoreItemLocationsTable.COL_STORE_ITEM_LOCATION_ID + "=" + rowID;
+                    selection = LocationsTable.COL_LOCATION_ID + "=" + rowID;
                 } else {
-                    selection = StoreItemLocationsTable.COL_STORE_ITEM_LOCATION_ID + "=" + rowID
+                    selection = LocationsTable.COL_LOCATION_ID + "=" + rowID
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update
-                updateCount = db.update(StoreItemLocationsTable.TABLE_STORE_ITEM_LOCATIONS, values, selection, selectionArgs);
+                updateCount = db.update(LocationsTable.TABLE_LOCATIONS, values, selection, selectionArgs);
+                break;
+
+            case LOCATIONS_BRIDGE_MULTI_ROWS:
+                updateCount = db.update(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
+
+                break;
+
+            case LOCATIONS_BRIDGE_SINGLE_ROW:
+                // Limit update to a single row
+                rowID = uri.getLastPathSegment();
+                if (selection == null) {
+                    selection = LocationsBridgeTable.COL_BRIDGE_ROW_ID + "=" + rowID;
+                } else {
+                    selection = LocationsBridgeTable.COL_BRIDGE_ROW_ID + "=" + rowID
+                            + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
+                }
+                // Perform the update
+                updateCount = db.update(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
                 break;
 
             default:
                 throw new IllegalArgumentException("Method update: Unknown URI: " + uri);
-                        }
+        }
 
         if (!mSuppressChangeNotification) {
             // Notify any observers of the change in the database.
@@ -675,10 +767,15 @@ public class aGroceryListContentProvider extends ContentProvider {
             case GROUPS_SINGLE_ROW:
                 return GroupsTable.CONTENT_ITEM_TYPE;
 
-            case ITEM_LOCATIONS_MULTI_ROWS:
-                return StoreItemLocationsTable.CONTENT_TYPE;
-            case ITEM_LOCATIONS_SINGLE_ROW:
-                return StoreItemLocationsTable.CONTENT_ITEM_TYPE;
+            case LOCATIONS_MULTI_ROWS:
+                return LocationsTable.CONTENT_TYPE;
+            case LOCATIONS_SINGLE_ROW:
+                return LocationsTable.CONTENT_ITEM_TYPE;
+
+            case LOCATIONS_BRIDGE_MULTI_ROWS:
+                return LocationsBridgeTable.CONTENT_TYPE;
+            case LOCATIONS_BRIDGE_SINGLE_ROW:
+                return LocationsBridgeTable.CONTENT_ITEM_TYPE;
 
             default:
                 throw new IllegalArgumentException("Method getType. Unknown URI: " + uri);
@@ -717,9 +814,14 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
 
-            case ITEM_LOCATIONS_MULTI_ROWS:
-            case ITEM_LOCATIONS_SINGLE_ROW:
-                availableColumns = new HashSet<>(Arrays.asList(StoreItemLocationsTable.PROJECTION_ALL));
+            case LOCATIONS_MULTI_ROWS:
+            case LOCATIONS_SINGLE_ROW:
+                availableColumns = new HashSet<>(Arrays.asList(LocationsTable.PROJECTION_ALL));
+                break;
+
+            case LOCATIONS_BRIDGE_MULTI_ROWS:
+            case LOCATIONS_BRIDGE_SINGLE_ROW:
+                availableColumns = new HashSet<>(Arrays.asList(LocationsBridgeTable.PROJECTION_ALL));
                 break;
 
 
@@ -732,8 +834,6 @@ public class aGroceryListContentProvider extends ContentProvider {
             }
         }
     }
-
-
 
 
 }

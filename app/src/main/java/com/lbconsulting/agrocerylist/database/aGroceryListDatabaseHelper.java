@@ -7,8 +7,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 
-import java.io.File;
-
 
 /**
  * This class is the database helper for the Passwords database
@@ -31,24 +29,25 @@ public class aGroceryListDatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase database) {
         aGroceryListDatabaseHelper.dBase = database;
         MyLog.i("aGroceryListDatabaseHelper", "onCreate");
-        ProductsTable.onCreate(database);
+        GroupsTable.onCreate(database);
         ItemsTable.onCreate(database);
+        ProductsTable.onCreate(database);
         StoreChainsTable.onCreate(database);
         StoresTable.onCreate(database);
-        StoreItemLocationsTable.onCreate(database);
-        GroupsTable.onCreate(database);
-
+        LocationsTable.onCreate(database);
+        LocationsBridgeTable.onCreate(database);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
         MyLog.i("aGroceryListDatabaseHelper", "onUpgrade");
-        ProductsTable.onUpgrade(database, oldVersion, newVersion);
+        GroupsTable.onUpgrade(database, oldVersion, newVersion);
         ItemsTable.onUpgrade(database, oldVersion, newVersion);
+        ProductsTable.onUpgrade(database, oldVersion, newVersion);
         StoreChainsTable.onUpgrade(database, oldVersion, newVersion);
         StoresTable.onUpgrade(database, oldVersion, newVersion);
-        StoreItemLocationsTable.onUpgrade(database, oldVersion, newVersion);
-        GroupsTable.onUpgrade(database, oldVersion, newVersion);
+        LocationsTable.onUpgrade(database,oldVersion,newVersion);
+        LocationsBridgeTable.onUpgrade(database,oldVersion,newVersion);
     }
 
     public static boolean databaseExists() {

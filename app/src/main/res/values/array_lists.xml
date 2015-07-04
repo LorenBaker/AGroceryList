@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!--Do not change the order of the item location list-->
+    <string-array name="initial_location_list">
+        <item>[No Location]</item>
+        <item>Front-Left</item>
+        <item>Front-Mid</item>
+        <item>Front-Right</item>
+        <item>Middle-Left</item>
+        <item>Middle-Right</item>
+        <item>Rear-Left</item>
+        <item>Rear-Mid</item>
+        <item>Rear-Right</item>
+    </string-array>
+
     <string-array name="key_words">
         <item>Bacon</item>
         <item>Beans</item>

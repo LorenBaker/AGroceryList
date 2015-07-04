@@ -17,6 +17,8 @@ import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
+import com.lbconsulting.agrocerylist.database.LocationsBridgeTable;
+import com.lbconsulting.agrocerylist.database.LocationsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
 
 import de.greenrobot.event.EventBus;
@@ -102,12 +104,19 @@ public class StoreListCursorAdapter extends CursorAdapter {
             case MySettings.SORT_BY_GROUP:
                 if (showGroupSeparator(cursor)) {
                     String separatorText = cursor.getString(cursor.getColumnIndex(GroupsTable.COL_GROUP_NAME));
+                    String locationName = cursor.getString(cursor.getColumnIndex(LocationsTable.COL_LOCATION_NAME));
+                    if (!locationName.isEmpty()) {
+                        separatorText = separatorText + " (" + locationName + ")";
+                    }
                     tvItemsSeparator.setText(separatorText);
                 }
                 break;
 
             case MySettings.SORT_BY_AISLE:
-
+                if (showAisleSeparator(cursor)) {
+                    String separatorText = cursor.getString(cursor.getColumnIndex(LocationsTable.COL_LOCATION_NAME));
+                    tvItemsSeparator.setText(separatorText);
+                }
                 break;
 
             case MySettings.SORT_MANUALLY:
@@ -137,10 +146,32 @@ public class StoreListCursorAdapter extends CursorAdapter {
         tvItemsSeparator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EventBus.getDefault().post(new MyEvents.showOkDialog("Group location","Set group aisle location"));
+                EventBus.getDefault().post(new MyEvents.showOkDialog("Group location", "Set group aisle location"));
             }
         });
 
+    }
+
+    private boolean showAisleSeparator(Cursor itemsCursor) {
+        boolean result;
+        long currentLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(LocationsBridgeTable.COL_LOCATION_ID));
+        long previousLocationID;
+        if (itemsCursor.moveToPrevious()) {
+            previousLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(LocationsBridgeTable.COL_LOCATION_ID));
+            itemsCursor.moveToNext();
+            if (currentLocationID == previousLocationID) {
+                tvItemsSeparator.setVisibility(View.GONE);
+                result = false;
+            } else {
+                tvItemsSeparator.setVisibility(View.VISIBLE);
+                result = true;
+            }
+        } else {
+            tvItemsSeparator.setVisibility(View.VISIBLE);
+            itemsCursor.moveToFirst();
+            result = true;
+        }
+        return result;
     }
 
     private boolean showGroupSeparator(Cursor itemsCursor) {

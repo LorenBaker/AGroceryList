@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
@@ -21,13 +22,14 @@ import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
+import com.lbconsulting.agrocerylist.database.LocationsBridgeTable;
+import com.lbconsulting.agrocerylist.database.LocationsTable;
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
+import com.lbconsulting.agrocerylist.database.aGroceryListContentProvider;
 import com.lbconsulting.agrocerylist.database.aGroceryListDatabaseHelper;
 import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
 import com.lbconsulting.agrocerylist.dialogs.sortListDialog;
-
-import java.lang.reflect.Array;
 
 import de.greenrobot.event.EventBus;
 
@@ -43,6 +45,7 @@ public class StoreListsActivity extends Activity {
 
 
     private static long mActiveStoreID;
+
     public static long getActiveStoreID() {
         return mActiveStoreID;
     }
@@ -111,22 +114,39 @@ public class StoreListsActivity extends Activity {
         for (String groceryItem : groceryItems) {
             String[] item = groceryItem.split(", ");
             String itemName = item[0];
-            String groupID=item[1];
+            String groupID = item[1];
             ItemsTable.createNewItem(this, itemName, groupID);
         }
 
+        LocationsTable.createInitialLocationsIfNeeded(this);
 
-/*
-        long groupIndex = 1;
-        long itemIndex = 1;
-        for (String item : groceryItems) {
-            ItemsTable.putItemInGroup(this, itemIndex, groupIndex);
-            itemIndex++;
-            groupIndex++;
-            if (groupIndex > groceryGroups.length) {
-                groupIndex = 1;
+
+        long groupID = 0;
+        long locationID = 2;
+        long numberOfLocations = LocationsTable.getNumberOfLocations(this);
+        Cursor storeCursor = StoresTable.getAllStoresCursor(this, StoresTable.SORT_ORDER_MANUAL);
+        if (storeCursor != null && storeCursor.getCount() > 0) {
+            aGroceryListContentProvider.setSuppressChangeNotification(true);
+            long storeID;
+            while (storeCursor.moveToNext()) {
+                storeID = storeCursor.getLong(storeCursor.getColumnIndex(StoresTable.COL_STORE_ID));
+                for (String groceryGroup : groceryGroups) {
+                    groupID++;
+                    if (groupID > 1) {
+                        LocationsBridgeTable.createNewBridgeRow(this, -1, groupID, storeID, locationID);
+
+                        locationID++;
+                        if (locationID > numberOfLocations) {
+                            locationID = 2;
+                        }
+                    }
+                }
+                groupID=0;
             }
-        }*/
+            aGroceryListContentProvider.setSuppressChangeNotification(false);
+        }
+
+
     }
 
     @Override
@@ -138,7 +158,7 @@ public class StoreListsActivity extends Activity {
     }
 
     public void onEvent(MyEvents.toggleItemStrikeOut event) {
-        ItemsTable.toggleStrikeOut(this,event.getItemID());
+        ItemsTable.toggleStrikeOut(this, event.getItemID());
     }
 
     public void onEvent(MyEvents.showEditItemDialog event) {
@@ -150,6 +170,7 @@ public class StoreListsActivity extends Activity {
         dialog_edit_item dialog = dialog_edit_item.newInstance(itemID, getString(R.string.edit_item_dialog_title));
         dialog.show(fm, "dialog_edit_item");
     }
+
     //region onEvents
     public void onEvent(MyEvents.setActionBarTitle event) {
         setActionBarTitle(event.getTitle());
@@ -163,7 +184,6 @@ public class StoreListsActivity extends Activity {
         Toast.makeText(this, event.getMessage(), Toast.LENGTH_SHORT).show();
     }
     //endregion
-
 
 
     private void showFragment(int fragmentID) {

@@ -124,8 +124,6 @@ public class sortListDialog extends DialogFragment {
                 rbAlphabetical.setVisibility(View.VISIBLE);
 
                 rbByAisle.setVisibility(View.VISIBLE);
-                // TODO: HOME_FRAG_STORE_LIST: implement sort by aisle
-                rbByAisle.setEnabled(false);
 
                 rbByGroup.setVisibility(View.VISIBLE);
                 rbFavoritesFirst.setVisibility(View.GONE);
@@ -230,10 +228,13 @@ public class sortListDialog extends DialogFragment {
                                             }
 
                                         } else if (rbByAisle.isChecked()) {
-                                            // TODO: SORT_BY_AISLE
+                                            if (ckApplyToAllStores.isChecked()) {
+                                                StoresTable.updateStoreItemsSortOrder(getActivity(), -1, MySettings.SORT_BY_AISLE);
+                                            } else {
+                                                StoresTable.updateStoreItemsSortOrder(getActivity(), mStoreID, MySettings.SORT_BY_AISLE);
+                                            }
 
                                         } else if (rbByGroup.isChecked()) {
-                                            // TODO: SORT_BY_GROUP
                                             if (ckApplyToAllStores.isChecked()) {
                                                 StoresTable.updateStoreItemsSortOrder(getActivity(), -1, MySettings.SORT_BY_GROUP);
                                             } else {
@@ -254,7 +255,6 @@ public class sortListDialog extends DialogFragment {
                                             }
 
                                         } else if (rbByGroup.isChecked()) {
-                                            // TODO: SORT_BY_GROUP
                                             if (ckApplyToAllStores.isChecked()) {
                                                 MySettings.setMasterListSortOrder(MySettings.SORT_BY_GROUP);
                                             }

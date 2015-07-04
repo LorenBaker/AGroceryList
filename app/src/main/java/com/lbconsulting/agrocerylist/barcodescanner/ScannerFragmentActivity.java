@@ -20,8 +20,8 @@ import android.widget.Spinner;
 
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.database.LocationsTable;
 import com.lbconsulting.agrocerylist.database.ProductsTable;
-import com.lbconsulting.agrocerylist.database.StoreItemLocationsTable;
 
 import java.util.ArrayList;
 
@@ -42,7 +42,7 @@ public class ScannerFragmentActivity extends Activity {
         setContentView(R.layout.activity_scanner_fragment);
 
         spnLocation = (Spinner) findViewById(R.id.spnItemLocation);
-        ArrayList<String> itemLocationsList = StoreItemLocationsTable.getAllItemLocations(this);
+        ArrayList<String> itemLocationsList = LocationsTable.getAllItemLocations(this,LocationsTable.SORT_ORDER_LOCATION_ID);
         mSpinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, itemLocationsList);
         mSpinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnLocation.setAdapter(mSpinnerArrayAdapter);
@@ -101,7 +101,7 @@ public class ScannerFragmentActivity extends Activity {
             numberPicker_1s.setMaxValue(9);
             numberPicker_1s.setMinValue(0);
 
-            int numberOfAisles = StoreItemLocationsTable.getNumberOfAisles(this);
+            int numberOfAisles = LocationsTable.getNumberOfAisles(this);
             int tens = numberOfAisles / 10;
             int ones = numberOfAisles % 10;
             numberPicker_10s.setValue(tens);
@@ -115,10 +115,10 @@ public class ScannerFragmentActivity extends Activity {
                     int tens = numberPicker_10s.getValue();
                     int ones = numberPicker_1s.getValue();
                     int numberOfAisles = tens * 10 + ones;
-                    StoreItemLocationsTable.createNewAisles(ScannerFragmentActivity.this, numberOfAisles);
+                    LocationsTable.createNewAisles(ScannerFragmentActivity.this, numberOfAisles);
 
-                    ArrayList<String> itemLocationsList = StoreItemLocationsTable
-                            .getAllItemLocations(ScannerFragmentActivity.this);
+                    ArrayList<String> itemLocationsList = LocationsTable
+                            .getAllItemLocations(ScannerFragmentActivity.this,LocationsTable.SORT_ORDER_LOCATION_ID);
                     mSpinnerArrayAdapter = new ArrayAdapter<>(ScannerFragmentActivity.this,
                             android.R.layout.simple_spinner_item, itemLocationsList);
                     int position = spnLocation.getSelectedItemPosition();
@@ -140,7 +140,7 @@ public class ScannerFragmentActivity extends Activity {
             itemLocationDialog = builder.create();
             itemLocationDialog.show();
             return true;
-        }else if (id == R.id.action_clear_products_table) {
+        } else if (id == R.id.action_clear_products_table) {
             ProductsTable.deleteAllProducts(this);
         }
 

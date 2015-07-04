@@ -143,23 +143,7 @@ public class GroupsTable {
         return result;
     }
 
-    public static Cursor getGroup(Context context, long groupID) {
-        Cursor cursor = null;
-        if (groupID > 0) {
-            Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(groupID));
-            String[] projection = PROJECTION_ALL;
-            String selection = null;
-            String selectionArgs[] = null;
-            String sortOrder = null;
-            ContentResolver cr = context.getContentResolver();
-            try {
-                cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
-            } catch (Exception e) {
-                MyLog.e("Exception error in GroupsTable: getGroup. ", e.toString());
-            }
-        }
-        return cursor;
-    }
+
 
     public static CursorLoader getAllGroupNames(Context context, String sortOrder) {
         CursorLoader cursorLoader = null;
@@ -198,12 +182,15 @@ public class GroupsTable {
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static int deleteGroup(Context context, long groupID) {
-        int numberOfDeletedRecords = -1;
-        ContentResolver cr = context.getContentResolver();
-        Uri uri = CONTENT_URI;
-        String where = COL_GROUP_ID + " = ?";
-        String[] selectionArgs = {String.valueOf(groupID)};
-        numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
+        int numberOfDeletedRecords = 0;
+        // don't delete the default group
+        if (groupID > 1) {
+            ContentResolver cr = context.getContentResolver();
+            Uri uri = CONTENT_URI;
+            String where = COL_GROUP_ID + " = ?";
+            String[] selectionArgs = {String.valueOf(groupID)};
+            numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
+        }
         return numberOfDeletedRecords;
     }
 

@@ -22,23 +22,25 @@ public class AListDatabaseHelper extends SQLiteOpenHelper {
 		AListDatabaseHelper.dBase = database;
 
 		MyLog.i("AListDatabaseHelper", "onCreate");
-		ListsTable.onCreate(database);
 		GroupsTable.onCreate(database);
-		StoresTable.onCreate(database);
 		ItemsTable.onCreate(database);
+		ProductsTable.onCreate(database);
+		StoreChainsTable.onCreate(database);
+		StoresTable.onCreate(database);
 		LocationsTable.onCreate(database);
-		BridgeTable.onCreate(database);
+		LocationsBridgeTable.onCreate(database);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
 		MyLog.i("AListDatabaseHelper", "onUpgrade");
-		ItemsTable.onUpgrade(database, oldVersion, newVersion);
-		ListsTable.onUpgrade(database, oldVersion, newVersion);
 		GroupsTable.onUpgrade(database, oldVersion, newVersion);
+		ItemsTable.onUpgrade(database, oldVersion, newVersion);
+		ProductsTable.onUpgrade(database,oldVersion,newVersion);
+		StoreChainsTable.onUpgrade(database,oldVersion,newVersion);
 		StoresTable.onUpgrade(database, oldVersion, newVersion);
 		LocationsTable.onUpgrade(database, oldVersion, newVersion);
-		BridgeTable.onUpgrade(database, oldVersion, newVersion);
+		LocationsBridgeTable.onUpgrade(database, oldVersion, newVersion);
 	}
 
 	public static SQLiteDatabase getDatabase() {
