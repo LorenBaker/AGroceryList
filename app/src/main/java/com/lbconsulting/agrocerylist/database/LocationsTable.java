@@ -8,9 +8,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.R;
-import com.lbconsulting.agrocerylist.activities.StoreListsActivity;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
+import com.lbconsulting.agrocerylist.classes.clsLocation;
 
 import java.util.ArrayList;
 
@@ -155,14 +155,14 @@ public class LocationsTable {
     public static long getNumberOfLocations(Context context) {
         long numberOfLocations = 0;
         Cursor cursor = getAllLocationsCursor(context, null);
-        if(cursor!=null){
-            numberOfLocations=cursor.getCount();
+        if (cursor != null) {
+            numberOfLocations = cursor.getCount();
             cursor.close();
         }
         return numberOfLocations;
     }
 
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static int updateLocationName(Context context, long locationID, String locationName) {
@@ -182,13 +182,42 @@ public class LocationsTable {
         return numberOfUpdatedRecords;
     }
 
+    public static ArrayList<clsLocation> getLocationsArray(Context context) {
+        ArrayList<clsLocation> list = new ArrayList<>();
+        Cursor cursor = getAllLocationsCursor(context, SORT_ORDER_LOCATION_ID);
+        if (cursor != null && cursor.getCount() > 0) {
+            clsLocation location;
+            long locationID;
+            String locationName;
+            while (cursor.moveToNext()) {
+                locationID = cursor.getLong(cursor.getColumnIndex(COL_LOCATION_ID));
+                locationName = cursor.getString(cursor.getColumnIndex(COL_LOCATION_NAME));
+                location = new clsLocation(locationID,locationName);
+                list.add(location);
+            }
+        }
+
+        return list;
+    }
 
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Delete Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+    public static int deleteLocation(Context context, long locationID) {
+        int numberOfDeletedRecords = 0;
+        // don't delete the default location
+        if (locationID > 1) {
+            ContentResolver cr = context.getContentResolver();
+            Uri uri = CONTENT_URI;
+            String selection = COL_LOCATION_ID + " = ?";
+            String[] selectionArgs = {String.valueOf(locationID)};
+            numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+            StoreMapTable.resetLocationID(context, locationID);
+        }
+        return numberOfDeletedRecords;
+    }
 }
 
 

@@ -84,11 +84,11 @@ public class aGroceryListContentProvider extends ContentProvider {
         sURIMatcher.addURI(AUTHORITY, LocationsTable.CONTENT_PATH, LOCATIONS_MULTI_ROWS);
         sURIMatcher.addURI(AUTHORITY, LocationsTable.CONTENT_PATH + "/#", LOCATIONS_SINGLE_ROW);
 
-        sURIMatcher.addURI(AUTHORITY, LocationsBridgeTable.CONTENT_PATH, LOCATIONS_BRIDGE_MULTI_ROWS);
-        sURIMatcher.addURI(AUTHORITY, LocationsBridgeTable.CONTENT_PATH + "/#", LOCATIONS_BRIDGE_SINGLE_ROW);
+        sURIMatcher.addURI(AUTHORITY, StoreMapTable.CONTENT_PATH, LOCATIONS_BRIDGE_MULTI_ROWS);
+        sURIMatcher.addURI(AUTHORITY, StoreMapTable.CONTENT_PATH + "/#", LOCATIONS_BRIDGE_SINGLE_ROW);
 
         sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_STORES_WITH_CHAIN_NAMES, STORES_WITH_CHAIN_NAMES);
-        sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_ITEMS_BY_GROUPS, ITEMS_BY_GROUPS);
+        //sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_ITEMS_BY_GROUPS, ITEMS_BY_GROUPS);
         sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_ITEMS_BY_LOCATIONS_AND_GROUPS, ITEMS_BY_LOCATIONS_AND_GROUPS);
 
     }
@@ -189,14 +189,14 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
-                queryBuilder.setTables(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE);
+                queryBuilder.setTables(StoreMapTable.TABLE_LOCATIONS_BRIDGE);
                 checkColumnNames(projection, LOCATIONS_BRIDGE_MULTI_ROWS);
                 break;
 
             case LOCATIONS_BRIDGE_SINGLE_ROW:
-                queryBuilder.setTables(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE);
+                queryBuilder.setTables(StoreMapTable.TABLE_LOCATIONS_BRIDGE);
                 checkColumnNames(projection, LOCATIONS_BRIDGE_SINGLE_ROW);
-                queryBuilder.appendWhere(LocationsBridgeTable.COL_BRIDGE_ROW_ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(StoreMapTable.COL_MAP_ENTRY_ID + "=" + uri.getLastPathSegment());
                 break;
 
             case STORES_WITH_CHAIN_NAMES:
@@ -238,16 +238,16 @@ public class aGroceryListContentProvider extends ContentProvider {
             WHERE   tblItems.itemSelected=1 AND tblLocationsBridge.storeID =6
             ORDER BY   tblGroups.groupName, tblItems.itemName*/
                 tables = ItemsTable.TABLE_ITEMS
-                        + " JOIN " + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + " ON "
+                        + " JOIN " + StoreMapTable.TABLE_LOCATIONS_BRIDGE + " ON "
                         + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID + " = "
-                        + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_GROUP_ID
+                        + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_GROUP_ID
 
                         + " JOIN " + LocationsTable.TABLE_LOCATIONS + " ON "
-                        + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_LOCATION_ID + " = "
+                        + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_LOCATION_ID + " = "
                         + LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_ID
 
                         + " JOIN " + GroupsTable.TABLE_GROUPS + " ON "
-                        + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_GROUP_ID + " = "
+                        + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_GROUP_ID + " = "
                         + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_ID;
 
                 queryBuilder.setTables(tables);
@@ -306,7 +306,8 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ProductsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -326,7 +327,8 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -346,7 +348,8 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(StoreChainsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -366,7 +369,8 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(StoresTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
 
                     }
                     return newRowUri;
@@ -387,7 +391,8 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(GroupsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -403,7 +408,8 @@ public class aGroceryListContentProvider extends ContentProvider {
                     if (!mSuppressChangeNotification) {
                         getContext().getContentResolver().notifyChange(LocationsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -414,13 +420,14 @@ public class aGroceryListContentProvider extends ContentProvider {
 
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
-                newRowId = db.insertOrThrow(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, nullColumnHack, values);
+                newRowId = db.insertOrThrow(StoreMapTable.TABLE_LOCATIONS_BRIDGE, nullColumnHack, values);
                 if (newRowId > 0) {
-                    Uri newRowUri = ContentUris.withAppendedId(LocationsBridgeTable.CONTENT_URI, newRowId);
+                    Uri newRowUri = ContentUris.withAppendedId(StoreMapTable.CONTENT_URI, newRowId);
                     if (!mSuppressChangeNotification) {
-                        getContext().getContentResolver().notifyChange(LocationsBridgeTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoreMapTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+                        getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
                     }
                     return newRowUri;
                 }
@@ -567,16 +574,16 @@ public class aGroceryListContentProvider extends ContentProvider {
                     selection = "1";
                 }
                 // Perform the deletion
-                deleteCount = db.delete(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
+                deleteCount = db.delete(StoreMapTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
                 break;
 
             case LOCATIONS_BRIDGE_SINGLE_ROW:
                 // Limit deletion to a single row
                 rowID = uri.getLastPathSegment();
-                selection = LocationsBridgeTable.COL_BRIDGE_ROW_ID + "=" + rowID
+                selection = StoreMapTable.COL_MAP_ENTRY_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
-                deleteCount = db.delete(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
+                deleteCount = db.delete(StoreMapTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
                 break;
 
             default:
@@ -588,7 +595,8 @@ public class aGroceryListContentProvider extends ContentProvider {
             // Notify and observers of the change in the database.
             getContext().getContentResolver().notifyChange(uri, null);
             getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-            getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+           // getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+            getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
         }
         return deleteCount;
     }
@@ -622,10 +630,20 @@ public class aGroceryListContentProvider extends ContentProvider {
 
 
             case ITEMS_MULTI_ROWS:
+                // remove the COL_DATE_TIME_LAST_USED key if it exists, then set the current time
+                if(values.containsKey(ItemsTable.COL_DATE_TIME_LAST_USED)){
+                    values.remove(ItemsTable.COL_DATE_TIME_LAST_USED);
+                }
+                values.put(ItemsTable.COL_DATE_TIME_LAST_USED,System.currentTimeMillis());
                 updateCount = db.update(ItemsTable.TABLE_ITEMS, values, selection, selectionArgs);
                 break;
 
             case ITEMS_SINGLE_ROW:
+                // remove the COL_DATE_TIME_LAST_USED key if it exists, then set the current time
+                if(values.containsKey(ItemsTable.COL_DATE_TIME_LAST_USED)){
+                    values.remove(ItemsTable.COL_DATE_TIME_LAST_USED);
+                }
+                values.put(ItemsTable.COL_DATE_TIME_LAST_USED,System.currentTimeMillis());
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
@@ -709,7 +727,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
-                updateCount = db.update(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
+                updateCount = db.update(StoreMapTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
 
                 break;
 
@@ -717,13 +735,13 @@ public class aGroceryListContentProvider extends ContentProvider {
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
-                    selection = LocationsBridgeTable.COL_BRIDGE_ROW_ID + "=" + rowID;
+                    selection = StoreMapTable.COL_MAP_ENTRY_ID + "=" + rowID;
                 } else {
-                    selection = LocationsBridgeTable.COL_BRIDGE_ROW_ID + "=" + rowID
+                    selection = StoreMapTable.COL_MAP_ENTRY_ID + "=" + rowID
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update
-                updateCount = db.update(LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
+                updateCount = db.update(StoreMapTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
                 break;
 
             default:
@@ -734,7 +752,8 @@ public class aGroceryListContentProvider extends ContentProvider {
             // Notify any observers of the change in the database.
             getContext().getContentResolver().notifyChange(uri, null);
             getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-            getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+            //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+            getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
         }
         return updateCount;
     }
@@ -773,9 +792,9 @@ public class aGroceryListContentProvider extends ContentProvider {
                 return LocationsTable.CONTENT_ITEM_TYPE;
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
-                return LocationsBridgeTable.CONTENT_TYPE;
+                return StoreMapTable.CONTENT_TYPE;
             case LOCATIONS_BRIDGE_SINGLE_ROW:
-                return LocationsBridgeTable.CONTENT_ITEM_TYPE;
+                return StoreMapTable.CONTENT_ITEM_TYPE;
 
             default:
                 throw new IllegalArgumentException("Method getType. Unknown URI: " + uri);
@@ -821,7 +840,7 @@ public class aGroceryListContentProvider extends ContentProvider {
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
             case LOCATIONS_BRIDGE_SINGLE_ROW:
-                availableColumns = new HashSet<>(Arrays.asList(LocationsBridgeTable.PROJECTION_ALL));
+                availableColumns = new HashSet<>(Arrays.asList(StoreMapTable.PROJECTION_ALL));
                 break;
 
 

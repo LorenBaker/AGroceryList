@@ -66,7 +66,7 @@ public class ItemsTable {
                     + COL_ITEM_ID + " integer primary key autoincrement, "
                     + COL_ITEM_NAME + " text collate nocase default '', "
                     + COL_ITEM_NOTE + " text collate nocase default '', "
-                    + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default -1, "
+                    + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default 1, "
                     + COL_PRODUCT_ID + " integer default -1, "
                     + COL_SELECTED + " integer default 0, "
                     + COL_STRUCK_OUT + " integer default 0, "
@@ -128,11 +128,17 @@ public class ItemsTable {
     }
 
     public static void createNewItem(Context context, String itemName, String strGroupID) {
+
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;
         ContentValues cv = new ContentValues();
         cv.put(COL_ITEM_NAME, itemName);
         int groupID = Integer.parseInt(strGroupID);
+
+        // make sure there is a valid groupID
+        if (groupID < 1) {
+            groupID = 1;
+        }
         cv.put(COL_DATE_TIME_LAST_USED, System.currentTimeMillis());
         cv.put(COL_GROUP_ID, groupID);
 
@@ -273,7 +279,7 @@ public class ItemsTable {
         return cursorLoader;
     }
 
-    public static Cursor getAllItemsByGroupsCursor(Context context) {
+/*    public static Cursor getAllItemsByGroupsCursor(Context context) {
         Cursor cursor = null;
 
         Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS;
@@ -305,15 +311,15 @@ public class ItemsTable {
         }
 
         return cursorLoader;
-    }
+    }*/
 
     public static CursorLoader getAllSelectedItemsByGroups(Context context, long storeID) {
         CursorLoader cursorLoader = null;
 
         Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS;
         String[] projection = JoinedTables.PROJECTION_ITEMS_BY_LOCATIONS_AND_GROUPS;
-        String selection = ItemsTable.TABLE_ITEMS + "." +COL_SELECTED + " = ? AND "
-                + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_STORE_ID + " = ?";
+        String selection = ItemsTable.TABLE_ITEMS + "." + COL_SELECTED + " = ? AND "
+                + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_STORE_ID + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(TRUE), String.valueOf(storeID)};
         String sortOrder = JoinedTables.SORT_ORDER_BY_GROUPS;
         try {
@@ -330,8 +336,8 @@ public class ItemsTable {
 
         Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS;
         String[] projection = JoinedTables.PROJECTION_ITEMS_BY_LOCATIONS_AND_GROUPS;
-        String selection = ItemsTable.TABLE_ITEMS + "." +COL_SELECTED + " = ? AND "
-                + LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_STORE_ID + " = ?";
+        String selection = ItemsTable.TABLE_ITEMS + "." + COL_SELECTED + " = ? AND "
+                + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_STORE_ID + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(TRUE), String.valueOf(storeID)};
         String sortOrder = JoinedTables.SORT_ORDER_BY_LOCATIONS;
         try {
@@ -355,7 +361,7 @@ public class ItemsTable {
             String[] selectionArgs = null;
             numberOfUpdatedRecords = cr.update(itemUri, newFieldValues, selection, selectionArgs);
         } else {
-            MyLog.e("ItemsTable", "updateBridgeRowValues: Invalid itemID.");
+            MyLog.e("ItemsTable", "updateStoreMapEntryValues: Invalid itemID.");
         }
         return numberOfUpdatedRecords;
     }
@@ -537,6 +543,9 @@ public class ItemsTable {
     }
 
     public static void putItemInGroup(Context context, long itemID, long groupID) {
+        if (groupID < 1) {
+            groupID = 1;
+        }
         ContentValues cv = new ContentValues();
         cv.put(COL_GROUP_ID, groupID);
         updateItemFieldValues(context, itemID, cv);
@@ -610,6 +619,22 @@ public class ItemsTable {
         ContentValues cv = new ContentValues();
         cv.put(COL_PRODUCT_ID, productID);
         updateItemFieldValues(context, itemID, cv);
+    }
+
+
+    public static int resetAllItemsWithGroupID(Context context, long groupID) {
+        int numberOfUpdatedRecords = -1;
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = COL_GROUP_ID + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(groupID)};
+
+        ContentValues newFieldValues = new ContentValues();
+        newFieldValues.put(COL_GROUP_ID, 1);
+        numberOfUpdatedRecords = cr.update(uri, newFieldValues, selection, selectionArgs);
+
+        return numberOfUpdatedRecords;
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////

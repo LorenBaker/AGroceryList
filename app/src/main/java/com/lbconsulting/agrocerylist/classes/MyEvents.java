@@ -125,6 +125,35 @@ public class MyEvents {
         }
     }
 
+    public static class showSelectGroupLocationDialog {
+        long mItemID;
+        long mGroupID;
+        long mLocationID;
+        long mStoreID;
+        public showSelectGroupLocationDialog(long itemID, long groupID, long locationID, long storeID) {
+            mItemID = itemID;
+            mGroupID = groupID;
+            mLocationID = locationID;
+            mStoreID=storeID;
+        }
+
+        public long getGroupID() {
+            return mGroupID;
+        }
+
+        public long getItemID() {
+            return mItemID;
+        }
+
+        public long getLocationID() {
+            return mLocationID;
+        }
+
+        public long getStoreID() {
+            return mStoreID;
+        }
+    }
+
 /*    public static class onClick_masterListItem {
         long mItemID;
         public onClick_masterListItem(long itemID) {

@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -57,7 +58,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
     private MasterListCursorAdapter mMasterListCursorAdapter;
     private LoaderManager mLoaderManager = null;
 
-    private boolean okToRestartItemsLoader = true;
+    //private boolean okToRestartItemsLoader = true;
 
     public fragMasterList() {
     }
@@ -119,11 +120,11 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
             // filter master list as the user inputs text
             @Override
             public void afterTextChanged(Editable s) {
-                if (okToRestartItemsLoader) {
-                    mLoaderManager.restartLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
-                } else {
-                    okToRestartItemsLoader = true;
-                }
+                // if (okToRestartItemsLoader) {
+                mLoaderManager.restartLoader(MySettings.ITEMS_LOADER, null, mMasterListFragmentCallbacks);
+                //} else {
+                //     okToRestartItemsLoader = true;
+                // }
             }
 
             @Override
@@ -159,11 +160,20 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
     private void addItemToMasterList() {
         String newItemName = txtItemName.getText().toString().trim();
         if (!newItemName.isEmpty()) {
-            long newItemID = ItemsTable.createNewItem(getActivity(), newItemName);
-            String newItemNote = txtItemNote.getText().toString().trim();
             ContentValues newFieldValues = new ContentValues();
+            String newItemNote = txtItemNote.getText().toString().trim();
+            long itemID;
+            if (lvItemsListView.getAdapter().getCount() == 1) {
+                // there is only one item in the list view ... no need to add it to the master list
+                LinearLayout view = (LinearLayout) lvItemsListView.getChildAt(0);
+                itemID = (long) view.getTag();
+            } else {
+                // add the item to the master list
+                itemID = ItemsTable.createNewItem(getActivity(), newItemName);
+            }
             newFieldValues.put(ItemsTable.COL_ITEM_NOTE, newItemNote);
-            ItemsTable.updateItemFieldValues(getActivity(), newItemID, newFieldValues);
+            newFieldValues.put(ItemsTable.COL_SELECTED, 1);
+            ItemsTable.updateItemFieldValues(getActivity(), itemID, newFieldValues);
         }
         txtItemNote.setText("");
         txtItemName.setText("");
@@ -357,12 +367,12 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
             case R.id.btnClearEditText:
                 // Toast.makeText(getActivity(), "btnClearEditText.click", Toast.LENGTH_SHORT).show();
-                ClearEditText();
+                clearEditText();
                 break;
         }
     }
 
-    private void ClearEditText() {
+    private void clearEditText() {
         String itemNote = txtItemNote.getText().toString().trim();
         if (!itemNote.isEmpty()) {
             // the item has a note ... so clear it
@@ -448,8 +458,8 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
                 if (newCursor != null) {
                     if (newCursor.getCount() == 1) {
                         // there is only one possible selection
-                        // complete the item's name and show its note
-                        completeItemNameAndNote(newCursor);
+                        // show item's note
+                        showItemNote(newCursor);
 
                     } else {
                         // there is not only one selection, so clear the item's note
@@ -477,9 +487,9 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
     }
 
-    private void completeItemNameAndNote(Cursor cursor) {
+    private void showItemNote(Cursor cursor) {
         // set okToRestartItemsLoader flag to prevent an unneeded cursor loader restart
-        okToRestartItemsLoader = false;
+        //okToRestartItemsLoader = false;
         // get the item's name and note
         cursor.moveToFirst();
         String itemName = cursor.getString(cursor.getColumnIndexOrThrow(ItemsTable.COL_ITEM_NAME));
@@ -492,10 +502,10 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
             txtItemNote.setSelection(itemNote.length());
         }
         // if needed, complete the item's name
-        if (!itemName.equals(txtItemName.getText().toString())) {
+  /*      if (!itemName.equals(txtItemName.getText().toString())) {
             txtItemName.setText(itemName);
             // move edit text cursor to the end of the word
             txtItemName.setSelection(itemName.length());
-        }
+        }*/
     }
 }

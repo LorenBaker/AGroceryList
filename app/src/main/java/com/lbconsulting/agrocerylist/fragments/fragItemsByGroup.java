@@ -189,7 +189,7 @@ public class fragItemsByGroup extends Fragment implements LoaderManager.LoaderCa
                 MyLog.i("fragItemsByGroup", "onCreateLoader: GROUPS_LOADER");
 
                 try {
-                    cursorLoader = ItemsTable.getAllItemsByGroups(getActivity());
+                    //cursorLoader = ItemsTable.getAllItemsByGroups(getActivity());
 
                 } catch (SQLiteException e) {
                     MyLog.e("fragItemsByGroup", "onCreateLoader: SQLiteException: " + e.getMessage());

@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
@@ -22,12 +21,11 @@ import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
-import com.lbconsulting.agrocerylist.database.LocationsBridgeTable;
 import com.lbconsulting.agrocerylist.database.LocationsTable;
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
-import com.lbconsulting.agrocerylist.database.aGroceryListContentProvider;
 import com.lbconsulting.agrocerylist.database.aGroceryListDatabaseHelper;
+import com.lbconsulting.agrocerylist.dialogs.dialog_SelectLocation;
 import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
 import com.lbconsulting.agrocerylist.dialogs.sortListDialog;
 
@@ -75,11 +73,24 @@ public class StoreListsActivity extends Activity {
     }
 
     private void loadInitialData() {
+
+        // initialize the grocery groups
+        String[] groceryGroups = getResources().getStringArray(R.array.grocery_groups);
+        for (String groceryGroup : groceryGroups) {
+            GroupsTable.createNewGroup(this, groceryGroup);
+        }
+
+        // initialize the store locations
+        LocationsTable.createInitialLocationsIfNeeded(this);
+
+        // create store chains
         String[] storeChains = getResources().getStringArray(R.array.grocery_store_chains);
         for (String store : storeChains) {
             StoreChainsTable.createNewStoreChain(this, store);
         }
 
+        // create stores ... NOTE: assumes store chains and groups are already created.
+        // also assumes store chain IDs are in the order in R.array.grocery_store_chains
         StoresTable.createNewStore(this, 1, "Eastgate");
 
         StoresTable.createNewStore(this, 2, "Bellevue");
@@ -105,11 +116,8 @@ public class StoreListsActivity extends Activity {
         StoresTable.createNewStore(this, 9, "Bellevue");
         StoresTable.createNewStore(this, 9, "Redmond");
 
-        String[] groceryGroups = getResources().getStringArray(R.array.grocery_groups);
-        for (String groceryGroup : groceryGroups) {
-            GroupsTable.createNewGroup(this, groceryGroup);
-        }
 
+        // create initial items.
         String[] groceryItems = getResources().getStringArray(R.array.grocery_items);
         for (String groceryItem : groceryItems) {
             String[] item = groceryItem.split(", ");
@@ -118,10 +126,10 @@ public class StoreListsActivity extends Activity {
             ItemsTable.createNewItem(this, itemName, groupID);
         }
 
-        LocationsTable.createInitialLocationsIfNeeded(this);
 
 
-        long groupID = 0;
+
+/*        long groupID = 0;
         long locationID = 2;
         long numberOfLocations = LocationsTable.getNumberOfLocations(this);
         Cursor storeCursor = StoresTable.getAllStoresCursor(this, StoresTable.SORT_ORDER_MANUAL);
@@ -133,7 +141,7 @@ public class StoreListsActivity extends Activity {
                 for (String groceryGroup : groceryGroups) {
                     groupID++;
                     if (groupID > 1) {
-                        LocationsBridgeTable.createNewBridgeRow(this, -1, groupID, storeID, locationID);
+                        StoreMapTable.createNewStoreMapEntry(this, -1, groupID, storeID, locationID);
 
                         locationID++;
                         if (locationID > numberOfLocations) {
@@ -144,7 +152,7 @@ public class StoreListsActivity extends Activity {
                 groupID=0;
             }
             aGroceryListContentProvider.setSuppressChangeNotification(false);
-        }
+        }*/
 
 
     }
@@ -159,6 +167,7 @@ public class StoreListsActivity extends Activity {
 
     public void onEvent(MyEvents.toggleItemStrikeOut event) {
         ItemsTable.toggleStrikeOut(this, event.getItemID());
+        //EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
     }
 
     public void onEvent(MyEvents.showEditItemDialog event) {
@@ -169,6 +178,16 @@ public class StoreListsActivity extends Activity {
         FragmentManager fm = getFragmentManager();
         dialog_edit_item dialog = dialog_edit_item.newInstance(itemID, getString(R.string.edit_item_dialog_title));
         dialog.show(fm, "dialog_edit_item");
+    }
+
+    public void onEvent(MyEvents.showSelectGroupLocationDialog event) {
+        showSelectGroupLocationDialog(event.getItemID(), event.getGroupID(), event.getLocationID(), event.getStoreID());
+    }
+
+    private void showSelectGroupLocationDialog(long itemID, long groupID, long locationID, long storeID) {
+        FragmentManager fm = getFragmentManager();
+        dialog_SelectLocation dialog = dialog_SelectLocation.newInstance(itemID, groupID, locationID, storeID);
+        dialog.show(fm, "dialog_SelectLocation");
     }
 
     //region onEvents

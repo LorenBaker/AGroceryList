@@ -118,6 +118,7 @@ public class StoresTable {
                         cv.put(COL_MANUAL_SORT_KEY, newStoreID);
                         cv.put(COL_COLOR_THEME_ID, getColorThemeID(newStoreID));
                         updateStoreFieldValues(context, newStoreID, cv);
+                        StoreMapTable.initializeStoreMap(context, newStoreID);
                     }
                 } catch (Exception e) {
                     MyLog.e("Exception error in CreateNewStore. ", e.toString());

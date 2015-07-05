@@ -36,7 +36,8 @@ public class JoinedTables {
         FROM tblItems JOIN tblGroups
         ON (tblItems.groupID = tblGroups._id)
         ORDER BY groupName, itemName*/
-    public static final String[] PROJECTION_ITEMS_BY_GROUPS = {
+
+/*    public static final String[] PROJECTION_ITEMS_BY_GROUPS = {
             ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_ID,
             GroupsTable.COL_GROUP_NAME, ItemsTable.COL_ITEM_NAME, ItemsTable.COL_ITEM_NOTE,
             ItemsTable.COL_GROUP_ID, ItemsTable.COL_SELECTED, ItemsTable.COL_STRUCK_OUT,
@@ -46,7 +47,8 @@ public class JoinedTables {
     public static final Uri CONTENT_URI_ITEMS_BY_GROUPS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
             + "/" + CONTENT_PATH_ITEMS_BY_GROUPS);
     public static final String SORT_ORDER_ITEMS_BY_GROUP =
-            GroupsTable.COL_GROUP_NAME + " ASC, " + ItemsTable.COL_ITEM_NAME + " ASC";
+            GroupsTable.COL_GROUP_NAME + " ASC, " + ItemsTable.COL_ITEM_NAME + " ASC";*/
+
     //endregion
 
 
@@ -68,7 +70,7 @@ public class JoinedTables {
             ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_STRUCK_OUT,
 
             GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_NAME,
-            LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_LOCATION_ID,
+            StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_LOCATION_ID,
             LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_NAME
     };
     public static final String CONTENT_PATH_ITEMS_BY_LOCATIONS_AND_GROUPS = "itemsByLocationsAndGroups";
@@ -77,7 +79,7 @@ public class JoinedTables {
             + "/" + CONTENT_PATH_ITEMS_BY_LOCATIONS_AND_GROUPS);
 
     public static final String SORT_ORDER_BY_LOCATIONS =
-            LocationsBridgeTable.TABLE_LOCATIONS_BRIDGE + "." + LocationsBridgeTable.COL_LOCATION_ID
+            StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_LOCATION_ID
                     + " ASC, " + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_NAME + " ASC";
 
     public static final String SORT_ORDER_BY_GROUPS =

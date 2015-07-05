@@ -17,8 +17,8 @@ import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
-import com.lbconsulting.agrocerylist.database.LocationsBridgeTable;
 import com.lbconsulting.agrocerylist.database.LocationsTable;
+import com.lbconsulting.agrocerylist.database.StoreMapTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
 
 import de.greenrobot.event.EventBus;
@@ -104,60 +104,95 @@ public class StoreListCursorAdapter extends CursorAdapter {
             case MySettings.SORT_BY_GROUP:
                 if (showGroupSeparator(cursor)) {
                     String separatorText = cursor.getString(cursor.getColumnIndex(GroupsTable.COL_GROUP_NAME));
+                    long groupID = cursor.getLong(cursor.getColumnIndex(StoreMapTable.COL_GROUP_ID));
+                    long locationID = cursor.getLong(cursor.getColumnIndex(StoreMapTable.COL_LOCATION_ID));
                     String locationName = cursor.getString(cursor.getColumnIndex(LocationsTable.COL_LOCATION_NAME));
-                    if (!locationName.isEmpty()) {
-                        separatorText = separatorText + " (" + locationName + ")";
+                    if (!locationName.isEmpty() && groupID > 1) {
+                        if (locationID > 1) {
+                            separatorText = separatorText + " (" + locationName + ")";
+                        } else {
+                            separatorText = separatorText + " " + locationName;
+
+                        }
+                        tvItemsSeparator.setText(separatorText);
                     }
-                    tvItemsSeparator.setText(separatorText);
                 }
-                break;
+                    break;
 
-            case MySettings.SORT_BY_AISLE:
-                if (showAisleSeparator(cursor)) {
-                    String separatorText = cursor.getString(cursor.getColumnIndex(LocationsTable.COL_LOCATION_NAME));
-                    tvItemsSeparator.setText(separatorText);
+                    case MySettings.SORT_BY_AISLE:
+                        if (showAisleSeparator(cursor)) {
+                            String separatorText = cursor.getString(cursor.getColumnIndex(LocationsTable.COL_LOCATION_NAME));
+                            tvItemsSeparator.setText(separatorText);
+                        }
+                        break;
+
+                    case MySettings.SORT_MANUALLY:
+
+                        break;
                 }
-                break;
 
-            case MySettings.SORT_MANUALLY:
+                tvItemName.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        LinearLayout viewParent = (LinearLayout) v.getParent();
+                        long itemID = (long) viewParent.getTag();
+                        EventBus.getDefault().post(new MyEvents.toggleItemStrikeOut(itemID));
+                    }
+                });
 
-                break;
+                tvItemName.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        LinearLayout viewParent = (LinearLayout) v.getParent();
+                        long itemID = (long) viewParent.getTag();
+                        EventBus.getDefault().post(new MyEvents.showEditItemDialog(itemID));
+                        return true;
+                    }
+                });
+
+                tvItemsSeparator.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        LinearLayout viewParent = (LinearLayout) v.getParent();
+                        long itemID = (long) viewParent.getTag();
+                        long groupID;
+                        long currentLocationID;
+                        Cursor cursor = ItemsTable.getItemCursor(mContext, itemID);
+                        if (cursor != null && cursor.getCount() > 0) {
+                            cursor.moveToFirst();
+                            groupID = cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
+                            if (groupID > 1) {
+                                currentLocationID = StoreMapTable.getLocationID(mContext, itemID, groupID, mStoreID);
+                                switch (mStoreItemsSortingOrder) {
+                                    case MySettings.SORT_ALPHABETICAL:
+                                        // do nothing
+                                        break;
+
+                                    case MySettings.SORT_BY_GROUP:
+                                        EventBus.getDefault().post(new MyEvents.showSelectGroupLocationDialog(itemID, groupID, currentLocationID, mStoreID));
+                                        break;
+
+                                    case MySettings.SORT_BY_AISLE:
+                                        // TODO: Show select location for sort by aisle
+                                        break;
+
+                                    case MySettings.SORT_MANUALLY:
+                                        // TODO: Show select location for manual sort
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                });
+
         }
-
-        tvItemName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LinearLayout viewParent = (LinearLayout) v.getParent();
-                long itemID = (long) viewParent.getTag();
-                EventBus.getDefault().post(new MyEvents.toggleItemStrikeOut(itemID));
-            }
-        });
-
-        tvItemName.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                LinearLayout viewParent = (LinearLayout) v.getParent();
-                long itemID = (long) viewParent.getTag();
-                EventBus.getDefault().post(new MyEvents.showEditItemDialog(itemID));
-                return true;
-            }
-        });
-
-        tvItemsSeparator.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EventBus.getDefault().post(new MyEvents.showOkDialog("Group location", "Set group aisle location"));
-            }
-        });
-
-    }
 
     private boolean showAisleSeparator(Cursor itemsCursor) {
         boolean result;
-        long currentLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(LocationsBridgeTable.COL_LOCATION_ID));
+        long currentLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(StoreMapTable.COL_LOCATION_ID));
         long previousLocationID;
         if (itemsCursor.moveToPrevious()) {
-            previousLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(LocationsBridgeTable.COL_LOCATION_ID));
+            previousLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(StoreMapTable.COL_LOCATION_ID));
             itemsCursor.moveToNext();
             if (currentLocationID == previousLocationID) {
                 tvItemsSeparator.setVisibility(View.GONE);

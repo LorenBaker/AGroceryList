@@ -175,7 +175,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onDestroy() {
         MyLog.i("fragStoreList", "onDestroy: storeID = " + mStoreID);
-        EventBus.getDefault().unregister(this);
+       EventBus.getDefault().unregister(this);
 
         super.onDestroy();
     }

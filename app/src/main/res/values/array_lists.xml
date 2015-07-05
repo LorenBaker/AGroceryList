@@ -100,7 +100,7 @@
         <item>Baby Food, 2</item>
         <item>Baby Formula, 2</item>
         <item>Baby Wipes, 2</item>
-        <item>Baby Diapers, 2</item>
+        <item>BabyDiapers, 2</item>
         <item>Bacon, 19</item>
         <item>Baked Beans, 9</item>
         <item>Baking Powder, 11</item>
@@ -123,7 +123,7 @@
         <item>Broccoli, 23</item>
         <item>Brownie Mixes, 4</item>
         <item>Budweiser, 5</item>
-        <item>Burbon, 24</item>
+        <item>Bourbon, 24</item>
         <item>Buttermilk, 13</item>
         <item>Butternut Squash, 23</item>
         <item>Cabbage, 23</item>
@@ -149,8 +149,8 @@
         <item>Cold &amp; Flu Medicines, 21</item>
         <item>Cookies - fresh, 3</item>
         <item>Corn - frozen, 16</item>
-        <item>Corn - canned, 9</item>
-        <item>Corn - fresh, 23</item>
+        <item>Corn-canned, 9</item>
+        <item>Corn-fresh, 23</item>
         <item>Cornflakes, 8</item>
         <item>Cottage Cheese, 13</item>
         <item>Crab, 19</item>
@@ -203,7 +203,7 @@
         <item>Ice Cream, 16</item>
         <item>Instant Breakfast, 8</item>
         <item>Jerky, 12</item>
-        <item>Jucies, 6</item>
+        <item>Juices, 6</item>
         <item>Juice - frozen, 16</item>
         <item>Kleenex, 20</item>
         <item>Laundry Detergent, 10</item>
@@ -237,7 +237,7 @@
         <item>Orange Juice-frozen, 16</item>
         <item>Oranges, 23</item>
         <item>Oreo Cookies, 12</item>
-        <item>Paper Bowles, 20</item>
+        <item>Paper Bowls, 20</item>
         <item>Paper Cups, 20</item>
         <item>Paper Plates, 20</item>
         <item>Paper Towels, 20</item>
@@ -307,6 +307,10 @@
         <item>Yeast, 4</item>
         <item>Yogurt - frozen, 16</item>
         <item>Yogurt, 13</item>
+        <item>Green Olives, 11</item>
+        <item>Tortillas, 18</item>
+        <item>Parsley, 23</item>
+        <item>Apricot Ale, 5</item>
     </string-array>
 
     <!--    <string-array name="grocery_stores">

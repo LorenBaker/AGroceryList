@@ -5,6 +5,7 @@
     <file url="file://$PROJECT_DIR$/app/libs/dropbox-android-sdk-1.6.3.jar" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/libs/eventbus-2.4.0.jar" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/libs/gson-2.3.1.jar" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/adapters/GroupsSpinnerArrayAdapter.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/adapters/ItemsByGroupCursorAdapter.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/adapters/StoreListPagerAdapter.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/adapters/StoresSpinnerCursorAdapter.java" charset="windows-1252" />
@@ -19,10 +20,9 @@
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/AListDatabaseHelper.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/GroupsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/ItemsTable.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/ListsTable.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/LocationsBridgeTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/LocationsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoreChainsTable.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoreMapTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoresTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/rec_black_stroke.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/rec_genoa_no_stroke.xml" charset="UTF-8" />
@@ -35,6 +35,7 @@
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_items_list.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_items_separator.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_product.xml" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_simple_list.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_spinner.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_spinner_dropdown.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/row_store_list.xml" charset="windows-1252" />

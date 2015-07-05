@@ -27,8 +27,8 @@ public class clsProductValues {
         if (mCursor != null) {
             mCursor.moveToFirst();
         }
-        String cursorContent = DatabaseUtils.dumpCursorToString(mCursor);
-        MyLog.d("clsProductValues", cursorContent);
+        //String cursorContent = DatabaseUtils.dumpCursorToString(mCursor);
+        //MyLog.d("clsProductValues", cursorContent);
         cv = new ContentValues();
 
     }

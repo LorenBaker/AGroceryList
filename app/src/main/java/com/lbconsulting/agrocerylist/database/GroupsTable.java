@@ -9,6 +9,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.classes.clsGroup;
+
+import java.util.ArrayList;
 
 public class GroupsTable {
 
@@ -128,6 +131,24 @@ public class GroupsTable {
         return cursor;
     }
 
+    public static Cursor getAllGroupsCursor(Context context, String sortOrder) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = null;
+        String selectionArgs[] = null;
+        if (sortOrder == null) {
+            sortOrder = SORT_ORDER_GROUP_NAME;
+        }
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("GroupsTable", "getAllGroupsCursor: Exception: " + e.getMessage());
+        }
+        return cursor;
+    }
+
     private static boolean groupExists(Context context, String groupName) {
         mExistingGroupID = -1;
         boolean result = false;
@@ -144,7 +165,6 @@ public class GroupsTable {
     }
 
 
-
     public static CursorLoader getAllGroupNames(Context context, String sortOrder) {
         CursorLoader cursorLoader = null;
         Uri uri = CONTENT_URI;
@@ -158,6 +178,30 @@ public class GroupsTable {
             MyLog.e("GroupsTable", "getAllGroupNames: Exception: " + e.getMessage());
         }
         return cursorLoader;
+    }
+
+
+    public static ArrayList<clsGroup> getAllGroupsArray(Context context) {
+        ArrayList<clsGroup> groups = new ArrayList<>();
+        Cursor cursor = getAllGroupsCursor(context, SORT_ORDER_GROUP_NAME);
+        if (cursor != null && cursor.getCount() > 0) {
+            long groupID;
+            String groupName;
+            boolean isChecked;
+            clsGroup group;
+            while (cursor.moveToNext()) {
+                groupID = cursor.getLong(cursor.getColumnIndex(COL_GROUP_ID));
+                groupName = cursor.getString(cursor.getColumnIndex(COL_GROUP_NAME));
+                isChecked = cursor.getInt(cursor.getColumnIndex(COL_CHECKED)) > 0;
+                group = new clsGroup(groupID, groupName, isChecked);
+                groups.add(group);
+            }
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+        return groups;
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,6 +234,8 @@ public class GroupsTable {
             String where = COL_GROUP_ID + " = ?";
             String[] selectionArgs = {String.valueOf(groupID)};
             numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
+            StoreMapTable.resetGroupID(context, groupID);
+            ItemsTable.resetAllItemsWithGroupID(context, groupID);
         }
         return numberOfDeletedRecords;
     }
@@ -205,5 +251,6 @@ public class GroupsTable {
 
         return numberOfDeletedRecords;
     }
+
 
 }

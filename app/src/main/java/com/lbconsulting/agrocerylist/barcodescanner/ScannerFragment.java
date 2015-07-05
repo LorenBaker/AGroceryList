@@ -92,7 +92,6 @@ public class ScannerFragment extends Fragment implements MessageDialogFragment.M
         inflater.inflate(R.menu.menu_scanner_fragment, menu);
         //Spinner spinner = (Spinner) menu.findItem(R.id.spinner).getActionView(); // find the spinner
 /*        Spinner spinner = (Spinner) menu.findItem(R.id.spinner); // find the spinner
-        ArrayList<String> itemLocationsList = StoreItemLocationsTable.getAllItemLocations(getActivity());
         ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getActivity(),
                 android.R.layout.simple_spinner_item, itemLocationsList);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

@@ -9,16 +9,16 @@ import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 
-public class LocationsBridgeTable {
+public class StoreMapTable {
 
-    public static final String TABLE_LOCATIONS_BRIDGE = "tblLocationsBridge";
-    public static final String COL_BRIDGE_ROW_ID = "_id";
+    public static final String TABLE_LOCATIONS_BRIDGE = "tblStoreMaps";
+    public static final String COL_MAP_ENTRY_ID = "_id";
     public static final String COL_ITEM_ID = "itemID";
     public static final String COL_GROUP_ID = "groupID";
     public static final String COL_STORE_ID = "storeID";
     public static final String COL_LOCATION_ID = "locationID";
 
-    public static final String[] PROJECTION_ALL = {COL_BRIDGE_ROW_ID, COL_ITEM_ID, COL_GROUP_ID, COL_STORE_ID, COL_LOCATION_ID};
+    public static final String[] PROJECTION_ALL = {COL_MAP_ENTRY_ID, COL_ITEM_ID, COL_GROUP_ID, COL_STORE_ID, COL_LOCATION_ID};
 
     public static final String CONTENT_PATH = TABLE_LOCATIONS_BRIDGE;
 
@@ -27,11 +27,12 @@ public class LocationsBridgeTable {
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
 
 
-    private static long mExistingBridgeRowID;
+    private static long mExistingMapEntryID;
+    private static long DEFAULT_LOCATION = 1;
 
     // Database creation SQL statements
     private static final String CREATE_TABLE = "create table " + TABLE_LOCATIONS_BRIDGE + " ("
-            + COL_BRIDGE_ROW_ID + " integer primary key autoincrement, "
+            + COL_MAP_ENTRY_ID + " integer primary key autoincrement, "
             + COL_ITEM_ID + " integer not null references " + ItemsTable.TABLE_ITEMS + " (" + ItemsTable.COL_ITEM_ID + ") default -1, "
             + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default 1, "
             + COL_STORE_ID + " integer not null references " + StoresTable.TABLE_STORES + " (" + StoresTable.COL_STORE_ID + ") default -1, "
@@ -40,7 +41,7 @@ public class LocationsBridgeTable {
 
     public static void onCreate(SQLiteDatabase database) {
         database.execSQL(CREATE_TABLE);
-        MyLog.i("LocationsBridgeTable", "onCreate: " + TABLE_LOCATIONS_BRIDGE + " created.");
+        MyLog.i("StoreMapTable", "onCreate: " + TABLE_LOCATIONS_BRIDGE + " created.");
     }
 
     public static void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
@@ -56,13 +57,13 @@ public class LocationsBridgeTable {
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    public static long createNewBridgeRow(Context context, long itemID, long groupID, long storeID, long locationID) {
-        long newBridgeRowID = -1;
+    public static long createNewStoreMapEntry(Context context, long itemID, long groupID, long storeID, long locationID) {
+        long newMapEntryID = -1;
         // crate a new bridge row if the inputs are valid
-        if ((itemID > 0 || groupID > 1) && storeID > 0 && locationID > 0) {
-            if (bridgeRowExists(context, itemID, groupID, storeID)) {
+        if ((itemID > 0 || groupID > 0) && storeID > 0 && locationID > 0) {
+            if (storeMapEntryExists(context, itemID, groupID, storeID)) {
                 // the bridge row exists in the table ... so return its id
-                newBridgeRowID = mExistingBridgeRowID;
+                newMapEntryID = mExistingMapEntryID;
             } else {
                 // the group does not exist in the table ... so add it
                 ContentResolver cr = context.getContentResolver();
@@ -72,26 +73,64 @@ public class LocationsBridgeTable {
                 values.put(COL_GROUP_ID, groupID);
                 values.put(COL_STORE_ID, storeID);
                 values.put(COL_LOCATION_ID, locationID);
-                Uri newBridgeRowUri = cr.insert(uri, values);
-                if (newBridgeRowUri != null) {
-                    newBridgeRowID = Long.parseLong(newBridgeRowUri.getLastPathSegment());
+                Uri newMapEntryUri = cr.insert(uri, values);
+                if (newMapEntryUri != null) {
+                    newMapEntryID = Long.parseLong(newMapEntryUri.getLastPathSegment());
                 }
             }
         }
-        return newBridgeRowID;
+        return newMapEntryID;
+    }
+
+    public static void initializeStoreMap(Context context, long storeID) {
+        // delete all map entries associated with the store
+        deleteAllStoreMapEntriesInStore(context, storeID);
+
+        // create a map entry for each group with the default location
+        Cursor groupsCursor = GroupsTable.getAllGroupsCursor(context,GroupsTable.SORT_ORDER_GROUP_NAME);
+        if (groupsCursor != null && groupsCursor.getCount() > 0) {
+            long groupID;
+            while (groupsCursor.moveToNext()) {
+                groupID = groupsCursor.getLong(groupsCursor.getColumnIndex(GroupsTable.COL_GROUP_ID));
+                createNewStoreMapEntry(context, -1, groupID, storeID, DEFAULT_LOCATION);
+            }
+        }
+        if (groupsCursor != null) {
+            groupsCursor.close();
+        }
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Read Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static boolean bridgeRowExists(Context context, long itemID, long groupID, long storeID) {
+    private static Cursor getMapEntryCursor(Context context, long mapEntryID) {
+        Cursor cursor = null;
+        if (mapEntryID > 0) {
+            Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(mapEntryID));
+            String[] projection = PROJECTION_ALL;
+            String selection = null;
+            String selectionArgs[] = null;
+            String sortOrder = null;
+            ContentResolver cr = context.getContentResolver();
+            try {
+                cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+            } catch (Exception e) {
+                MyLog.e("StoreMapTable", "getMapEntryCursor: Exception: " + e.getMessage());
+            }
+        } else {
+            MyLog.e("StoreMapTable", "getMapEntryCursor: Invalid mapEntryID");
+        }
+        return cursor;
+    }
+
+    private static boolean storeMapEntryExists(Context context, long itemID, long groupID, long storeID) {
         // the bridge row exists if either of the following is true:
         // 1) the itemID and storeID pair exists in the table, or
         // 2) the groupID and storeID pair exists in the table.
 
-        mExistingBridgeRowID = -1;
-        boolean bridgeRowExists = false;
+        mExistingMapEntryID = -1;
+        boolean mapEntryExists = false;
 
         // check existence if the groupID is greater than the default groupID
         if (groupID > 1) {
@@ -99,32 +138,32 @@ public class LocationsBridgeTable {
             if (groupStoreCursor != null) {
                 if (groupStoreCursor.getCount() > 0) {
                     groupStoreCursor.moveToFirst();
-                    mExistingBridgeRowID = groupStoreCursor.getLong(groupStoreCursor.getColumnIndex(COL_BRIDGE_ROW_ID));
-                    bridgeRowExists = true;
+                    mExistingMapEntryID = groupStoreCursor.getLong(groupStoreCursor.getColumnIndex(COL_MAP_ENTRY_ID));
+                    mapEntryExists = true;
                 }
                 groupStoreCursor.close();
             }
         }
 
-        if (!bridgeRowExists && itemID > 0) {
+        if (!mapEntryExists && itemID > 0) {
             Cursor itemStoreCursor = getItemStoreCursor(context, itemID, storeID);
             if (itemStoreCursor != null) {
                 if (itemStoreCursor.getCount() > 0) {
                     itemStoreCursor.moveToFirst();
-                    mExistingBridgeRowID = itemStoreCursor.getLong(itemStoreCursor.getColumnIndex(COL_BRIDGE_ROW_ID));
-                    bridgeRowExists = true;
+                    mExistingMapEntryID = itemStoreCursor.getLong(itemStoreCursor.getColumnIndex(COL_MAP_ENTRY_ID));
+                    mapEntryExists = true;
                 }
                 itemStoreCursor.close();
             }
         }
-        return bridgeRowExists;
+        return mapEntryExists;
     }
 
     private static Cursor getItemStoreCursor(Context context, long itemID, long storeID) {
         Cursor cursor;
 
         Uri uri = CONTENT_URI;
-        String[] projection = new String[]{COL_BRIDGE_ROW_ID};
+        String[] projection = new String[]{COL_MAP_ENTRY_ID};
         String selection = COL_ITEM_ID + " = ? AND " + COL_STORE_ID + " = ?";
         String selectionArgs[] = {String.valueOf(itemID), String.valueOf(storeID)};
         String sortOrder = null;
@@ -138,7 +177,7 @@ public class LocationsBridgeTable {
         Cursor cursor;
 
         Uri uri = CONTENT_URI;
-        String[] projection = new String[]{COL_BRIDGE_ROW_ID};
+        String[] projection = new String[]{COL_MAP_ENTRY_ID};
         String selection = COL_GROUP_ID + " = ? AND " + COL_STORE_ID + " = ?";
         String selectionArgs[] = {String.valueOf(groupID), String.valueOf(storeID)};
         String sortOrder = null;
@@ -148,43 +187,60 @@ public class LocationsBridgeTable {
         return cursor;
     }
 
-    private static long getBridgeRowID(Context context, long itemID, long groupID, long storeID) {
-        long bridgeRowID = -1;
-        if (bridgeRowExists(context, itemID, groupID, storeID)) {
-            bridgeRowID = mExistingBridgeRowID;
+    private static long getStoreMapEntryID(Context context, long itemID, long groupID, long storeID) {
+        long mapEntryID = -1;
+        if (storeMapEntryExists(context, itemID, groupID, storeID)) {
+            mapEntryID = mExistingMapEntryID;
         }
-        return bridgeRowID;
+        return mapEntryID;
     }
+
+    public static long getLocationID(Context context, long itemID, long groupID, long storeID) {
+        long locationID = DEFAULT_LOCATION;
+
+        long mapEntryID = getStoreMapEntryID(context, itemID, groupID, storeID);
+        Cursor mapEntryCursor = getMapEntryCursor(context, mapEntryID);
+        if (mapEntryCursor != null && mapEntryCursor.getCount() > 0) {
+            mapEntryCursor.moveToFirst();
+            locationID = mapEntryCursor.getLong(mapEntryCursor.getColumnIndex(COL_LOCATION_ID));
+        }
+        if (mapEntryCursor != null) {
+            mapEntryCursor.close();
+        }
+        return locationID;
+    }
+
+
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Update Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static int updateBridgeRowValues(Context context, long bridgeRowID, ContentValues newFieldValues) {
+    public static int updateStoreMapEntryValues(Context context, long mapEntryID, ContentValues newFieldValues) {
         ContentResolver cr = context.getContentResolver();
-        Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(bridgeRowID));
+        Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(mapEntryID));
         String selection = null;
         String[] selectionArgs = null;
         return cr.update(uri, newFieldValues, selection, selectionArgs);
     }
 
-    public static void setLocation(Context context, long bridgeRowID, long locationID) {
-        if (bridgeRowID > 0) {
+    public static void setLocation(Context context, long mapEntryID, long locationID) {
+        if (mapEntryID > 0) {
             ContentValues cv = new ContentValues();
             cv.put(COL_LOCATION_ID, locationID);
-            updateBridgeRowValues(context, bridgeRowID, cv);
+            updateStoreMapEntryValues(context, mapEntryID, cv);
         }
     }
 
     public static void setLocation(Context context, long itemID, long groupID, long storeID, long locationID) {
-        long bridgeRowID;
-        if (bridgeRowExists(context, itemID, groupID, storeID)) {
-            bridgeRowID = mExistingBridgeRowID;
+        long mapEntryID;
+        if (storeMapEntryExists(context, itemID, groupID, storeID)) {
+            mapEntryID = mExistingMapEntryID;
             ContentValues values = new ContentValues();
             values.put(COL_LOCATION_ID, locationID);
-            updateBridgeRowValues(context, bridgeRowID, values);
+            updateStoreMapEntryValues(context, mapEntryID, values);
         } else {
             // create a new bridge row
-            createNewBridgeRow(context, itemID, groupID, storeID, locationID);
+            createNewStoreMapEntry(context, itemID, groupID, storeID, locationID);
         }
     }
 
@@ -250,15 +306,14 @@ public class LocationsBridgeTable {
         return numberOfUpdatedRecords;
     }
 
-
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Delete Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public static int deleteBridgeRow(Context context, long bridgeRowID) {
+    public static int deleteStoreMapEntry(Context context, long mapEntryID) {
         int numberOfDeletedRecords = -1;
-        if (bridgeRowID > 0) {
+        if (mapEntryID > 0) {
             ContentResolver cr = context.getContentResolver();
-            Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(bridgeRowID));
+            Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(mapEntryID));
             String selection = null;
             String[] selectionArgs = null;
             cr.delete(uri, selection, selectionArgs);
@@ -266,7 +321,7 @@ public class LocationsBridgeTable {
         return numberOfDeletedRecords;
     }
 
-    public static int deleteAllBridgeRowsInStore(Context context, long storeID) {
+    public static int deleteAllStoreMapEntriesInStore(Context context, long storeID) {
         int numberOfDeletedRecords = -1;
         if (storeID > 0) {
             Uri uri = CONTENT_URI;
@@ -278,7 +333,7 @@ public class LocationsBridgeTable {
         return numberOfDeletedRecords;
     }
 
-    public static int deleteAllBridgeRowsInGroup(Context context, long groupID) {
+/*    public static int deleteAllStoreMapEntriesInGroup(Context context, long groupID) {
         int numberOfDeletedRecords = -1;
         // cannot delete the default group
         if (groupID > 1) {
@@ -289,9 +344,9 @@ public class LocationsBridgeTable {
             numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
         }
         return numberOfDeletedRecords;
-    }
+    }*/
 
-    public static int deleteAllBridgeRowsWithItemID(Context context, long itemID) {
+    public static int deleteAllStoreMapEntriesWithItemID(Context context, long itemID) {
         int numberOfDeletedRecords = -1;
         if (itemID > 0) {
             Uri uri = CONTENT_URI;
@@ -303,17 +358,9 @@ public class LocationsBridgeTable {
         return numberOfDeletedRecords;
     }
 
-    public static int deleteAllBridgeRowsWithLocation(Context context, long locationID) {
-        int numberOfDeletedRecords = -1;
-        // cannot delete the default location
-        if (locationID > 1) {
-            Uri uri = CONTENT_URI;
-            String selection = COL_LOCATION_ID + " = ?";
-            String selectionArgs[] = new String[]{String.valueOf(locationID)};
-            ContentResolver cr = context.getContentResolver();
-            numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
-        }
-        return numberOfDeletedRecords;
-    }
+
+
 
 }
+
+
