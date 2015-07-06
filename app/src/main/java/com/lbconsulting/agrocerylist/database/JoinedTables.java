@@ -70,7 +70,7 @@ public class JoinedTables {
             ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_STRUCK_OUT,
 
             GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_NAME,
-            StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_LOCATION_ID,
+            StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_LOCATION_ID,
             LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_NAME
     };
     public static final String CONTENT_PATH_ITEMS_BY_LOCATIONS_AND_GROUPS = "itemsByLocationsAndGroups";
@@ -79,7 +79,7 @@ public class JoinedTables {
             + "/" + CONTENT_PATH_ITEMS_BY_LOCATIONS_AND_GROUPS);
 
     public static final String SORT_ORDER_BY_LOCATIONS =
-            StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_LOCATION_ID
+            StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_LOCATION_ID
                     + " ASC, " + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_NAME + " ASC";
 
     public static final String SORT_ORDER_BY_GROUPS =

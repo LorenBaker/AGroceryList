@@ -17,10 +17,9 @@ import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.adapters.LocationsArrayAdapter;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
-import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.classes.clsLocation;
 import com.lbconsulting.agrocerylist.database.LocationsTable;
-import com.lbconsulting.agrocerylist.database.StoreMapTable;
+import com.lbconsulting.agrocerylist.database.StoreMapsTable;
 
 import java.util.ArrayList;
 
@@ -110,7 +109,7 @@ public class dialog_SelectLocation extends DialogFragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 clsLocation location = locations.get(position);
-                StoreMapTable.setLocation(getActivity(), mItemID, mGroupID, mStoreID, location.getLocationID());
+                StoreMapsTable.setLocation(getActivity(), mItemID, mGroupID, mStoreID, location.getLocationID());
                 //EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
                 dismiss();
             }

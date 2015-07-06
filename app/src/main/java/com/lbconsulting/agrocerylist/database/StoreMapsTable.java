@@ -9,7 +9,7 @@ import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 
-public class StoreMapTable {
+public class StoreMapsTable {
 
     public static final String TABLE_LOCATIONS_BRIDGE = "tblStoreMaps";
     public static final String COL_MAP_ENTRY_ID = "_id";
@@ -41,7 +41,7 @@ public class StoreMapTable {
 
     public static void onCreate(SQLiteDatabase database) {
         database.execSQL(CREATE_TABLE);
-        MyLog.i("StoreMapTable", "onCreate: " + TABLE_LOCATIONS_BRIDGE + " created.");
+        MyLog.i("StoreMapsTable", "onCreate: " + TABLE_LOCATIONS_BRIDGE + " created.");
     }
 
     public static void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
@@ -116,10 +116,10 @@ public class StoreMapTable {
             try {
                 cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
             } catch (Exception e) {
-                MyLog.e("StoreMapTable", "getMapEntryCursor: Exception: " + e.getMessage());
+                MyLog.e("StoreMapsTable", "getMapEntryCursor: Exception: " + e.getMessage());
             }
         } else {
-            MyLog.e("StoreMapTable", "getMapEntryCursor: Invalid mapEntryID");
+            MyLog.e("StoreMapsTable", "getMapEntryCursor: Invalid mapEntryID");
         }
         return cursor;
     }

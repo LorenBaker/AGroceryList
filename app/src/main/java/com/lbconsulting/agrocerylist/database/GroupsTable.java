@@ -234,7 +234,7 @@ public class GroupsTable {
             String where = COL_GROUP_ID + " = ?";
             String[] selectionArgs = {String.valueOf(groupID)};
             numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
-            StoreMapTable.resetGroupID(context, groupID);
+            StoreMapsTable.resetGroupID(context, groupID);
             ItemsTable.resetAllItemsWithGroupID(context, groupID);
         }
         return numberOfDeletedRecords;

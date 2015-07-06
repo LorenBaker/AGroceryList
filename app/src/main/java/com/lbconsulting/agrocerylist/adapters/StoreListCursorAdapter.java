@@ -18,7 +18,7 @@ import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
 import com.lbconsulting.agrocerylist.database.LocationsTable;
-import com.lbconsulting.agrocerylist.database.StoreMapTable;
+import com.lbconsulting.agrocerylist.database.StoreMapsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
 
 import de.greenrobot.event.EventBus;
@@ -104,8 +104,8 @@ public class StoreListCursorAdapter extends CursorAdapter {
             case MySettings.SORT_BY_GROUP:
                 if (showGroupSeparator(cursor)) {
                     String separatorText = cursor.getString(cursor.getColumnIndex(GroupsTable.COL_GROUP_NAME));
-                    long groupID = cursor.getLong(cursor.getColumnIndex(StoreMapTable.COL_GROUP_ID));
-                    long locationID = cursor.getLong(cursor.getColumnIndex(StoreMapTable.COL_LOCATION_ID));
+                    long groupID = cursor.getLong(cursor.getColumnIndex(StoreMapsTable.COL_GROUP_ID));
+                    long locationID = cursor.getLong(cursor.getColumnIndex(StoreMapsTable.COL_LOCATION_ID));
                     String locationName = cursor.getString(cursor.getColumnIndex(LocationsTable.COL_LOCATION_NAME));
                     if (!locationName.isEmpty() && groupID > 1) {
                         if (locationID > 1) {
@@ -162,7 +162,7 @@ public class StoreListCursorAdapter extends CursorAdapter {
                             cursor.moveToFirst();
                             groupID = cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
                             if (groupID > 1) {
-                                currentLocationID = StoreMapTable.getLocationID(mContext, itemID, groupID, mStoreID);
+                                currentLocationID = StoreMapsTable.getLocationID(mContext, itemID, groupID, mStoreID);
                                 switch (mStoreItemsSortingOrder) {
                                     case MySettings.SORT_ALPHABETICAL:
                                         // do nothing
@@ -189,10 +189,10 @@ public class StoreListCursorAdapter extends CursorAdapter {
 
     private boolean showAisleSeparator(Cursor itemsCursor) {
         boolean result;
-        long currentLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(StoreMapTable.COL_LOCATION_ID));
+        long currentLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(StoreMapsTable.COL_LOCATION_ID));
         long previousLocationID;
         if (itemsCursor.moveToPrevious()) {
-            previousLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(StoreMapTable.COL_LOCATION_ID));
+            previousLocationID = itemsCursor.getLong(itemsCursor.getColumnIndex(StoreMapsTable.COL_LOCATION_ID));
             itemsCursor.moveToNext();
             if (currentLocationID == previousLocationID) {
                 tvItemsSeparator.setVisibility(View.GONE);

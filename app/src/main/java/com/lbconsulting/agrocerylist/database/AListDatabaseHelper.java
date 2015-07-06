@@ -28,7 +28,7 @@ public class AListDatabaseHelper extends SQLiteOpenHelper {
 		StoreChainsTable.onCreate(database);
 		StoresTable.onCreate(database);
 		LocationsTable.onCreate(database);
-		StoreMapTable.onCreate(database);
+		StoreMapsTable.onCreate(database);
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class AListDatabaseHelper extends SQLiteOpenHelper {
 		StoreChainsTable.onUpgrade(database,oldVersion,newVersion);
 		StoresTable.onUpgrade(database, oldVersion, newVersion);
 		LocationsTable.onUpgrade(database, oldVersion, newVersion);
-		StoreMapTable.onUpgrade(database, oldVersion, newVersion);
+		StoreMapsTable.onUpgrade(database, oldVersion, newVersion);
 	}
 
 	public static SQLiteDatabase getDatabase() {

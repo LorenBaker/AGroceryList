@@ -319,7 +319,7 @@ public class ItemsTable {
         Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS;
         String[] projection = JoinedTables.PROJECTION_ITEMS_BY_LOCATIONS_AND_GROUPS;
         String selection = ItemsTable.TABLE_ITEMS + "." + COL_SELECTED + " = ? AND "
-                + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_STORE_ID + " = ?";
+                + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_STORE_ID + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(TRUE), String.valueOf(storeID)};
         String sortOrder = JoinedTables.SORT_ORDER_BY_GROUPS;
         try {
@@ -337,7 +337,7 @@ public class ItemsTable {
         Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS;
         String[] projection = JoinedTables.PROJECTION_ITEMS_BY_LOCATIONS_AND_GROUPS;
         String selection = ItemsTable.TABLE_ITEMS + "." + COL_SELECTED + " = ? AND "
-                + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_STORE_ID + " = ?";
+                + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_STORE_ID + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(TRUE), String.valueOf(storeID)};
         String sortOrder = JoinedTables.SORT_ORDER_BY_LOCATIONS;
         try {

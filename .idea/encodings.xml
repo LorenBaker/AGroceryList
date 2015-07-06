@@ -22,7 +22,7 @@
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/ItemsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/LocationsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoreChainsTable.java" charset="windows-1252" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoreMapTable.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoreMapsTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/lbconsulting/agrocerylist/database/StoresTable.java" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/rec_black_stroke.xml" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/rec_genoa_no_stroke.xml" charset="UTF-8" />

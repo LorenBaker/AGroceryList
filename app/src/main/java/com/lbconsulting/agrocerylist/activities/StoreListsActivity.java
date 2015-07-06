@@ -8,10 +8,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lbconsulting.agrocerylist.R;
@@ -39,8 +43,9 @@ public class StoreListsActivity extends Activity {
     public static final String NOT_AVAILABLE = "Name N/A: ";
 
     private StoreListPagerAdapter mListsPagerAdapter;
-    private ViewPager mPager;
-
+    private ViewPager mStoreListPager;
+    private LinearLayout mProgressBar;
+    private TextView tvProgressMessage;
 
     private static long mActiveStoreID;
 
@@ -55,6 +60,9 @@ public class StoreListsActivity extends Activity {
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_store_lists);
+        mStoreListPager = (ViewPager) findViewById(R.id.storeListPager);
+        mProgressBar = (LinearLayout) findViewById(R.id.llProgressBar);
+        tvProgressMessage = (TextView) findViewById(R.id.tvProgressMessage);
 
         MySettings.setContext(this);
         EventBus.getDefault().register(this);
@@ -68,7 +76,7 @@ public class StoreListsActivity extends Activity {
         }
 
         if (!aGroceryListDatabaseHelper.databaseExists()) {
-            loadInitialData();
+            new LoadInitialDataAsync().execute();
         }
     }
 
@@ -141,7 +149,7 @@ public class StoreListsActivity extends Activity {
                 for (String groceryGroup : groceryGroups) {
                     groupID++;
                     if (groupID > 1) {
-                        StoreMapTable.createNewStoreMapEntry(this, -1, groupID, storeID, locationID);
+                        StoreMapsTable.createNewStoreMapEntry(this, -1, groupID, storeID, locationID);
 
                         locationID++;
                         if (locationID > numberOfLocations) {
@@ -219,9 +227,9 @@ public class StoreListsActivity extends Activity {
                 MyLog.i("StoreListsActivity", "showFragment: HOME_FRAG_STORE_LIST");*/
 
         mListsPagerAdapter = new StoreListPagerAdapter(getFragmentManager(), this);
-        mPager = (ViewPager) findViewById(R.id.storeListPager);
-        mPager.setAdapter(mListsPagerAdapter);
-        mPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+
+        mStoreListPager.setAdapter(mListsPagerAdapter);
+        mStoreListPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
             @Override
             public void onPageScrollStateChanged(int state) {
@@ -240,7 +248,7 @@ public class StoreListsActivity extends Activity {
         });
 
         int pagerPosition = StoreListPagerAdapter.findStoreIDPosition(mActiveStoreID);
-        mPager.setCurrentItem(pagerPosition);
+        mStoreListPager.setCurrentItem(pagerPosition);
 
 /*                break;
 
@@ -390,5 +398,34 @@ public class StoreListsActivity extends Activity {
 
     private void setActionBarTitle(String title) {
         mActionBar.setTitle(title);
+    }
+
+
+    public class LoadInitialDataAsync extends AsyncTask<Void, Void, Void> {
+        public LoadInitialDataAsync() {
+            super();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            tvProgressMessage.setText("Please wait while loading initial data...");
+            mProgressBar.setVisibility(View.VISIBLE);
+            mStoreListPager.setVisibility(View.GONE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            loadInitialData();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            showFragment(MySettings.HOME_FRAG_STORE_LIST);
+            mStoreListPager.setVisibility(View.VISIBLE);
+            mProgressBar.setVisibility(View.GONE);
+        }
     }
 }

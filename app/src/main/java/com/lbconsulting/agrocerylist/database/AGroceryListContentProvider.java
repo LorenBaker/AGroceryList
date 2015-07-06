@@ -84,8 +84,8 @@ public class aGroceryListContentProvider extends ContentProvider {
         sURIMatcher.addURI(AUTHORITY, LocationsTable.CONTENT_PATH, LOCATIONS_MULTI_ROWS);
         sURIMatcher.addURI(AUTHORITY, LocationsTable.CONTENT_PATH + "/#", LOCATIONS_SINGLE_ROW);
 
-        sURIMatcher.addURI(AUTHORITY, StoreMapTable.CONTENT_PATH, LOCATIONS_BRIDGE_MULTI_ROWS);
-        sURIMatcher.addURI(AUTHORITY, StoreMapTable.CONTENT_PATH + "/#", LOCATIONS_BRIDGE_SINGLE_ROW);
+        sURIMatcher.addURI(AUTHORITY, StoreMapsTable.CONTENT_PATH, LOCATIONS_BRIDGE_MULTI_ROWS);
+        sURIMatcher.addURI(AUTHORITY, StoreMapsTable.CONTENT_PATH + "/#", LOCATIONS_BRIDGE_SINGLE_ROW);
 
         sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_STORES_WITH_CHAIN_NAMES, STORES_WITH_CHAIN_NAMES);
         //sURIMatcher.addURI(AUTHORITY, JoinedTables.CONTENT_PATH_ITEMS_BY_GROUPS, ITEMS_BY_GROUPS);
@@ -189,14 +189,14 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
-                queryBuilder.setTables(StoreMapTable.TABLE_LOCATIONS_BRIDGE);
+                queryBuilder.setTables(StoreMapsTable.TABLE_LOCATIONS_BRIDGE);
                 checkColumnNames(projection, LOCATIONS_BRIDGE_MULTI_ROWS);
                 break;
 
             case LOCATIONS_BRIDGE_SINGLE_ROW:
-                queryBuilder.setTables(StoreMapTable.TABLE_LOCATIONS_BRIDGE);
+                queryBuilder.setTables(StoreMapsTable.TABLE_LOCATIONS_BRIDGE);
                 checkColumnNames(projection, LOCATIONS_BRIDGE_SINGLE_ROW);
-                queryBuilder.appendWhere(StoreMapTable.COL_MAP_ENTRY_ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(StoreMapsTable.COL_MAP_ENTRY_ID + "=" + uri.getLastPathSegment());
                 break;
 
             case STORES_WITH_CHAIN_NAMES:
@@ -238,16 +238,16 @@ public class aGroceryListContentProvider extends ContentProvider {
             WHERE   tblItems.itemSelected=1 AND tblLocationsBridge.storeID =6
             ORDER BY   tblGroups.groupName, tblItems.itemName*/
                 tables = ItemsTable.TABLE_ITEMS
-                        + " JOIN " + StoreMapTable.TABLE_LOCATIONS_BRIDGE + " ON "
+                        + " JOIN " + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + " ON "
                         + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID + " = "
-                        + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_GROUP_ID
+                        + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_GROUP_ID
 
                         + " JOIN " + LocationsTable.TABLE_LOCATIONS + " ON "
-                        + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_LOCATION_ID + " = "
+                        + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_LOCATION_ID + " = "
                         + LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_ID
 
                         + " JOIN " + GroupsTable.TABLE_GROUPS + " ON "
-                        + StoreMapTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapTable.COL_GROUP_ID + " = "
+                        + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_GROUP_ID + " = "
                         + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_ID;
 
                 queryBuilder.setTables(tables);
@@ -420,11 +420,11 @@ public class aGroceryListContentProvider extends ContentProvider {
 
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
-                newRowId = db.insertOrThrow(StoreMapTable.TABLE_LOCATIONS_BRIDGE, nullColumnHack, values);
+                newRowId = db.insertOrThrow(StoreMapsTable.TABLE_LOCATIONS_BRIDGE, nullColumnHack, values);
                 if (newRowId > 0) {
-                    Uri newRowUri = ContentUris.withAppendedId(StoreMapTable.CONTENT_URI, newRowId);
+                    Uri newRowUri = ContentUris.withAppendedId(StoreMapsTable.CONTENT_URI, newRowId);
                     if (!mSuppressChangeNotification) {
-                        getContext().getContentResolver().notifyChange(StoreMapTable.CONTENT_URI, null);
+                        getContext().getContentResolver().notifyChange(StoreMapsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
                         //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
@@ -574,16 +574,16 @@ public class aGroceryListContentProvider extends ContentProvider {
                     selection = "1";
                 }
                 // Perform the deletion
-                deleteCount = db.delete(StoreMapTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
+                deleteCount = db.delete(StoreMapsTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
                 break;
 
             case LOCATIONS_BRIDGE_SINGLE_ROW:
                 // Limit deletion to a single row
                 rowID = uri.getLastPathSegment();
-                selection = StoreMapTable.COL_MAP_ENTRY_ID + "=" + rowID
+                selection = StoreMapsTable.COL_MAP_ENTRY_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
-                deleteCount = db.delete(StoreMapTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
+                deleteCount = db.delete(StoreMapsTable.TABLE_LOCATIONS_BRIDGE, selection, selectionArgs);
                 break;
 
             default:
@@ -727,7 +727,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
-                updateCount = db.update(StoreMapTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
+                updateCount = db.update(StoreMapsTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
 
                 break;
 
@@ -735,13 +735,13 @@ public class aGroceryListContentProvider extends ContentProvider {
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
-                    selection = StoreMapTable.COL_MAP_ENTRY_ID + "=" + rowID;
+                    selection = StoreMapsTable.COL_MAP_ENTRY_ID + "=" + rowID;
                 } else {
-                    selection = StoreMapTable.COL_MAP_ENTRY_ID + "=" + rowID
+                    selection = StoreMapsTable.COL_MAP_ENTRY_ID + "=" + rowID
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update
-                updateCount = db.update(StoreMapTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
+                updateCount = db.update(StoreMapsTable.TABLE_LOCATIONS_BRIDGE, values, selection, selectionArgs);
                 break;
 
             default:
@@ -792,9 +792,9 @@ public class aGroceryListContentProvider extends ContentProvider {
                 return LocationsTable.CONTENT_ITEM_TYPE;
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
-                return StoreMapTable.CONTENT_TYPE;
+                return StoreMapsTable.CONTENT_TYPE;
             case LOCATIONS_BRIDGE_SINGLE_ROW:
-                return StoreMapTable.CONTENT_ITEM_TYPE;
+                return StoreMapsTable.CONTENT_ITEM_TYPE;
 
             default:
                 throw new IllegalArgumentException("Method getType. Unknown URI: " + uri);
@@ -840,7 +840,7 @@ public class aGroceryListContentProvider extends ContentProvider {
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
             case LOCATIONS_BRIDGE_SINGLE_ROW:
-                availableColumns = new HashSet<>(Arrays.asList(StoreMapTable.PROJECTION_ALL));
+                availableColumns = new HashSet<>(Arrays.asList(StoreMapsTable.PROJECTION_ALL));
                 break;
 
 

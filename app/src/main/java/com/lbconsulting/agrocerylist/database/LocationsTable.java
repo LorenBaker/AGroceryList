@@ -214,7 +214,7 @@ public class LocationsTable {
             String selection = COL_LOCATION_ID + " = ?";
             String[] selectionArgs = {String.valueOf(locationID)};
             numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
-            StoreMapTable.resetLocationID(context, locationID);
+            StoreMapsTable.resetLocationID(context, locationID);
         }
         return numberOfDeletedRecords;
     }

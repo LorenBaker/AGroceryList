@@ -14,6 +14,7 @@ public class StoresTable {
     // Lists data table
     public static final String TABLE_STORES = "tblStores";
     public static final String COL_STORE_ID = "_id";
+    public static final String COL_PARSE_OBJECT_ID = "_id";
     public static final String COL_STORE_CHAIN_ID = "storeChainID";
     public static final String COL_STORE_REGIONAL_NAME = "storeRegionalName";
     public static final String COL_CHECKED = "storeChecked";
@@ -118,7 +119,7 @@ public class StoresTable {
                         cv.put(COL_MANUAL_SORT_KEY, newStoreID);
                         cv.put(COL_COLOR_THEME_ID, getColorThemeID(newStoreID));
                         updateStoreFieldValues(context, newStoreID, cv);
-                        StoreMapTable.initializeStoreMap(context, newStoreID);
+                        StoreMapsTable.initializeStoreMap(context, newStoreID);
                     }
                 } catch (Exception e) {
                     MyLog.e("Exception error in CreateNewStore. ", e.toString());
