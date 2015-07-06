@@ -141,6 +141,7 @@
 	<color name="whiteGost">#F8F8FF</color>
 	<color name="whiteNavajo">#FFDEAD</color>
 	<color name="whiteSmoke">#F5F5F5</color>
+	<color name="whiteSmoke_simi_transparent">#CCF5F5F5</color>
 	<color name="yellow">#FFFF00</color>
 	<color name="yellowGreen">#9ACD32</color>
 	<color name="yellowLight">#FFFFE0</color>

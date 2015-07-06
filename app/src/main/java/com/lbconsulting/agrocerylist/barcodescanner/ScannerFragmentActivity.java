@@ -80,7 +80,7 @@ public class ScannerFragmentActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_scanner_activity, menu);
+        getMenuInflater().inflate(R.menu.menu_activity_scanner, menu);
         return true;
     }
 

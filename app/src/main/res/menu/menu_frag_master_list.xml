@@ -35,7 +35,7 @@
         android:showAsAction="never" />
 
     <item
-        android:id="@+id/action_show_sort_dialog"
+        android:id="@+id/action_show_sort_master_list_dialog"
         android:title="Sort"
         android:orderInCategory="120"
         android:showAsAction="never" />

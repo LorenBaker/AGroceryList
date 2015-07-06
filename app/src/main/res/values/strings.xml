@@ -1,4 +1,12 @@
 <resources>
+
+    <string-array name="navigation_drawer_titles">
+        <item>Store Lists</item>
+        <item>Master Items List</item>
+        <item>Store Item Groups</item>
+
+    </string-array>
+
     <string name="app_name">AGroceryList</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
@@ -15,4 +23,6 @@
     <string name="txtItemNote_hint">Note</string>
     <string name="edit_item_dialog_title">Edit Item</string>
     <string name="sortListDialog_title">Sort List</string>
+
+
 </resources>

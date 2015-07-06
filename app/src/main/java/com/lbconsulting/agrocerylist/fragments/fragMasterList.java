@@ -29,7 +29,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.lbconsulting.agrocerylist.R;
-import com.lbconsulting.agrocerylist.activities.StoreListsActivity;
 import com.lbconsulting.agrocerylist.adapters.MasterListCursorAdapter;
 import com.lbconsulting.agrocerylist.barcodescanner.ScannerFragmentActivity;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
@@ -204,9 +203,9 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
         }*/
 
         MySettings.setActiveFragmentID(MySettings.FRAG_MASTER_LIST);
-        if (getActivity().getActionBar() != null) {
+/*        if (getActivity().getActionBar() != null) {
             getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        }*/
 
         mMasterListCursorAdapter = new MasterListCursorAdapter(getActivity(), null, 0);
         lvItemsListView.setAdapter(mMasterListCursorAdapter);
@@ -226,9 +225,9 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
     public void onPause() {
         super.onPause();
         MyLog.i("fragMasterList", "onPause");
-        if (getActivity().getActionBar() != null) {
+/*        if (getActivity().getActionBar() != null) {
             getActivity().getActionBar().setDisplayHomeAsUpEnabled(false);
-        }
+        }*/
         aGroceryListContentProvider.setSuppressChangeNotification(true);
         ItemsTable.unCheckAllItems(getActivity());
         aGroceryListContentProvider.setSuppressChangeNotification(false);
@@ -251,7 +250,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu_master_list_fragment, menu);
+        inflater.inflate(R.menu.menu_frag_master_list, menu);
         MyLog.i("fragMasterList", "onCreateOptionsMenu");
 
     }
@@ -302,8 +301,8 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
                 ItemsTable.deselectAllItems(getActivity());
                 return true;
 
-            case R.id.action_show_sort_dialog:
-                Toast.makeText(getActivity(), "action_show_sort_dialog", Toast.LENGTH_SHORT).show();
+            case R.id.action_show_sort_master_list_dialog:
+                Toast.makeText(getActivity(), "action_show_sort_master_list_dialog", Toast.LENGTH_SHORT).show();
                 return true;
 
             case R.id.action_set_manual_sort_order:
@@ -331,10 +330,6 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
                 EventBus.getDefault().post(new MyEvents.showFragment(MySettings.FRAG_PRODUCTS_LIST));
                 return true;
 
-            case android.R.id.home:
-                launchHomeActivity();
-                return true;
-
             default:
                 // Not implemented here
                 return false;
@@ -344,12 +339,6 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
     public void launchScannerActivity() {
         Intent intent = new Intent(getActivity(), ScannerFragmentActivity.class);
-        startActivity(intent);
-    }
-
-    private void launchHomeActivity() {
-        Intent intent = new Intent(getActivity(), StoreListsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
 

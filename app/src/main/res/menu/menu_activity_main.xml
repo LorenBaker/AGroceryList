@@ -25,7 +25,7 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_show_sort_dialog"
+        android:id="@+id/action_show_sort_store_items_dialog"
         android:title="Sort"
         android:orderInCategory="110"
         app:showAsAction="never" />

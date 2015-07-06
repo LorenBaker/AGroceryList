@@ -89,7 +89,7 @@ public class ScannerFragment extends Fragment implements MessageDialogFragment.M
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
-        inflater.inflate(R.menu.menu_scanner_fragment, menu);
+        inflater.inflate(R.menu.menu_frag_scanner, menu);
         //Spinner spinner = (Spinner) menu.findItem(R.id.spinner).getActionView(); // find the spinner
 /*        Spinner spinner = (Spinner) menu.findItem(R.id.spinner); // find the spinner
         ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getActivity(),

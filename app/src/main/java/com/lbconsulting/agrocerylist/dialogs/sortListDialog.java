@@ -11,7 +11,7 @@ import android.widget.CheckBox;
 import android.widget.RadioButton;
 
 import com.lbconsulting.agrocerylist.R;
-import com.lbconsulting.agrocerylist.activities.StoreListsActivity;
+import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
@@ -71,8 +71,8 @@ public class sortListDialog extends DialogFragment {
         }
 
         switch (mSourceFragmentID) {
-            case MySettings.HOME_FRAG_STORE_LIST:
-                mStoreID = StoreListsActivity.getActiveStoreID();
+            case MySettings.FRAG_STORE_LISTS:
+                mStoreID = MainActivity.getActiveStoreID();
                 mStoreItemsSortingOrder = StoresTable.getStoreItemsSortingOrder(getActivity(), mStoreID);
                 break;
 
@@ -120,7 +120,7 @@ public class sortListDialog extends DialogFragment {
         ckApplyToAllStores.setVisibility(View.GONE);
 
         switch (mSourceFragmentID) {
-            case MySettings.HOME_FRAG_STORE_LIST:
+            case MySettings.FRAG_STORE_LISTS:
                 rbAlphabetical.setVisibility(View.VISIBLE);
 
                 rbByAisle.setVisibility(View.VISIBLE);
@@ -130,7 +130,7 @@ public class sortListDialog extends DialogFragment {
                 rbLastUsed.setVisibility(View.GONE);
 
                 rbManual.setVisibility(View.VISIBLE);
-                // TODO: HOME_FRAG_STORE_LIST: implement sort manually
+                // TODO: FRAG_STORE_LISTS: implement sort manually
                 rbManual.setEnabled(false);
 
                 rbSelectedFirst.setVisibility(View.GONE);
@@ -219,7 +219,7 @@ public class sortListDialog extends DialogFragment {
                             public void onClick(DialogInterface dialog, int whichButton) {
 
                                 switch (mSourceFragmentID) {
-                                    case MySettings.HOME_FRAG_STORE_LIST:
+                                    case MySettings.FRAG_STORE_LISTS:
                                         if (rbAlphabetical.isChecked()) {
                                             if (ckApplyToAllStores.isChecked()) {
                                                 StoresTable.updateStoreItemsSortOrder(getActivity(), -1, MySettings.SORT_ALPHABETICAL);

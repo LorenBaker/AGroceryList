@@ -11,13 +11,48 @@ import com.lbconsulting.agrocerylist.R;
 public class MySettings {
 
 
-    public static final int HOME_FRAG_STORE_LIST = 1;
+    public static final int FRAG_STORE_LISTS = 1;
     public static final int FRAG_PRODUCTS_LIST = 2;
     public static final int FRAG_MASTER_LIST = 3;
     public static final int FRAG_SET_GROUPS = 4;
     public static final int FRAG_CULL_ITEMS = 5;
     public static final int FRAG_GROUPS_LIST = 6;
     public static final int FRAG_ITEMS_BY_GROUP = 7;
+
+    public static String getFragmentTag(int fragmentID) {
+        String fragmentTag = "";
+        switch (fragmentID) {
+            case FRAG_STORE_LISTS:
+                fragmentTag = "FRAG_STORE_LISTS";
+                break;
+
+            case FRAG_PRODUCTS_LIST:
+                fragmentTag = "FRAG_PRODUCTS_LIST";
+                break;
+
+            case FRAG_MASTER_LIST:
+                fragmentTag = "FRAG_MASTER_LIST";
+                break;
+
+            case FRAG_SET_GROUPS:
+                fragmentTag = "FRAG_SET_GROUPS";
+                break;
+
+            case FRAG_CULL_ITEMS:
+                fragmentTag = "FRAG_CULL_ITEMS";
+                break;
+
+            case FRAG_GROUPS_LIST:
+                fragmentTag = "FRAG_GROUPS_LIST";
+                break;
+
+            case FRAG_ITEMS_BY_GROUP:
+                fragmentTag = "FRAG_ITEMS_BY_GROUP";
+                break;
+        }
+
+        return fragmentTag;
+    }
 
     public static final int ITEMS_LOADER = 1;
     public static final int PRODUCTS_LOADER = 2;
@@ -41,7 +76,7 @@ public class MySettings {
     private static final String SETTING_MASTER_LIST_SORT_ORDER = "masterListSortOrder";
     public static final String SETTING_ACTIVE_STORE_ID = "activeStoreID";
     private static final String SETTING_STORE_SORTING_ORDER = "storeSortingOrder";
-   // public static final String SETTING_SHOW_ALL_ITEMS_IN_STORE_LIST = "showAllItemsInStoreList";
+    // public static final String SETTING_SHOW_ALL_ITEMS_IN_STORE_LIST = "showAllItemsInStoreList";
     public static final String SETTING_SHOW_FAVORITES = "showFavorites";
 
     public static final int SORT_ALPHABETICAL = 0;
@@ -63,7 +98,7 @@ public class MySettings {
     public static int getActiveFragmentID() {
         SharedPreferences passwordsSavedState =
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
-        return passwordsSavedState.getInt(SETTING_ACTIVE_FRAGMENT_ID, HOME_FRAG_STORE_LIST);
+        return passwordsSavedState.getInt(SETTING_ACTIVE_FRAGMENT_ID, FRAG_STORE_LISTS);
     }
 
     public static void setActiveFragmentID(int activeFragmentID) {

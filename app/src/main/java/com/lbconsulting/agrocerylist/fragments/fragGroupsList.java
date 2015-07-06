@@ -18,13 +18,11 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.lbconsulting.agrocerylist.R;
-import com.lbconsulting.agrocerylist.activities.StoreListsActivity;
+import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.adapters.GroupsCursorAdapter;
-import com.lbconsulting.agrocerylist.adapters.ProductsCursorAdapter;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
-import com.lbconsulting.agrocerylist.database.ProductsTable;
 
 
 /**
@@ -106,7 +104,7 @@ public class fragGroupsList extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_group_list_fragment, menu);
+        inflater.inflate(R.menu.menu_frag_group_list, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -138,7 +136,7 @@ public class fragGroupsList extends Fragment implements LoaderManager.LoaderCall
     }
 
     public void launchHomeActivity() {
-        Intent intent = new Intent(getActivity(), StoreListsActivity.class);
+        Intent intent = new Intent(getActivity(), MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }

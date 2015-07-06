@@ -23,7 +23,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.lbconsulting.agrocerylist.R;
-import com.lbconsulting.agrocerylist.activities.StoreListsActivity;
+import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.adapters.ItemsByGroupCursorAdapter;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
@@ -156,7 +156,7 @@ public class fragItemsByGroup extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_master_list_fragment, menu);
+        inflater.inflate(R.menu.menu_frag_master_list, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -175,7 +175,7 @@ public class fragItemsByGroup extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void launchHomeActivity() {
-        Intent intent = new Intent(getActivity(), StoreListsActivity.class);
+        Intent intent = new Intent(getActivity(), MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
