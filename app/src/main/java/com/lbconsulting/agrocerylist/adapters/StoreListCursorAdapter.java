@@ -162,7 +162,7 @@ public class StoreListCursorAdapter extends CursorAdapter {
                             cursor.moveToFirst();
                             groupID = cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
                             if (groupID > 1) {
-                                currentLocationID = StoreMapsTable.getLocationID(mContext, itemID, groupID, mStoreID);
+                                currentLocationID = StoreMapsTable.getLocationID(mContext, groupID, mStoreID);
                                 switch (mStoreItemsSortingOrder) {
                                     case MySettings.SORT_ALPHABETICAL:
                                         // do nothing

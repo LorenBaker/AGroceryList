@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class GroupsTable {
 
-    // Groups data table
+    // PublicTablesData data table
     // Version 1
     public static final String TABLE_GROUPS = "tblGroups";
     public static final String COL_GROUP_ID = "_id";
@@ -42,7 +42,7 @@ public class GroupsTable {
             + TABLE_GROUPS
             + " ("
             + COL_GROUP_ID + " integer primary key autoincrement, "
-            + COL_GROUP_NAME + " text collate nocase, "
+            + COL_GROUP_NAME + " text collate nocase default '', "
             + COL_CHECKED + " integer default 0 "
             + ");";
 

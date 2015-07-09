@@ -27,11 +27,19 @@ public class ItemsTable {
     public static final String COL_CHECKED = "itemChecked";
     public static final String COL_FAVORITE = "itemIsFavorite";
     public static final String COL_MANUAL_SORT_ORDER = "manualSortOrder";
-    public static final String COL_DATE_TIME_LAST_USED = "dateTimeLastUsed";
+    public static final String COL_PARSE_OBJECT_ID = "parseObjectID";
+    public static final String COL_PARSE_OBJECT_NAME = "parseObjectName";
+    public static final String COL_PARSE_OBJECT_IS_DIRTY = "parseObjectIsDirty";
+    public static final String COL_PARSE_OBJECT_TIMESTAMP = "parseObjectTimestamp";
+    public static final String COL_LAST_TIME_USED = "lastTimeUsed";
 
     public static final String[] PROJECTION_ALL = {COL_ITEM_ID, COL_ITEM_NAME, COL_ITEM_NOTE,
             COL_GROUP_ID, COL_PRODUCT_ID, COL_SELECTED, COL_STRUCK_OUT, COL_CHECKED, COL_FAVORITE,
-            COL_MANUAL_SORT_ORDER, COL_DATE_TIME_LAST_USED};
+            COL_MANUAL_SORT_ORDER, COL_PARSE_OBJECT_ID, COL_PARSE_OBJECT_NAME,
+            COL_PARSE_OBJECT_IS_DIRTY, COL_PARSE_OBJECT_TIMESTAMP, COL_LAST_TIME_USED};
+
+    public static final String[] PROJECTION_PARSE_INFO = {COL_ITEM_ID, COL_PARSE_OBJECT_ID,
+            COL_PARSE_OBJECT_NAME, COL_PARSE_OBJECT_IS_DIRTY, COL_PARSE_OBJECT_TIMESTAMP};
 
     public static final String CONTENT_PATH = TABLE_ITEMS;
     public static final String CONTENT_PATH_ITEMS_WITH_GROUPS = "itemsWithGroups";
@@ -51,7 +59,7 @@ public class ItemsTable {
             + "/" + CONTENT_PATH_ITEMS_WITH_LOCATIONS);
 
     public static final String SORT_ORDER_ITEM_NAME = COL_ITEM_NAME + " ASC";
-    public static final String SORT_ORDER_LAST_USED = COL_DATE_TIME_LAST_USED + " DESC, " + SORT_ORDER_ITEM_NAME;
+    public static final String SORT_ORDER_LAST_USED = COL_LAST_TIME_USED + " DESC, " + SORT_ORDER_ITEM_NAME;
     public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_ORDER + " ASC";
 
     public static final int FALSE = 0;
@@ -73,7 +81,13 @@ public class ItemsTable {
                     + COL_CHECKED + " integer default 0, "
                     + COL_FAVORITE + " integer default 0, "
                     + COL_MANUAL_SORT_ORDER + " integer default -1, "
-                    + COL_DATE_TIME_LAST_USED + " integer default 0"
+
+                    + COL_PARSE_OBJECT_ID + " text default '', "
+                    + COL_PARSE_OBJECT_NAME + " text collate nocase default '', "
+                    + COL_PARSE_OBJECT_IS_DIRTY + " integer default 0, "
+                    + COL_PARSE_OBJECT_TIMESTAMP + " integer default 0, "
+
+                    + COL_LAST_TIME_USED + " integer default 0"
                     + ");";
 
     private static long mExistingItemID;
@@ -107,7 +121,7 @@ public class ItemsTable {
                 Uri uri = CONTENT_URI;
                 ContentValues cv = new ContentValues();
                 cv.put(COL_ITEM_NAME, itemName);
-                cv.put(COL_DATE_TIME_LAST_USED, System.currentTimeMillis());
+                cv.put(COL_LAST_TIME_USED, System.currentTimeMillis());
 
                 Uri newListUri = cr.insert(uri, cv);
                 if (newListUri != null) {
@@ -139,7 +153,7 @@ public class ItemsTable {
         if (groupID < 1) {
             groupID = 1;
         }
-        cv.put(COL_DATE_TIME_LAST_USED, System.currentTimeMillis());
+        cv.put(COL_LAST_TIME_USED, System.currentTimeMillis());
         cv.put(COL_GROUP_ID, groupID);
 
         Uri newListUri = cr.insert(uri, cv);
@@ -152,20 +166,6 @@ public class ItemsTable {
 
     }
 
-    public static boolean itemExists(Context context, String itemName) {
-        mExistingItemID = -1;
-        boolean result = false;
-        Cursor cursor = getItemCursor(context, itemName);
-        if (cursor != null) {
-            if (cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                mExistingItemID = cursor.getLong(cursor.getColumnIndex(COL_ITEM_ID));
-                result = true;
-            }
-            cursor.close();
-        }
-        return result;
-    }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Read Methods
@@ -206,6 +206,20 @@ public class ItemsTable {
         return cursor;
     }
 
+    public static boolean itemExists(Context context, String itemName) {
+        mExistingItemID = -1;
+        boolean result = false;
+        Cursor cursor = getItemCursor(context, itemName);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                mExistingItemID = cursor.getLong(cursor.getColumnIndex(COL_ITEM_ID));
+                result = true;
+            }
+            cursor.close();
+        }
+        return result;
+    }
     public static Cursor getAllSelectedItemsCursor(Context context, String sortOrder) {
         Cursor cursor = null;
         Uri uri = CONTENT_URI;
@@ -252,6 +266,22 @@ public class ItemsTable {
         return cursor;
     }
 
+    public static Cursor getAllParseDirtyItemsCursor(Context context) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_PARSE_INFO;
+        String selection = COL_PARSE_OBJECT_IS_DIRTY + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(TRUE)};
+        String sortOrder = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("ItemsTable", "getAllParseDirtyItemsCursor: Exception: " + e.getMessage());
+        }
+        return cursor;
+    }
+
     public static CursorLoader getAllItems(Context context, String selection, String sortOrder) {
         CursorLoader cursorLoader = null;
         Uri uri = CONTENT_URI;
@@ -279,39 +309,6 @@ public class ItemsTable {
         return cursorLoader;
     }
 
-/*    public static Cursor getAllItemsByGroupsCursor(Context context) {
-        Cursor cursor = null;
-
-        Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS;
-        String[] projection = JoinedTables.PROJECTION_ITEMS_BY_GROUPS;
-        String selection = null;
-        String selectionArgs[] = null;
-        String sortOrder = JoinedTables.SORT_ORDER_ITEMS_BY_GROUP;
-        ContentResolver cr = context.getContentResolver();
-        try {
-            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
-        } catch (Exception e) {
-            MyLog.e("StoresTable", "getAllItemsByGroupsCursor: Exception: " + e.getMessage());
-        }
-        return cursor;
-    }
-
-    public static CursorLoader getAllItemsByGroups(Context context) {
-        CursorLoader cursorLoader = null;
-
-        Uri uri = JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS;
-        String[] projection = JoinedTables.PROJECTION_ITEMS_BY_GROUPS;
-        String selection = null;
-        String selectionArgs[] = null;
-        String sortOrder = JoinedTables.SORT_ORDER_ITEMS_BY_GROUP;
-        try {
-            cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
-        } catch (Exception e) {
-            MyLog.e("StoresTable", "getAllItemsByGroups: Exception: " + e.getMessage());
-        }
-
-        return cursorLoader;
-    }*/
 
     public static CursorLoader getAllSelectedItemsByGroups(Context context, long storeID) {
         CursorLoader cursorLoader = null;
@@ -349,7 +346,7 @@ public class ItemsTable {
         return cursorLoader;
     }
 
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static int updateItemFieldValues(Context context, long itemID, ContentValues newFieldValues) {
@@ -531,7 +528,7 @@ public class ItemsTable {
 
         ContentResolver cr = context.getContentResolver();
         Uri itemUri = CONTENT_URI;
-        String selection = COL_DATE_TIME_LAST_USED + " < ?";
+        String selection = COL_LAST_TIME_USED + " < ?";
         String[] selectionArgs = {String.valueOf(dateTimeCutOff)};
 
         ContentValues values = new ContentValues();
@@ -540,6 +537,29 @@ public class ItemsTable {
         numberOfCheckedItems = cr.update(itemUri, values, selection, selectionArgs);
 
         return numberOfCheckedItems;
+    }
+
+    public static void setParseItemDirty(Context context, long itemID, boolean isDirty) {
+        int isDirtyValue = FALSE;
+        if (isDirty) {
+            isDirtyValue = TRUE;
+        }
+        ContentValues cv = new ContentValues();
+        cv.put(COL_PARSE_OBJECT_IS_DIRTY, isDirtyValue);
+        updateItemFieldValues(context, itemID, cv);
+    }
+
+    public static int resetAllParseDirtyItems(Context context) {
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = COL_PARSE_OBJECT_IS_DIRTY + " = ?";
+        String[] selectionArgs = {String.valueOf(TRUE)};
+
+        ContentValues cv = new ContentValues();
+        cv.put(COL_PARSE_OBJECT_IS_DIRTY, FALSE);
+
+       return cr.update(uri, cv, selection, selectionArgs);
+
     }
 
     public static void putItemInGroup(Context context, long itemID, long groupID) {

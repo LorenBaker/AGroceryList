@@ -8,8 +8,11 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -29,6 +32,11 @@ import com.lbconsulting.agrocerylist.adapters.StoreListPagerAdapter;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseGroup;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseLocation;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseStore;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreChain;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseUtils;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
 import com.lbconsulting.agrocerylist.database.LocationsTable;
@@ -41,6 +49,10 @@ import com.lbconsulting.agrocerylist.dialogs.sortListDialog;
 import com.lbconsulting.agrocerylist.fragments.fragItemsByGroup;
 import com.lbconsulting.agrocerylist.fragments.fragMasterList;
 import com.lbconsulting.agrocerylist.fragments.fragProductsList;
+import com.parse.ParseObject;
+import com.parse.ParseUser;
+
+import java.util.ArrayList;
 
 import de.greenrobot.event.EventBus;
 
@@ -62,6 +74,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
     private ListView mDrawerList;
 
     private static long mActiveStoreID;
+    private boolean mInitializingData;
 
     public static long getActiveStoreID() {
         return mActiveStoreID;
@@ -77,6 +90,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
+        mInitializingData = false;
         mDrawerItemTitles = getResources().getStringArray(R.array.navigation_drawer_titles);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -109,13 +123,118 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
             // set default activity variables
         }
 
+
+/*        //region Parse setup
+        // Initialize Crash Reporting.
+        ParseCrashReporting.enable(this);
+
+        // Enable Local Datastore.
+        Parse.enableLocalDatastore(this);
+
+        // Add your initialization code here
+        ParseObject.registerSubclass(StoreMaps.class);
+        ParseObject.registerSubclass(PublicTablesData.class);
+        Parse.initialize(this, "Z1uTyZFcvSsV74AdrqbfWPe44WhqtTvwmJupITew", "ZuBh1PV8oBebw2xgpURpdF5XDms5zS11QpYW9Kpn");
+        MyLog.i("AGroceryListApplication", "onCreate: initialized");
+
+        ParseUser.enableAutomaticUser();
+        ParseACL defaultACL = new ParseACL();
+        //user's data is only accessible by the user itself unless explicit permission is given
+        ParseACL.setDefaultACL(defaultACL, true);
+        ParseACL.setDefaultACL(new ParseACL(), true);
+        //endregion*/
+
+
         if (!aGroceryListDatabaseHelper.databaseExists()) {
             new LoadInitialDataAsync().execute();
         }
     }
 
 
+    private void runParseTest() {
+        ParseObject testObject = new ParseObject("TestObject");
+        testObject.put("foo", "bar");
+        testObject.saveInBackground();
+        MyLog.i("MainActivity", "runParseTest: put(\"foo\", \"bar\")");
+    }
+
     private void loadInitialData() {
+
+        // initialize the grocery groups
+        String[] groceryGroups = getResources().getStringArray(R.array.grocery_groups);
+        for (String groceryGroup : groceryGroups) {
+            GroupsTable.createNewGroup(this, groceryGroup);
+        }
+        // create Parse groups table
+        createParseGroupsTable();
+
+
+        // initialize the store locations
+        LocationsTable.createInitialLocationsIfNeeded(this);
+        // create Parse locations table
+        createParseLocationsTable();
+
+
+        // create store chains
+        String[] storeChains = getResources().getStringArray(R.array.grocery_store_chains);
+        for (String store : storeChains) {
+            StoreChainsTable.createNewStoreChain(this, store);
+        }
+        // create Parse store chain table
+        createParseStoreChainsTable();
+
+
+        // create stores ... NOTE: assumes store chains and groups are already created.
+        // also assumes store chain IDs are in the order in R.array.grocery_store_chains
+
+        // Albertsons
+        StoresTable.createNewStore(this, 1, "Eastgate", "15100 SE 38TH ST", "STE 103", "BELLEVUE", "WA", "98006-1763");
+
+        // Fred Myer
+        StoresTable.createNewStore(this, 2, "Bellevue", "2041 148TH AVE NE", "", "BELLEVUE", "WA", "98007-3788");
+        StoresTable.createNewStore(this, 2, "Redmond", "17667 NE 76TH ST", "", "REDMOND", "WA", "98052-4994");
+
+        // PCC
+        StoresTable.createNewStore(this, 4, "Issaquah", "1810 12TH AVE NW", "STE A", "ISSAQUAH", "WA", "98027-8110");
+        StoresTable.createNewStore(this, 4, "Kirkland", "10718 NE 68TH ST", "", "KIRKLAND", "WA", "98033-7030");
+
+        // QFC
+        StoresTable.createNewStore(this, 5, "Bel-East", "1510 145TH PL SE", "STE A", "BELLEVUE", "WA", "98007-5593");
+        StoresTable.createNewStore(this, 5, "Issaquah", "1540 NW GILMAN BLVD", "", "ISSAQUAH", "WA", "98027-5309");
+        StoresTable.createNewStore(this, 5, "Klahanie Dr", "4570 KLAHANIE DR SE", "", "ISSAQUAH", "WA", "98029-5812");
+        StoresTable.createNewStore(this, 5, "Factoria", "3500 FACTORIA BLVD SE", "", "BELLEVUE", "WA", "98006-5276");
+        StoresTable.createNewStore(this, 5, "Newcastle", "6940 COAL CREEK PKWY SE", "", "NEWCASTLE", "WA", "98059-3137");
+
+        // Safeway
+        StoresTable.createNewStore(this, 6, "Factoria", "3903 FACTORIA BLVD SE", "", "BELLEVUE", "WA", "98006-6148");
+        StoresTable.createNewStore(this, 6, "Evergreen Village", "1645 140TH AVE NE", "STE A5", "BELLEVUE", "WA", "98005-2320");
+        StoresTable.createNewStore(this, 6, "Issaquah", "735 NW GILMAN BLVD", "STE B", "ISSAQUAH", "WA", "98027-8996");
+        StoresTable.createNewStore(this, 6, "Highlands", "1451 HIGHLANDS DR NE", "", "ISSAQUAH", "WA", "98029-6240");
+
+        //Trader Joe’s
+        StoresTable.createNewStore(this, 8, "Issaquah", "975 NW GILMAN BLVD", "STE A", "ISSAQUAH", "WA", "98027-5377");
+        StoresTable.createNewStore(this, 8, "Redmond", "15932 REDMOND WAY", "STE 101", "REDMOND", "WA", " 98052-4060");
+        StoresTable.createNewStore(this, 8, "Bellevue", "15563 NE 24TH ST", "", "BELLEVUE", "WA", "98007-3836");
+
+        // Whole Foods
+        StoresTable.createNewStore(this, 9, "Bellevue", "888 116TH AVE NE", "", "BELLEVUE", "WA", "98004-4607");
+        StoresTable.createNewStore(this, 9, "Redmond", "17991 REDMOND WAY", "", "REDMOND", "WA", " 98052-4907");
+
+        // create Parse stores table
+        createParseStoresTable();
+
+        // create initial items.
+        String[] groceryItems = getResources().getStringArray(R.array.grocery_items);
+        for (String groceryItem : groceryItems) {
+            String[] item = groceryItem.split(", ");
+            String itemName = item[0];
+            String groupID = item[1];
+            ItemsTable.createNewItem(this, itemName, groupID);
+        }
+
+
+        //region LoadInitialData Backup
+/*    private void loadInitialData() {
 
         // initialize the grocery groups
         String[] groceryGroups = getResources().getStringArray(R.array.grocery_groups);
@@ -167,7 +286,8 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
             String itemName = item[0];
             String groupID = item[1];
             ItemsTable.createNewItem(this, itemName, groupID);
-        }
+        }*/
+        //endregion
 
 
 
@@ -175,7 +295,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
 /*        long groupID = 0;
         long locationID = 2;
         long numberOfLocations = LocationsTable.getNumberOfLocations(this);
-        Cursor storeCursor = StoresTable.getAllStoresCursor(this, StoresTable.SORT_ORDER_MANUAL);
+        Cursor storeCursor = StoresTable.getAllDisplayedStoresCursor(this, StoresTable.SORT_ORDER_MANUAL);
         if (storeCursor != null && storeCursor.getCount() > 0) {
             aGroceryListContentProvider.setSuppressChangeNotification(true);
             long storeID;
@@ -198,6 +318,133 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         }*/
 
 
+    }
+
+
+    private void createParseGroupsTable() {
+        MyLog.i("MainActivity", "createParseGroupsTable");
+        Cursor groupsCursor = GroupsTable.getAllGroupsCursor(this, GroupsTable.SORT_ORDER_GROUP_NAME);
+        if (groupsCursor != null && groupsCursor.getCount() > 0) {
+            ArrayList<clsParseGroup> groupsList = new ArrayList<>();
+            long groupID;
+            String groupName;
+            clsParseGroup group;
+            while (groupsCursor.moveToNext()) {
+                groupID = groupsCursor.getLong(groupsCursor.getColumnIndex(GroupsTable.COL_GROUP_ID));
+                groupName = groupsCursor.getString(groupsCursor.getColumnIndex(GroupsTable.COL_GROUP_NAME));
+                group = new clsParseGroup(groupID, groupName);
+                groupsList.add(group);
+            }
+            if (groupsList.size() > 0) {
+                // use saveThisThread because this method is being run in an AsyncTask
+                clsParseUtils.createPublicTable(groupsList, null, null, null, clsParseUtils.saveThisThread);
+            }
+        }
+    }
+
+    private void createParseLocationsTable() {
+        MyLog.i("MainActivity", "createParseLocationsTable");
+        Cursor locationsCursor = LocationsTable.getAllLocationsCursor(this, LocationsTable.SORT_ORDER_LOCATION_ID);
+        if (locationsCursor != null && locationsCursor.getCount() > 0) {
+            ArrayList<clsParseLocation> locationsList = new ArrayList<>();
+            long locationID;
+            String locationName;
+            clsParseLocation location;
+            while (locationsCursor.moveToNext()) {
+                locationID = locationsCursor.getLong(locationsCursor.getColumnIndex(LocationsTable.COL_LOCATION_ID));
+                locationName = locationsCursor.getString(locationsCursor.getColumnIndex(LocationsTable.COL_LOCATION_NAME));
+                location = new clsParseLocation(locationID, locationName);
+                locationsList.add(location);
+            }
+            if (locationsList.size() > 0) {
+                // use saveThisThread because this method is being run in an AsyncTask
+                clsParseUtils.createPublicTable(null, locationsList, null, null, clsParseUtils.saveThisThread);
+            }
+        }
+    }
+
+    private void createParseStoreChainsTable() {
+        MyLog.i("MainActivity", "createParseStoreChainsTable");
+        Cursor storeChainsCursor = StoreChainsTable.getAllStoreChainsCursor(this, StoreChainsTable.SORT_ORDER_STORE_CHAIN_NAME);
+        if (storeChainsCursor != null && storeChainsCursor.getCount() > 0) {
+            ArrayList<clsParseStoreChain> storeChainsList = new ArrayList<>();
+            long storeChainID;
+            String storeChainName;
+            clsParseStoreChain storeChain;
+            while (storeChainsCursor.moveToNext()) {
+                storeChainID = storeChainsCursor.getLong(storeChainsCursor.getColumnIndex(StoreChainsTable.COL_STORE_CHAIN_ID));
+                storeChainName = storeChainsCursor.getString(storeChainsCursor.getColumnIndex(StoreChainsTable.COL_STORE_CHAIN_NAME));
+                storeChain = new clsParseStoreChain(storeChainID, storeChainName);
+                storeChainsList.add(storeChain);
+            }
+            if (storeChainsList.size() > 0) {
+                // use saveThisThread because this method is being run in an AsyncTask
+                clsParseUtils.createPublicTable(null, null, storeChainsList, null, clsParseUtils.saveThisThread);
+            }
+        }
+    }
+
+    private void createParseStoresTable() {
+        MyLog.i("MainActivity", "createParseStoresTable");
+        Cursor storesCursor = StoresTable.getAllStoresCursor(this, StoresTable.SORT_ORDER_CHAIN_ID_BY_REGIONAL_NAME);
+        if (storesCursor != null && storesCursor.getCount() > 0) {
+            ArrayList<clsParseStore> storeList = new ArrayList<>();
+            long storeID;
+            long storeChainID;
+            String storeRegionalName;
+            String parseStoreMapName;
+
+            String address1;
+            String address2;
+            String city;
+            String state;
+            String zip;
+            String gpsLatitude;
+            String gpsLongitude;
+            String websiteURL;
+            String phoneNumber;
+
+            clsParseStore store;
+            while (storesCursor.moveToNext()) {
+
+                storeID = storesCursor.getLong(storesCursor.getColumnIndex(StoresTable.COL_STORE_ID));
+                storeChainID = storesCursor.getLong(storesCursor.getColumnIndex(StoresTable.COL_STORE_CHAIN_ID));
+                storeRegionalName = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_STORE_REGIONAL_NAME));
+                parseStoreMapName = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_PARSE_STORE_MAP_NAME));
+
+                address1 = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_ADDRESS1));
+                address2 = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_ADDRESS2));
+                city = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_CITY));
+                state = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_STATE));
+                zip = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_ZIP));
+                gpsLatitude = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_GPS_LATITUDE));
+                gpsLongitude = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_GPS_LONGITUDE));
+                websiteURL = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_WEBSITE_URL));
+                phoneNumber = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_PHONE_NUMBER));
+
+                store = new clsParseStore();
+                store.setStoreID(storeID);
+                store.setStoreChainID(storeChainID);
+                store.setStoreRegionalName(storeRegionalName);
+                store.setParseStoreMapName(parseStoreMapName);
+
+                store.setAddress1(address1);
+                store.setAddress2(address2);
+                store.setCity(city);
+                store.setState(state);
+                store.setZip(zip);
+                store.setGpsLatitude(gpsLatitude);
+                store.setGpsLongitude(gpsLongitude);
+                store.setWebsiteURL(websiteURL);
+                store.setPhoneNumber(phoneNumber);
+
+                storeList.add(store);
+            }
+            if (storeList.size() > 0) {
+                // use saveThisThread because this method is being run in an AsyncTask
+                clsParseUtils.createPublicTable(null, null, null, storeList, clsParseUtils.saveThisThread);
+            }
+        }
     }
 
     @Override
@@ -333,6 +580,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         mProgressBar.setVisibility(View.VISIBLE);
         mStoreListPager.setVisibility(View.GONE);
         mFragmentContainer.setVisibility(View.GONE);
+        MyLog.d("MainActivity", "displayProgressBar");
     }
 
     private void displayListPagerAdapter() {
@@ -342,6 +590,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         // remove the visible fragment from mFragmentContainer so
         // that the fragment transition is smooth the next time a fragment is added
         removeFragmentFromContainer();
+        MyLog.d("MainActivity", "displayListPagerAdapter");
     }
 
     private void removeFragmentFromContainer() {
@@ -366,6 +615,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         mFragmentContainer.setVisibility(View.VISIBLE);
         mProgressBar.setVisibility(View.GONE);
         mStoreListPager.setVisibility(View.GONE);
+        MyLog.d("MainActivity", "displayFragmentContainer");
     }
 
     private void showSortDialog() {
@@ -405,7 +655,9 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         MyLog.i("MainActivity", "onResume: ActiveStoreID = " + mActiveStoreID);
 
         // show the appropriate fragment
-        showFragment(MySettings.getActiveFragmentID());
+        if (!mInitializingData) {
+            showFragment(MySettings.getActiveFragmentID());
+        }
     }
 
 
@@ -471,6 +723,13 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         // as you specify a parent activity in AndroidManifest.xml.
 
         switch (item.getItemId()) {
+
+            // TODO: Remove run parse test
+            case R.id.action_run_parse_test:
+                runParseTest();
+                return true;
+
+
             case R.id.action_removeStruckOffItems:
                 ItemsTable.removeStruckOffItems(this);
                 return true;
@@ -506,6 +765,21 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
             case android.R.id.home:
                 showFragment(MySettings.FRAG_STORE_LISTS);
                 invalidateOptionsMenu();
+                return true;
+
+            case R.id.action_log_out:
+                ParseUser.logOut();
+
+                // FLAG_ACTIVITY_CLEAR_TASK only works on API 11, so if the user
+                // logs out on older devices, we'll just exit.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    Intent intent = new Intent(MainActivity.this, SampleDispatchActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } else {
+                    finish();
+                }
                 return true;
 
             default:
@@ -591,7 +865,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
                 break;
 
             case 2:
-                // Store Item Groups
+                // Store Item PublicTablesData
                 showFragment(MySettings.FRAG_ITEMS_BY_GROUP);
                 break;
         }
@@ -610,8 +884,10 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            mInitializingData = true;
             tvProgressMessage.setText("Please wait while loading initial data...");
             displayProgressBar();
+            String temp = "";
         }
 
         @Override
@@ -623,6 +899,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            mInitializingData = false;
             showFragment(MySettings.FRAG_STORE_LISTS);
         }
     }

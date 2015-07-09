@@ -26,4 +26,8 @@ dependencies {
     compile 'com.android.support:support-v13:+'
     compile files('libs/commons-io-2.4.jar')
     compile files('libs/volley.jar')
+    /*    compile 'com.parse.bolts:bolts-android:1.2.0'
+                compile fileTree(dir: 'libs', include: 'Parse-*.jar')
+                compile fileTree(dir: 'libs', include: 'ParseCrashReporting-*.jar')*/
+    compile project(':ParseLoginUI')
 }

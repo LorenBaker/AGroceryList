@@ -45,6 +45,8 @@
 	<color name="firebrick">#B22222</color>
 	<color name="fuchsia">#FF00FF</color>
 	<color name="gainsboro">#DCDCDC</color>
+	<color name="genoa_start">#4c898e</color>
+	<color name="genoa_end">#125156</color>
 	<color name="gold">#FFD700</color>
 	<color name="goldenrod">#DAA520</color>
 	<color name="goldenrodDark">#B8860B</color>

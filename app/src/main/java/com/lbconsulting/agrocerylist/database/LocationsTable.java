@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.R;
+import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.classes.clsLocation;
@@ -122,7 +123,7 @@ public class LocationsTable {
         return numberOfAisles;
     }
 
-    private static Cursor getAllLocationsCursor(Context context, String sortOrder) {
+    public static Cursor getAllLocationsCursor(Context context, String sortOrder) {
         Cursor cursor = null;
         Uri uri = CONTENT_URI;
         String[] projection = PROJECTION_ALL;
@@ -136,6 +137,7 @@ public class LocationsTable {
         }
         return cursor;
     }
+
 
     public static ArrayList<String> getAllItemLocations(Context context, String sortOrder) {
         createInitialLocationsIfNeeded(context);
@@ -218,6 +220,8 @@ public class LocationsTable {
         }
         return numberOfDeletedRecords;
     }
+
+
 }
 
 

@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
+import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 
 public class StoreChainsTable {
@@ -140,6 +141,20 @@ public class StoreChainsTable {
         return result;
 
     }
+    public static Cursor getAllStoreChainsCursor(Context context, String sortOrder) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = null;
+        String selectionArgs[] = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getAllStoreChainsCursor: Exception: " + e.getMessage());
+        }
+        return cursor;
+    }
 
     public static CursorLoader getAllChainNames(Context context, String sortOrder) {
         CursorLoader cursorLoader = null;
@@ -161,6 +176,7 @@ public class StoreChainsTable {
         String storeChainName = "";
         Cursor cursor = getStoreChainCursor(context, storeChainID);
         if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
             storeChainName = cursor.getString(cursor.getColumnIndex(COL_STORE_CHAIN_NAME));
         }
         if (cursor != null) {
@@ -212,5 +228,6 @@ public class StoreChainsTable {
 
         return numberOfDeletedRecords;
     }
+
 
 }

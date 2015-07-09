@@ -58,7 +58,7 @@ public class MySettings {
     public static final int PRODUCTS_LOADER = 2;
     public static final int GROUPS_LOADER = 3;
 
-    public static final int INITIAL_NUMBER_OF_AISLES = 10;
+    public static final int INITIAL_NUMBER_OF_AISLES = 25;
     public static final int NETWORK_WIFI_ONLY = 0;
     public static final int NETWORK_ANY = 1;
     public static final String NOT_AVAILABLE = "N/A...N/A";
@@ -76,8 +76,8 @@ public class MySettings {
     private static final String SETTING_MASTER_LIST_SORT_ORDER = "masterListSortOrder";
     public static final String SETTING_ACTIVE_STORE_ID = "activeStoreID";
     private static final String SETTING_STORE_SORTING_ORDER = "storeSortingOrder";
-    // public static final String SETTING_SHOW_ALL_ITEMS_IN_STORE_LIST = "showAllItemsInStoreList";
     public static final String SETTING_SHOW_FAVORITES = "showFavorites";
+    public static final String SETTING_PARSE_ITEMS_TIMESTAMP = "parseItemsTimestamp";
 
     public static final int SORT_ALPHABETICAL = 0;
     public static final int SORT_BY_AISLE = 1;
@@ -267,6 +267,20 @@ public class MySettings {
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
         SharedPreferences.Editor editor = passwordsSavedState.edit();
         editor.putBoolean(SETTING_SHOW_FAVORITES, showFavorites);
+        editor.apply();
+    }
+
+    public static long getParseItemsTimestamp() {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        return passwordsSavedState.getLong(SETTING_PARSE_ITEMS_TIMESTAMP, 0);
+    }
+
+    public static void setParseItemsTimestamp(long parseItemsTimestamp) {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        SharedPreferences.Editor editor = passwordsSavedState.edit();
+        editor.putLong(SETTING_PARSE_ITEMS_TIMESTAMP, parseItemsTimestamp);
         editor.apply();
     }
 }

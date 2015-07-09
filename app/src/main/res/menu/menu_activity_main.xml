@@ -19,6 +19,12 @@
         android:orderInCategory="20"/>
 
     <item
+        android:id="@+id/action_run_parse_test"
+        android:title="Temp: Run parse test"
+        android:orderInCategory="90"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_remove_all_items"
         android:title="Remove all items"
         android:orderInCategory="100"
@@ -52,5 +58,11 @@
         android:id="@+id/action_about"
         android:title="About"
         android:orderInCategory="1010"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_log_out"
+        android:title="Logout"
+        android:orderInCategory="1020"
         app:showAsAction="never" />
 </menu>

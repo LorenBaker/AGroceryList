@@ -45,17 +45,17 @@ public class clsItemValues {
     public long getDateTimeLastUsed() {
         long result = 0;
         if (hasData()) {
-            result = mItemCursor.getLong(mItemCursor.getColumnIndex(ItemsTable.COL_DATE_TIME_LAST_USED));
+            result = mItemCursor.getLong(mItemCursor.getColumnIndex(ItemsTable.COL_LAST_TIME_USED));
         }
         return result;
     }
 
 /*
     public void putDateTimeLastUsed(long dateTimeLastUsed) {
-        if (cv.containsKey(ItemsTable.COL_DATE_TIME_LAST_USED)) {
-            cv.remove(ItemsTable.COL_DATE_TIME_LAST_USED);
+        if (cv.containsKey(ItemsTable.COL_LAST_TIME_USED)) {
+            cv.remove(ItemsTable.COL_LAST_TIME_USED);
         }
-        cv.put(ItemsTable.COL_DATE_TIME_LAST_USED, dateTimeLastUsed);
+        cv.put(ItemsTable.COL_LAST_TIME_USED, dateTimeLastUsed);
     }
 */
 

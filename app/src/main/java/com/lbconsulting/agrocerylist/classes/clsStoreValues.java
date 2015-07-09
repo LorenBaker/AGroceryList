@@ -3,7 +3,6 @@ package com.lbconsulting.agrocerylist.classes;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
@@ -192,31 +191,31 @@ public class clsStoreValues {
     public String getStreet1() {
         String result = "";
         if (hasData()) {
-            result = mStoreCursor.getString(mStoreCursor.getColumnIndex(StoresTable.COL_STREET1));
+            result = mStoreCursor.getString(mStoreCursor.getColumnIndex(StoresTable.COL_ADDRESS1));
         }
         return result;
     }
 
     public void putStreet1(String street1) {
-        if (cv.containsKey(StoresTable.COL_STREET1)) {
-            cv.remove(StoresTable.COL_STREET1);
+        if (cv.containsKey(StoresTable.COL_ADDRESS1)) {
+            cv.remove(StoresTable.COL_ADDRESS1);
         }
-        cv.put(StoresTable.COL_STREET1, street1);
+        cv.put(StoresTable.COL_ADDRESS1, street1);
     }
 
     public String getStreet2() {
         String result = "";
         if (hasData()) {
-            result = mStoreCursor.getString(mStoreCursor.getColumnIndex(StoresTable.COL_STREET2));
+            result = mStoreCursor.getString(mStoreCursor.getColumnIndex(StoresTable.COL_ADDRESS2));
         }
         return result;
     }
 
     public void putStreet2(String street2) {
-        if (cv.containsKey(StoresTable.COL_STREET2)) {
-            cv.remove(StoresTable.COL_STREET2);
+        if (cv.containsKey(StoresTable.COL_ADDRESS2)) {
+            cv.remove(StoresTable.COL_ADDRESS2);
         }
-        cv.put(StoresTable.COL_STREET2, street2);
+        cv.put(StoresTable.COL_ADDRESS2, street2);
     }
 
     public String getWebsiteURL() {

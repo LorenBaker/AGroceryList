@@ -109,8 +109,7 @@ public class dialog_SelectLocation extends DialogFragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 clsLocation location = locations.get(position);
-                StoreMapsTable.setLocation(getActivity(), mItemID, mGroupID, mStoreID, location.getLocationID());
-                //EventBus.getDefault().post(new MyEvents.restartLoader(MySettings.ITEMS_LOADER));
+                StoreMapsTable.setLocation(getActivity(), mGroupID, mStoreID, location.getLocationID());
                 dismiss();
             }
         });

@@ -630,20 +630,20 @@ public class aGroceryListContentProvider extends ContentProvider {
 
 
             case ITEMS_MULTI_ROWS:
-                // remove the COL_DATE_TIME_LAST_USED key if it exists, then set the current time
-                if(values.containsKey(ItemsTable.COL_DATE_TIME_LAST_USED)){
-                    values.remove(ItemsTable.COL_DATE_TIME_LAST_USED);
+                // remove the COL_LAST_TIME_USED key if it exists, then set the current time
+                if(values.containsKey(ItemsTable.COL_LAST_TIME_USED)){
+                    values.remove(ItemsTable.COL_LAST_TIME_USED);
                 }
-                values.put(ItemsTable.COL_DATE_TIME_LAST_USED,System.currentTimeMillis());
+                values.put(ItemsTable.COL_LAST_TIME_USED,System.currentTimeMillis());
                 updateCount = db.update(ItemsTable.TABLE_ITEMS, values, selection, selectionArgs);
                 break;
 
             case ITEMS_SINGLE_ROW:
-                // remove the COL_DATE_TIME_LAST_USED key if it exists, then set the current time
-                if(values.containsKey(ItemsTable.COL_DATE_TIME_LAST_USED)){
-                    values.remove(ItemsTable.COL_DATE_TIME_LAST_USED);
+                // remove the COL_LAST_TIME_USED key if it exists, then set the current time
+                if(values.containsKey(ItemsTable.COL_LAST_TIME_USED)){
+                    values.remove(ItemsTable.COL_LAST_TIME_USED);
                 }
-                values.put(ItemsTable.COL_DATE_TIME_LAST_USED,System.currentTimeMillis());
+                values.put(ItemsTable.COL_LAST_TIME_USED,System.currentTimeMillis());
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {

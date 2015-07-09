@@ -26,7 +26,7 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone">
+        android:visibility="visible">
 
         <ProgressBar
             android:layout_width="wrap_content"
@@ -48,7 +48,7 @@
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:visibility="visible" />
 
     <android.support.v4.view.ViewPager
         android:id="@+id/storeListPager"
@@ -63,7 +63,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:choiceMode="singleChoice"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="0dp"
-        android:background="@color/whiteSmoke_simi_transparent"/>
+        android:divider="@color/genoa_start"
+        android:dividerHeight="1dp"
+        android:background="@color/whiteSmoke"/>
 </android.support.v4.widget.DrawerLayout>
