@@ -10,6 +10,7 @@ import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreChain;
 
 public class StoreChainsTable {
     // Lists data table
@@ -36,7 +37,7 @@ public class StoreChainsTable {
     private static final String CREATE_TABLE =
             "create table " + TABLE_STORE_CHAINS
                     + " ("
-                    + COL_STORE_CHAIN_ID + " integer primary key autoincrement, "
+                    + COL_STORE_CHAIN_ID + " integer primary key, "
                     + COL_STORE_CHAIN_NAME + " text collate nocase default '', "
                     + COL_CHECKED + " integer default 0 "
                     + ");";
@@ -85,6 +86,20 @@ public class StoreChainsTable {
             }
         }
         return newStoreChainID;
+    }
+
+    public static void createNewStoreChain(Context context, clsParseStoreChain storeChain) {
+        ContentResolver cr = context.getContentResolver();
+
+        try {
+            Uri uri = CONTENT_URI;
+            ContentValues values = new ContentValues();
+            values.put(COL_STORE_CHAIN_ID, storeChain.getStoreChainID());
+            values.put(COL_STORE_CHAIN_NAME, storeChain.getStoreChainName());
+            cr.insert(uri, values);
+        } catch (Exception e) {
+            MyLog.e("LocationsTable", "createNewStoreChain: Exception: " + e.getMessage());
+        }
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,4 +245,15 @@ public class StoreChainsTable {
     }
 
 
+    public static int clear(Context context) {
+        int numberOfDeletedRecords = 0;
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = null;
+        String[] selectionArgs = null;
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+
+        return numberOfDeletedRecords;
+    }
 }

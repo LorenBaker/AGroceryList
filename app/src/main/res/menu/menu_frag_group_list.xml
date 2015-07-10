@@ -8,7 +8,7 @@
         android:id="@+id/action_deleteCheckedGroups"
         android:icon="@drawable/ic_action_discard"
         android:showAsAction="ifRoom"
-        android:title="Delete checked groups"
+        android:title="Delete checked locations"
         android:orderInCategory="15"/>
 
     <item

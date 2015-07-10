@@ -1,14 +1,14 @@
-package com.lbconsulting.agrocerylist.classes;
+package com.lbconsulting.agrocerylist.classes_parse;
 
 /**
  * This class hold store map information.
  */
-public class clsStoreMap {
+public class clsParseStoreMapEntry {
 
     private long groupID;
     private long locationID;
 
-    public clsStoreMap(long groupID, long locationID) {
+    public clsParseStoreMapEntry(long groupID, long locationID) {
         this.groupID = groupID;
         this.locationID = locationID;
     }

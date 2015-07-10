@@ -54,7 +54,7 @@
 
     <item
         android:id="@+id/action_manage_groups"
-        android:title="Manage groups"
+        android:title="Manage locations"
         android:orderInCategory="150"
         android:showAsAction="never" />
 

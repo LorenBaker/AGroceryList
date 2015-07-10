@@ -19,6 +19,7 @@ public class clsParseStore {
     private String gpsLongitude;
     private String websiteURL;
     private String phoneNumber;
+    private int manualSortKey;
 
     public String getAddress1() {
         return address1;
@@ -122,5 +123,13 @@ public class clsParseStore {
 
     public void setZip(String zip) {
         this.zip = zip;
+    }
+
+    public int getManualSortKey() {
+        return manualSortKey;
+    }
+
+    public void setManualSortKey(int manualSortKey) {
+        this.manualSortKey = manualSortKey;
     }
 }

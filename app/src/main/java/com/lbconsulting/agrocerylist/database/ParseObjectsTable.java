@@ -6,7 +6,7 @@ package com.lbconsulting.agrocerylist.database;
  * that holds Parse update information on the following 4 tables:
  * GroupsTable, LocationsTable, StoreChainsTable, StoresTable.
  * NOTE: Parse update information for each Item is held in its respective ItemsTable row,
- *       and StoreMaps information is held in each respective StoreTable row.
+ *       and ParseStoreMap information is held in each respective StoreTable row.
  */
 
 import android.content.ContentResolver;
@@ -48,7 +48,7 @@ public class ParseObjectsTable {
     private static final String CREATE_TABLE = "create table "
             + TABLE_PARSE_OBJECTS
             + " ("
-            + COL_PARSE_OBJECT_LOCAL_ID + " integer primary key autoincrement, "
+            + COL_PARSE_OBJECT_LOCAL_ID + " integer primary key, "
             + COL_PARSE_OBJECT_NAME + " text collate nocase default '', "
             + COL_PARSE_OBJECT_ID + " text default '', "
             + COL_PARSE_OBJECT_TIMESTAMP + " integer default 0, "

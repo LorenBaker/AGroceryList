@@ -7,9 +7,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
+import com.google.gson.Gson;
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.classes_parse.ParseStoreMap;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreMapEntry;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreMapEntryArray;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseUtils;
-import com.lbconsulting.agrocerylist.classes.clsStoreMap;
 
 import java.util.ArrayList;
 
@@ -37,7 +40,7 @@ public class StoreMapsTable {
 
     // Database creation SQL statements
     private static final String CREATE_TABLE = "create table " + TABLE_LOCATIONS_BRIDGE + " ("
-            + COL_MAP_ENTRY_ID + " integer primary key autoincrement, "
+            + COL_MAP_ENTRY_ID + " integer primary key, "
             + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default 1, "
             + COL_STORE_ID + " integer not null references " + StoresTable.TABLE_STORES + " (" + StoresTable.COL_STORE_ID + ") default -1, "
             + COL_LOCATION_ID + " integer not null references " + LocationsTable.TABLE_LOCATIONS + " (" + LocationsTable.COL_LOCATION_ID + ") default 1 "
@@ -90,8 +93,8 @@ public class StoreMapsTable {
         deleteAllStoreMapEntriesInStore(context, storeID);
 
         // An array to hold the store's map list to be used to up date Parse
-        ArrayList<clsStoreMap> storeMapList = new ArrayList<>();
-        String parseStoreMapObjectName = StoresTable.getStoreMapParseObjectName(context, storeID);
+        ArrayList<clsParseStoreMapEntry> storeMapEntryList = new ArrayList<>();
+        String parseStoreMapName = StoresTable.getStoreMapParseName(context, storeID);
 
         // create a map entry for each group with the default location
         Cursor groupsCursor = GroupsTable.getAllGroupsCursor(context, GroupsTable.SORT_ORDER_GROUP_NAME);
@@ -100,19 +103,45 @@ public class StoreMapsTable {
             while (groupsCursor.moveToNext()) {
                 groupID = groupsCursor.getLong(groupsCursor.getColumnIndex(GroupsTable.COL_GROUP_ID));
                 createNewStoreMapEntry(context, groupID, storeID, DEFAULT_LOCATION);
-                clsStoreMap newStoreMapEntry = new clsStoreMap(groupID, DEFAULT_LOCATION);
-                storeMapList.add(newStoreMapEntry);
+                clsParseStoreMapEntry newStoreMapEntry = new clsParseStoreMapEntry(groupID, DEFAULT_LOCATION);
+                storeMapEntryList.add(newStoreMapEntry);
             }
         }
         if (groupsCursor != null) {
             groupsCursor.close();
         }
 
-        if (storeMapList.size() > 0) {
+        if (storeMapEntryList.size() > 0) {
             // use saveThisThread because this method is being run in an AsyncTask
-            clsParseUtils.createParseStoreMap(storeMapList, parseStoreMapObjectName, clsParseUtils.saveThisThread);
+            clsParseUtils.createParseStoreMap(storeMapEntryList, parseStoreMapName, storeID, clsParseUtils.saveThisThread);
         }
     }
+
+    public static void updateStoreMap(Context context, ParseStoreMap storeMap) {
+        ContentResolver cr = context.getContentResolver();
+
+        Gson gson = new Gson();
+        clsParseStoreMapEntryArray mapArray = gson.fromJson(storeMap.getJsonContent(), clsParseStoreMapEntryArray.class);
+        long storeID = storeMap.getStoreID();
+        clear(context, storeID);
+
+        ArrayList<clsParseStoreMapEntry> storeMapEntryList = mapArray.getStoreMap();
+        for (clsParseStoreMapEntry entry : storeMapEntryList) {
+            try {
+                Uri uri = CONTENT_URI;
+                ContentValues values = new ContentValues();
+                values.put(COL_STORE_ID, storeID);
+                values.put(COL_GROUP_ID, entry.getGroupID());
+                values.put(COL_LOCATION_ID, entry.getLocationID());
+                cr.insert(uri, values);
+
+            } catch (Exception e) {
+                MyLog.e("LocationsTable", "updateStoreMap: storeID = " + storeID + ": Exception: " + e.getMessage());
+            }
+        }
+    }
+
+
 
     private static Cursor getStoreMapEntriesCursor(Context context, long storeID) {
         Cursor cursor = null;
@@ -328,7 +357,9 @@ public class StoreMapsTable {
         return numberOfDeletedRecords;
     }
 
-
+    private static void clear(Context context, long storeID) {
+        deleteAllStoreMapEntriesInStore(context,storeID);
+    }
 }
 
 

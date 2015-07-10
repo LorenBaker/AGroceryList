@@ -10,6 +10,7 @@ import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.clsGroup;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseGroup;
 
 import java.util.ArrayList;
 
@@ -41,7 +42,7 @@ public class GroupsTable {
     private static final String CREATE_TABLE = "create table "
             + TABLE_GROUPS
             + " ("
-            + COL_GROUP_ID + " integer primary key autoincrement, "
+            + COL_GROUP_ID + " integer primary key, "
             + COL_GROUP_NAME + " text collate nocase default '', "
             + COL_CHECKED + " integer default 0 "
             + ");";
@@ -90,6 +91,26 @@ public class GroupsTable {
         return newGroupID;
     }
 
+    public static void createNewGroup(Context context, clsParseGroup group) {
+        long groupID = group.getGroupID();
+        String groupName = group.getGroupName();
+        if (!groupName.isEmpty() && groupID > 0) {
+
+            try {
+                ContentResolver cr = context.getContentResolver();
+                Uri uri = CONTENT_URI;
+                ContentValues values = new ContentValues();
+                values.put(COL_GROUP_ID, groupID);
+                values.put(COL_GROUP_NAME, groupName);
+                cr.insert(uri, values);
+
+            } catch (Exception e) {
+                MyLog.e("GroupsTable", "createNewGroup: Exception: " + e.getMessage());
+            }
+
+        }
+
+    }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Read Methods
@@ -244,13 +265,25 @@ public class GroupsTable {
         int numberOfDeletedRecords = -1;
 
         Uri uri = CONTENT_URI;
-        String where = COL_CHECKED + " = ?";
+        String selection = COL_CHECKED + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(1)};
         ContentResolver cr = context.getContentResolver();
-        numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
 
         return numberOfDeletedRecords;
     }
 
 
+    public static int clear(Context context) {
+        // deletes all group records
+        int numberOfDeletedRecords = 0;
+
+        Uri uri = CONTENT_URI;
+        String selection = null;
+        String selectionArgs[] = null;
+        ContentResolver cr = context.getContentResolver();
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+
+        return numberOfDeletedRecords;
+    }
 }

@@ -8,10 +8,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.R;
-import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.classes.clsLocation;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseLocation;
 
 import java.util.ArrayList;
 
@@ -37,7 +37,7 @@ public class LocationsTable {
     private static final String CREATE_TABLE = "create table "
             + TABLE_LOCATIONS
             + " ("
-            + COL_LOCATION_ID + " integer primary key autoincrement, "
+            + COL_LOCATION_ID + " integer primary key, "
             + COL_LOCATION_NAME + " text collate nocase DEFAULT '' "
             + ");";
 
@@ -73,6 +73,19 @@ public class LocationsTable {
         }
     }
 
+    public static void createNewLocation(Context context, clsParseLocation location) {
+        ContentResolver cr = context.getContentResolver();
+
+        try {
+            Uri uri = CONTENT_URI;
+            ContentValues values = new ContentValues();
+            values.put(COL_LOCATION_ID,location.getLocationID());
+            values.put(COL_LOCATION_NAME,location.getLocationName());
+            cr.insert(uri, values);
+        } catch (Exception e) {
+            MyLog.e("LocationsTable", "createNewLocation: Exception: " + e.getMessage());
+        }
+    }
 
     public static void createNewAisles(Context context, int maxNumberOfAisles) {
 
@@ -164,7 +177,7 @@ public class LocationsTable {
         return numberOfLocations;
     }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static int updateLocationName(Context context, long locationID, String locationName) {
@@ -194,7 +207,7 @@ public class LocationsTable {
             while (cursor.moveToNext()) {
                 locationID = cursor.getLong(cursor.getColumnIndex(COL_LOCATION_ID));
                 locationName = cursor.getString(cursor.getColumnIndex(COL_LOCATION_NAME));
-                location = new clsLocation(locationID,locationName);
+                location = new clsLocation(locationID, locationName);
                 list.add(location);
             }
         }
@@ -218,6 +231,19 @@ public class LocationsTable {
             numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
             StoreMapsTable.resetLocationID(context, locationID);
         }
+        return numberOfDeletedRecords;
+    }
+
+
+    public static int clear(Context context) {
+        int numberOfDeletedRecords = 0;
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = null;
+        String[] selectionArgs = null;
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+
         return numberOfDeletedRecords;
     }
 

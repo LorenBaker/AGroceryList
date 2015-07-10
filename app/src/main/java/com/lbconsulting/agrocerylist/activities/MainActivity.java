@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,21 +25,31 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.adapters.DrawerArrayAdapter;
 import com.lbconsulting.agrocerylist.adapters.StoreListPagerAdapter;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
+import com.lbconsulting.agrocerylist.classes_parse.ParseStoreMap;
+import com.lbconsulting.agrocerylist.classes_parse.PublicTablesData;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseGroup;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseGroupArray;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseInitialItem;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseItemArray;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseLocation;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseLocationArray;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseStore;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreArray;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreChain;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreChainArray;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseUtils;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
 import com.lbconsulting.agrocerylist.database.LocationsTable;
 import com.lbconsulting.agrocerylist.database.StoreChainsTable;
+import com.lbconsulting.agrocerylist.database.StoreMapsTable;
 import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.database.aGroceryListDatabaseHelper;
 import com.lbconsulting.agrocerylist.dialogs.dialog_SelectLocation;
@@ -49,15 +58,20 @@ import com.lbconsulting.agrocerylist.dialogs.sortListDialog;
 import com.lbconsulting.agrocerylist.fragments.fragItemsByGroup;
 import com.lbconsulting.agrocerylist.fragments.fragMasterList;
 import com.lbconsulting.agrocerylist.fragments.fragProductsList;
+import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import de.greenrobot.event.EventBus;
 
 
 public class MainActivity extends Activity implements DrawerLayout.DrawerListener {
+
+    // TODO: Remove mLoadInitialDataToParse
+    private boolean mLoadInitialDataToParse = false;
 
     private ActionBar mActionBar;
 
@@ -132,7 +146,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         Parse.enableLocalDatastore(this);
 
         // Add your initialization code here
-        ParseObject.registerSubclass(StoreMaps.class);
+        ParseObject.registerSubclass(ParseStoreMap.class);
         ParseObject.registerSubclass(PublicTablesData.class);
         Parse.initialize(this, "Z1uTyZFcvSsV74AdrqbfWPe44WhqtTvwmJupITew", "ZuBh1PV8oBebw2xgpURpdF5XDms5zS11QpYW9Kpn");
         MyLog.i("AGroceryListApplication", "onCreate: initialized");
@@ -146,306 +160,109 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
 
 
         if (!aGroceryListDatabaseHelper.databaseExists()) {
-            new LoadInitialDataAsync().execute();
+            new LoadInitialDataAsync(this).execute();
         }
     }
 
+    private void loadInitialData() {
+        // get all the tables from Parse
+        try {
+            ParseQuery<PublicTablesData> publicTablesQuery = ParseQuery.getQuery(PublicTablesData.class);
+            List<PublicTablesData> publicTablesResult = publicTablesQuery.find();
+            if (publicTablesResult != null) {
+                MyLog.i("MainActivity", "loadInitialData: Number of tables found = " + publicTablesResult.size());
+                if (publicTablesResult.size() > 0) {
+                    for (PublicTablesData table : publicTablesResult) {
+                        if (table.getTableName().equals(GroupsTable.TABLE_GROUPS)) {
+                            fillGroupsTable(this, table.getJsonContent());
+                        } else if (table.getTableName().equals(LocationsTable.TABLE_LOCATIONS)) {
+                            fillLocationsTable(this, table.getJsonContent());
+                        } else if (table.getTableName().equals(StoreChainsTable.TABLE_STORE_CHAINS)) {
+                            fillStoreChainsTable(this, table.getJsonContent());
+                        } else if (table.getTableName().equals(StoresTable.TABLE_STORES)) {
+                            fillStoresTable(this, table.getJsonContent());
+                        } else if (table.getTableName().equals(ItemsTable.TABLE_ITEMS)) {
+                            fillItemsTable(this, table.getJsonContent());
+                        }
+                    }
+                }
+            }
+
+            ParseQuery<ParseStoreMap> storesMapQuery = ParseQuery.getQuery(ParseStoreMap.class);
+            List<ParseStoreMap> storesMapResults = storesMapQuery.find();
+            if (storesMapResults != null) {
+                MyLog.i("MainActivity", "loadInitialData: Number of store maps found = " + storesMapResults.size());
+                if (storesMapResults.size() > 0) {
+                    for (ParseStoreMap storeMap : storesMapResults) {
+                        StoreMapsTable.updateStoreMap(this, storeMap);
+                    }
+                }
+            }
+
+        } catch (ParseException e) {
+            MyLog.e("MainActivity", "loadInitialData: ParseException: " + e.getMessage());
+        }
+
+    }
+
+    private void fillGroupsTable(Context context, String jsonContent) {
+        MyLog.i("MainActivity", "fillGroupsTable");
+        Gson gson = new Gson();
+        GroupsTable.clear(context);
+        clsParseGroupArray content = gson.fromJson(jsonContent, clsParseGroupArray.class);
+        for (clsParseGroup group : content.getGroups()) {
+            GroupsTable.createNewGroup(context, group);
+        }
+    }
+
+    private void fillLocationsTable(Context context, String jsonContent) {
+        MyLog.i("MainActivity", "fillLocationsTable");
+        Gson gson = new Gson();
+        LocationsTable.clear(context);
+        clsParseLocationArray content = gson.fromJson(jsonContent, clsParseLocationArray.class);
+        for (clsParseLocation location : content.getLocations()) {
+            LocationsTable.createNewLocation(context, location);
+        }
+    }
+
+    private void fillStoreChainsTable(Context context, String jsonContent) {
+        MyLog.i("MainActivity", "fillStoreChainsTable");
+        Gson gson = new Gson();
+        StoreChainsTable.clear(context);
+        clsParseStoreChainArray content = gson.fromJson(jsonContent, clsParseStoreChainArray.class);
+        for (clsParseStoreChain storeChain : content.getStoreChains()) {
+            StoreChainsTable.createNewStoreChain(context, storeChain);
+        }
+    }
+
+    private void fillStoresTable(Context context, String jsonContent) {
+        MyLog.i("MainActivity", "fillStoresTable");
+        Gson gson = new Gson();
+        StoresTable.clear(context);
+        clsParseStoreArray content = gson.fromJson(jsonContent, clsParseStoreArray.class);
+        for (clsParseStore store : content.getStores()) {
+            StoresTable.createNewStore(context, store);
+        }
+    }
+
+    private void fillItemsTable(Context context, String jsonContent) {
+        MyLog.i("MainActivity", "fillItemsTable");
+        Gson gson = new Gson();
+        ItemsTable.clear(context);
+        clsParseItemArray content = gson.fromJson(jsonContent, clsParseItemArray.class);
+        for (clsParseInitialItem item : content.getInitialItems()) {
+            ItemsTable.createNewItem(context, item);
+        }
+    }
 
     private void runParseTest() {
+        // TODO: remove runParseTest
         ParseObject testObject = new ParseObject("TestObject");
         testObject.put("foo", "bar");
         testObject.saveInBackground();
         MyLog.i("MainActivity", "runParseTest: put(\"foo\", \"bar\")");
     }
 
-    private void loadInitialData() {
-
-        // initialize the grocery groups
-        String[] groceryGroups = getResources().getStringArray(R.array.grocery_groups);
-        for (String groceryGroup : groceryGroups) {
-            GroupsTable.createNewGroup(this, groceryGroup);
-        }
-        // create Parse groups table
-        createParseGroupsTable();
-
-
-        // initialize the store locations
-        LocationsTable.createInitialLocationsIfNeeded(this);
-        // create Parse locations table
-        createParseLocationsTable();
-
-
-        // create store chains
-        String[] storeChains = getResources().getStringArray(R.array.grocery_store_chains);
-        for (String store : storeChains) {
-            StoreChainsTable.createNewStoreChain(this, store);
-        }
-        // create Parse store chain table
-        createParseStoreChainsTable();
-
-
-        // create stores ... NOTE: assumes store chains and groups are already created.
-        // also assumes store chain IDs are in the order in R.array.grocery_store_chains
-
-        // Albertsons
-        StoresTable.createNewStore(this, 1, "Eastgate", "15100 SE 38TH ST", "STE 103", "BELLEVUE", "WA", "98006-1763");
-
-        // Fred Myer
-        StoresTable.createNewStore(this, 2, "Bellevue", "2041 148TH AVE NE", "", "BELLEVUE", "WA", "98007-3788");
-        StoresTable.createNewStore(this, 2, "Redmond", "17667 NE 76TH ST", "", "REDMOND", "WA", "98052-4994");
-
-        // PCC
-        StoresTable.createNewStore(this, 4, "Issaquah", "1810 12TH AVE NW", "STE A", "ISSAQUAH", "WA", "98027-8110");
-        StoresTable.createNewStore(this, 4, "Kirkland", "10718 NE 68TH ST", "", "KIRKLAND", "WA", "98033-7030");
-
-        // QFC
-        StoresTable.createNewStore(this, 5, "Bel-East", "1510 145TH PL SE", "STE A", "BELLEVUE", "WA", "98007-5593");
-        StoresTable.createNewStore(this, 5, "Issaquah", "1540 NW GILMAN BLVD", "", "ISSAQUAH", "WA", "98027-5309");
-        StoresTable.createNewStore(this, 5, "Klahanie Dr", "4570 KLAHANIE DR SE", "", "ISSAQUAH", "WA", "98029-5812");
-        StoresTable.createNewStore(this, 5, "Factoria", "3500 FACTORIA BLVD SE", "", "BELLEVUE", "WA", "98006-5276");
-        StoresTable.createNewStore(this, 5, "Newcastle", "6940 COAL CREEK PKWY SE", "", "NEWCASTLE", "WA", "98059-3137");
-
-        // Safeway
-        StoresTable.createNewStore(this, 6, "Factoria", "3903 FACTORIA BLVD SE", "", "BELLEVUE", "WA", "98006-6148");
-        StoresTable.createNewStore(this, 6, "Evergreen Village", "1645 140TH AVE NE", "STE A5", "BELLEVUE", "WA", "98005-2320");
-        StoresTable.createNewStore(this, 6, "Issaquah", "735 NW GILMAN BLVD", "STE B", "ISSAQUAH", "WA", "98027-8996");
-        StoresTable.createNewStore(this, 6, "Highlands", "1451 HIGHLANDS DR NE", "", "ISSAQUAH", "WA", "98029-6240");
-
-        //Trader Joe’s
-        StoresTable.createNewStore(this, 8, "Issaquah", "975 NW GILMAN BLVD", "STE A", "ISSAQUAH", "WA", "98027-5377");
-        StoresTable.createNewStore(this, 8, "Redmond", "15932 REDMOND WAY", "STE 101", "REDMOND", "WA", " 98052-4060");
-        StoresTable.createNewStore(this, 8, "Bellevue", "15563 NE 24TH ST", "", "BELLEVUE", "WA", "98007-3836");
-
-        // Whole Foods
-        StoresTable.createNewStore(this, 9, "Bellevue", "888 116TH AVE NE", "", "BELLEVUE", "WA", "98004-4607");
-        StoresTable.createNewStore(this, 9, "Redmond", "17991 REDMOND WAY", "", "REDMOND", "WA", " 98052-4907");
-
-        // create Parse stores table
-        createParseStoresTable();
-
-        // create initial items.
-        String[] groceryItems = getResources().getStringArray(R.array.grocery_items);
-        for (String groceryItem : groceryItems) {
-            String[] item = groceryItem.split(", ");
-            String itemName = item[0];
-            String groupID = item[1];
-            ItemsTable.createNewItem(this, itemName, groupID);
-        }
-
-
-        //region LoadInitialData Backup
-/*    private void loadInitialData() {
-
-        // initialize the grocery groups
-        String[] groceryGroups = getResources().getStringArray(R.array.grocery_groups);
-        for (String groceryGroup : groceryGroups) {
-            GroupsTable.createNewGroup(this, groceryGroup);
-        }
-
-        // initialize the store locations
-        LocationsTable.createInitialLocationsIfNeeded(this);
-
-        // create store chains
-        String[] storeChains = getResources().getStringArray(R.array.grocery_store_chains);
-        for (String store : storeChains) {
-            StoreChainsTable.createNewStoreChain(this, store);
-        }
-
-        // create stores ... NOTE: assumes store chains and groups are already created.
-        // also assumes store chain IDs are in the order in R.array.grocery_store_chains
-        StoresTable.createNewStore(this, 1, "Eastgate");
-
-        StoresTable.createNewStore(this, 2, "Bellevue");
-        StoresTable.createNewStore(this, 2, "Redmond");
-
-        StoresTable.createNewStore(this, 4, "Issaquah");
-        StoresTable.createNewStore(this, 4, "Kirkland");
-        StoresTable.createNewStore(this, 4, "Seattle");
-
-        StoresTable.createNewStore(this, 5, "Issaquah");
-        StoresTable.createNewStore(this, 5, "Factoria");
-        StoresTable.createNewStore(this, 5, "Newcastle");
-
-        StoresTable.createNewStore(this, 6, "Factoria");
-        StoresTable.createNewStore(this, 6, "Evergreen Village");
-        StoresTable.createNewStore(this, 6, "Issaquah");
-        StoresTable.createNewStore(this, 6, "Highlands");
-
-        StoresTable.createNewStore(this, 8, "Bellevue");
-        StoresTable.createNewStore(this, 8, "Redmond");
-        StoresTable.createNewStore(this, 8, "Issaquah");
-
-        StoresTable.createNewStore(this, 9, "Bellevue");
-        StoresTable.createNewStore(this, 9, "Redmond");
-
-
-        // create initial items.
-        String[] groceryItems = getResources().getStringArray(R.array.grocery_items);
-        for (String groceryItem : groceryItems) {
-            String[] item = groceryItem.split(", ");
-            String itemName = item[0];
-            String groupID = item[1];
-            ItemsTable.createNewItem(this, itemName, groupID);
-        }*/
-        //endregion
-
-
-
-
-/*        long groupID = 0;
-        long locationID = 2;
-        long numberOfLocations = LocationsTable.getNumberOfLocations(this);
-        Cursor storeCursor = StoresTable.getAllDisplayedStoresCursor(this, StoresTable.SORT_ORDER_MANUAL);
-        if (storeCursor != null && storeCursor.getCount() > 0) {
-            aGroceryListContentProvider.setSuppressChangeNotification(true);
-            long storeID;
-            while (storeCursor.moveToNext()) {
-                storeID = storeCursor.getLong(storeCursor.getColumnIndex(StoresTable.COL_STORE_ID));
-                for (String groceryGroup : groceryGroups) {
-                    groupID++;
-                    if (groupID > 1) {
-                        StoreMapsTable.createNewStoreMapEntry(this, -1, groupID, storeID, locationID);
-
-                        locationID++;
-                        if (locationID > numberOfLocations) {
-                            locationID = 2;
-                        }
-                    }
-                }
-                groupID=0;
-            }
-            aGroceryListContentProvider.setSuppressChangeNotification(false);
-        }*/
-
-
-    }
-
-
-    private void createParseGroupsTable() {
-        MyLog.i("MainActivity", "createParseGroupsTable");
-        Cursor groupsCursor = GroupsTable.getAllGroupsCursor(this, GroupsTable.SORT_ORDER_GROUP_NAME);
-        if (groupsCursor != null && groupsCursor.getCount() > 0) {
-            ArrayList<clsParseGroup> groupsList = new ArrayList<>();
-            long groupID;
-            String groupName;
-            clsParseGroup group;
-            while (groupsCursor.moveToNext()) {
-                groupID = groupsCursor.getLong(groupsCursor.getColumnIndex(GroupsTable.COL_GROUP_ID));
-                groupName = groupsCursor.getString(groupsCursor.getColumnIndex(GroupsTable.COL_GROUP_NAME));
-                group = new clsParseGroup(groupID, groupName);
-                groupsList.add(group);
-            }
-            if (groupsList.size() > 0) {
-                // use saveThisThread because this method is being run in an AsyncTask
-                clsParseUtils.createPublicTable(groupsList, null, null, null, clsParseUtils.saveThisThread);
-            }
-        }
-    }
-
-    private void createParseLocationsTable() {
-        MyLog.i("MainActivity", "createParseLocationsTable");
-        Cursor locationsCursor = LocationsTable.getAllLocationsCursor(this, LocationsTable.SORT_ORDER_LOCATION_ID);
-        if (locationsCursor != null && locationsCursor.getCount() > 0) {
-            ArrayList<clsParseLocation> locationsList = new ArrayList<>();
-            long locationID;
-            String locationName;
-            clsParseLocation location;
-            while (locationsCursor.moveToNext()) {
-                locationID = locationsCursor.getLong(locationsCursor.getColumnIndex(LocationsTable.COL_LOCATION_ID));
-                locationName = locationsCursor.getString(locationsCursor.getColumnIndex(LocationsTable.COL_LOCATION_NAME));
-                location = new clsParseLocation(locationID, locationName);
-                locationsList.add(location);
-            }
-            if (locationsList.size() > 0) {
-                // use saveThisThread because this method is being run in an AsyncTask
-                clsParseUtils.createPublicTable(null, locationsList, null, null, clsParseUtils.saveThisThread);
-            }
-        }
-    }
-
-    private void createParseStoreChainsTable() {
-        MyLog.i("MainActivity", "createParseStoreChainsTable");
-        Cursor storeChainsCursor = StoreChainsTable.getAllStoreChainsCursor(this, StoreChainsTable.SORT_ORDER_STORE_CHAIN_NAME);
-        if (storeChainsCursor != null && storeChainsCursor.getCount() > 0) {
-            ArrayList<clsParseStoreChain> storeChainsList = new ArrayList<>();
-            long storeChainID;
-            String storeChainName;
-            clsParseStoreChain storeChain;
-            while (storeChainsCursor.moveToNext()) {
-                storeChainID = storeChainsCursor.getLong(storeChainsCursor.getColumnIndex(StoreChainsTable.COL_STORE_CHAIN_ID));
-                storeChainName = storeChainsCursor.getString(storeChainsCursor.getColumnIndex(StoreChainsTable.COL_STORE_CHAIN_NAME));
-                storeChain = new clsParseStoreChain(storeChainID, storeChainName);
-                storeChainsList.add(storeChain);
-            }
-            if (storeChainsList.size() > 0) {
-                // use saveThisThread because this method is being run in an AsyncTask
-                clsParseUtils.createPublicTable(null, null, storeChainsList, null, clsParseUtils.saveThisThread);
-            }
-        }
-    }
-
-    private void createParseStoresTable() {
-        MyLog.i("MainActivity", "createParseStoresTable");
-        Cursor storesCursor = StoresTable.getAllStoresCursor(this, StoresTable.SORT_ORDER_CHAIN_ID_BY_REGIONAL_NAME);
-        if (storesCursor != null && storesCursor.getCount() > 0) {
-            ArrayList<clsParseStore> storeList = new ArrayList<>();
-            long storeID;
-            long storeChainID;
-            String storeRegionalName;
-            String parseStoreMapName;
-
-            String address1;
-            String address2;
-            String city;
-            String state;
-            String zip;
-            String gpsLatitude;
-            String gpsLongitude;
-            String websiteURL;
-            String phoneNumber;
-
-            clsParseStore store;
-            while (storesCursor.moveToNext()) {
-
-                storeID = storesCursor.getLong(storesCursor.getColumnIndex(StoresTable.COL_STORE_ID));
-                storeChainID = storesCursor.getLong(storesCursor.getColumnIndex(StoresTable.COL_STORE_CHAIN_ID));
-                storeRegionalName = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_STORE_REGIONAL_NAME));
-                parseStoreMapName = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_PARSE_STORE_MAP_NAME));
-
-                address1 = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_ADDRESS1));
-                address2 = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_ADDRESS2));
-                city = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_CITY));
-                state = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_STATE));
-                zip = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_ZIP));
-                gpsLatitude = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_GPS_LATITUDE));
-                gpsLongitude = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_GPS_LONGITUDE));
-                websiteURL = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_WEBSITE_URL));
-                phoneNumber = storesCursor.getString(storesCursor.getColumnIndex(StoresTable.COL_PHONE_NUMBER));
-
-                store = new clsParseStore();
-                store.setStoreID(storeID);
-                store.setStoreChainID(storeChainID);
-                store.setStoreRegionalName(storeRegionalName);
-                store.setParseStoreMapName(parseStoreMapName);
-
-                store.setAddress1(address1);
-                store.setAddress2(address2);
-                store.setCity(city);
-                store.setState(state);
-                store.setZip(zip);
-                store.setGpsLatitude(gpsLatitude);
-                store.setGpsLongitude(gpsLongitude);
-                store.setWebsiteURL(websiteURL);
-                store.setPhoneNumber(phoneNumber);
-
-                storeList.add(store);
-            }
-            if (storeList.size() > 0) {
-                // use saveThisThread because this method is being run in an AsyncTask
-                clsParseUtils.createPublicTable(null, null, null, storeList, clsParseUtils.saveThisThread);
-            }
-        }
-    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -877,22 +694,33 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
     }
 
     public class LoadInitialDataAsync extends AsyncTask<Void, Void, Void> {
-        public LoadInitialDataAsync() {
+        Context mContext;
+
+        public LoadInitialDataAsync(Context context) {
             super();
+            mContext = context;
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             mInitializingData = true;
-            tvProgressMessage.setText("Please wait while loading initial data...");
+            tvProgressMessage.setText("Please wait while loading initial data from the cloud ...");
             displayProgressBar();
-            String temp = "";
         }
 
         @Override
         protected Void doInBackground(Void... params) {
-            loadInitialData();
+            // TODO: remove cls
+            if(mLoadInitialDataToParse){
+                // load initial data TO parse
+                clsParseUtils.loadInitialData(mContext);
+            }else{
+                // load initial data FROM parse
+                loadInitialData();
+            }
+
+
             return null;
         }
 

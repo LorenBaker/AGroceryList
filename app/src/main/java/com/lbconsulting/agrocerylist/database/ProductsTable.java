@@ -53,7 +53,7 @@ public class ProductsTable {
     private static final String CREATE_DATA_TABLE = "create table "
             + TABLE_PRODUCTS
             + " ("
-            + COL_PRODUCT_ID + " integer primary key autoincrement, "
+            + COL_PRODUCT_ID + " integer primary key, "
             + COL_ITEM_ID + " integer DEFAULT " + ITEM_ID_DEFAULT + ", "
             + COL_BAR_CODE_FORMAT + " text  DEFAULT '', "
             + COL_BAR_CODE_NUMBER + " text  DEFAULT '', "

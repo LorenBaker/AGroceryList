@@ -10,11 +10,18 @@ package com.lbconsulting.agrocerylist.classes_parse;
 import com.parse.ParseObject;
 import com.parse.ParseClassName;
 
-@ParseClassName("StoreMaps")
-public class StoreMaps extends ParseObject {
+@ParseClassName("ParseStoreMap")
+public class ParseStoreMap extends ParseObject {
 
-    public StoreMaps() {
+    public ParseStoreMap() {
         // A default constructor is required.
+    }
+
+    public long getStoreID() {
+        return getLong("storeID");
+    }
+    public void setStoreID(long storeID) {
+        put("storeID", storeID);
     }
 
     public String getMapName() {

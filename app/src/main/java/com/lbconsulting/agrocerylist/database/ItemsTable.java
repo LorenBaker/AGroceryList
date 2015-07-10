@@ -9,13 +9,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseInitialItem;
 
 import java.util.Calendar;
 
 public class ItemsTable {
 
-    // Items data table
-    // Version 1
     public static final String TABLE_ITEMS = "tblItems";
     public static final String COL_ITEM_ID = "_id";
     public static final String COL_ITEM_NAME = "itemName";
@@ -59,6 +58,7 @@ public class ItemsTable {
             + "/" + CONTENT_PATH_ITEMS_WITH_LOCATIONS);
 
     public static final String SORT_ORDER_ITEM_NAME = COL_ITEM_NAME + " ASC";
+    public static final String SORT_ORDER_ITEM_NAME_DESC = COL_ITEM_NAME + " DESC";
     public static final String SORT_ORDER_LAST_USED = COL_LAST_TIME_USED + " DESC, " + SORT_ORDER_ITEM_NAME;
     public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_ORDER + " ASC";
 
@@ -71,7 +71,7 @@ public class ItemsTable {
     private static final String CREATE_TABLE =
             "create table " + TABLE_ITEMS
                     + " ("
-                    + COL_ITEM_ID + " integer primary key autoincrement, "
+                    + COL_ITEM_ID + " integer primary key, "
                     + COL_ITEM_NAME + " text collate nocase default '', "
                     + COL_ITEM_NOTE + " text collate nocase default '', "
                     + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default 1, "
@@ -131,7 +131,7 @@ public class ItemsTable {
                     updateItemFieldValues(context, newItemID, cv);
                 }
             } catch (Exception e) {
-                MyLog.e("Exception error in CreateNewItem. ", e.toString());
+                MyLog.e("ItemsTable", "createNewItem: Exception: " + e.getMessage());
             }
 
         } else {
@@ -139,6 +139,30 @@ public class ItemsTable {
             newItemID = mExistingItemID; // mExistingItemID is set in itemExists method
         }
         return newItemID;
+    }
+
+    public static void createNewItem(Context context, String itemName, long groupID) {
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ITEM_NAME, itemName);
+
+        // make sure there is a valid groupID
+        if (groupID < 1) {
+            groupID = 1;
+        }
+        cv.put(COL_GROUP_ID, groupID);
+        cv.put(COL_LAST_TIME_USED, System.currentTimeMillis());
+
+        Uri newListUri = cr.insert(uri, cv);
+        if (newListUri != null) {
+            long newItemID = Long.parseLong(newListUri.getLastPathSegment());
+            cv = new ContentValues();
+            cv.put(COL_MANUAL_SORT_ORDER, newItemID);
+            updateItemFieldValues(context, newItemID, cv);
+        }
+
     }
 
     public static void createNewItem(Context context, String itemName, String strGroupID) {
@@ -166,8 +190,24 @@ public class ItemsTable {
 
     }
 
+    public static void createNewItem(Context context, clsParseInitialItem item) {
+        ContentResolver cr = context.getContentResolver();
 
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
+        try {
+            Uri uri = CONTENT_URI;
+            ContentValues values = new ContentValues();
+            values.put(COL_ITEM_ID, item.getItemID());
+            values.put(COL_GROUP_ID, item.getGroupID());
+            values.put(COL_ITEM_NAME, item.getItemName());
+            values.put(COL_MANUAL_SORT_ORDER, item.getManualSortOrder());
+            values.put(COL_LAST_TIME_USED, item.getLastTimeUsed());
+            cr.insert(uri, values);
+        } catch (Exception e) {
+            MyLog.i("ItemsTable", "createNewItem: Exception: " + e.getMessage());
+        }
+    }
+
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Read Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static Cursor getItemCursor(Context context, long itemID) {
@@ -220,6 +260,7 @@ public class ItemsTable {
         }
         return result;
     }
+
     public static Cursor getAllSelectedItemsCursor(Context context, String sortOrder) {
         Cursor cursor = null;
         Uri uri = CONTENT_URI;
@@ -282,6 +323,21 @@ public class ItemsTable {
         return cursor;
     }
 
+    public static Cursor getAllItemsCursor(Context context, String sortOrder) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = null;
+        String selectionArgs[] = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("ItemsTable", "getAllItemsCursor: Exception: " + e.getMessage());
+        }
+        return cursor;
+    }
+
     public static CursorLoader getAllItems(Context context, String selection, String sortOrder) {
         CursorLoader cursorLoader = null;
         Uri uri = CONTENT_URI;
@@ -322,7 +378,7 @@ public class ItemsTable {
         try {
             cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
         } catch (Exception e) {
-            MyLog.e("StoresTable", "getAllSelectedItemsByGroups: Exception: " + e.getMessage());
+            MyLog.i("ItemsTable", "getAllSelectedItemsByGroups: Exception: " + e.getMessage());
         }
 
         return cursorLoader;
@@ -340,13 +396,13 @@ public class ItemsTable {
         try {
             cursorLoader = new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
         } catch (Exception e) {
-            MyLog.e("StoresTable", "getAllSelectedItemsByLocations: Exception: " + e.getMessage());
+            MyLog.i("ItemsTable", "getAllSelectedItemsByLocations: Exception: " + e.getMessage());
         }
 
         return cursorLoader;
     }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static int updateItemFieldValues(Context context, long itemID, ContentValues newFieldValues) {
@@ -558,7 +614,7 @@ public class ItemsTable {
         ContentValues cv = new ContentValues();
         cv.put(COL_PARSE_OBJECT_IS_DIRTY, FALSE);
 
-       return cr.update(uri, cv, selection, selectionArgs);
+        return cr.update(uri, cv, selection, selectionArgs);
 
     }
 
@@ -687,5 +743,15 @@ public class ItemsTable {
         return numberOfDeletedRecords;
     }
 
+    public static int clear(Context context) {
+        int numberOfDeletedRecords = 0;
 
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = null;
+        String[] selectionArgs = null;
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+
+        return numberOfDeletedRecords;
+    }
 }

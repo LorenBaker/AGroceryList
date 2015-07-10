@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
+import com.lbconsulting.agrocerylist.classes_parse.clsParseStore;
 
 public class StoresTable {
     // Lists data table
@@ -67,7 +68,7 @@ public class StoresTable {
     private static final String CREATE_TABLE =
             "create table " + TABLE_STORES
                     + " ("
-                    + COL_STORE_ID + " integer primary key autoincrement, "
+                    + COL_STORE_ID + " integer primary key, "
                     //+ COL_STORE_CHAIN_ID + " integer default -1, "
                     + COL_STORE_CHAIN_ID + " integer not null references " + StoreChainsTable.TABLE_STORE_CHAINS + "  default -1, "
 
@@ -153,12 +154,39 @@ public class StoresTable {
                         StoreMapsTable.initializeStoreMap(context, newStoreID);
                     }
                 } catch (Exception e) {
-                    MyLog.e("Exception error in CreateNewStore. ", e.toString());
+                    MyLog.i("StoresTable", "createNewStore: Exception " + e.getMessage());
                 }
 
             }
         }
         return newStoreID;
+    }
+
+    public static void createNewStore(Context context, clsParseStore store) {
+        ContentResolver cr = context.getContentResolver();
+
+        try {
+            Uri uri = CONTENT_URI;
+            ContentValues values = new ContentValues();
+            values.put(COL_STORE_ID, store.getStoreID());
+            values.put(COL_ADDRESS1, store.getAddress1());
+            values.put(COL_ADDRESS2, store.getAddress2());
+            values.put(COL_CITY, store.getCity());
+            values.put(COL_GPS_LATITUDE, store.getGpsLatitude());
+            values.put(COL_GPS_LONGITUDE, store.getGpsLongitude());
+            values.put(COL_PARSE_STORE_MAP_NAME, store.getParseStoreMapName());
+            values.put(COL_PHONE_NUMBER, store.getPhoneNumber());
+            values.put(COL_STATE, store.getState());
+            values.put(COL_STORE_CHAIN_ID, store.getStoreChainID());
+            values.put(COL_STORE_REGIONAL_NAME, store.getStoreRegionalName());
+            values.put(COL_WEBSITE_URL, store.getWebsiteURL());
+            values.put(COL_ZIP, store.getZip());
+            values.put(COL_MANUAL_SORT_KEY, store.getManualSortKey());
+
+            cr.insert(uri, values);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "createNewStore: Exception: " + e.getMessage());
+        }
     }
 
     private static long getColorThemeID(long newStoreID) {
@@ -378,7 +406,7 @@ public class StoresTable {
     }
 
 
-    public static String getStoreMapParseObjectName(Context context, long storeID) {
+    public static String getStoreMapParseName(Context context, long storeID) {
         String parseObjectName = "";
         Cursor cursor = getStoreCursor(context, storeID);
         if (cursor != null && cursor.getCount() > 0) {
@@ -480,4 +508,15 @@ public class StoresTable {
     }
 
 
+    public static int clear(Context context) {
+        int numberOfDeletedRecords = 0;
+
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String selection = null;
+        String[] selectionArgs = null;
+        numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
+
+        return numberOfDeletedRecords;
+    }
 }
