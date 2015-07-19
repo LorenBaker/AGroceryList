@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
-import com.lbconsulting.agrocerylist.activities.MainActivity;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreChain;
 
@@ -17,10 +16,11 @@ public class StoreChainsTable {
     public static final String TABLE_STORE_CHAINS = "tblStoreChains";
     public static final String COL_STORE_CHAIN_ID = "_id";
     public static final String COL_STORE_CHAIN_NAME = "storeChainName";
+    public static final String COL_STORE_CHAIN_DIRTY = "storeChainDirty";
     public static final String COL_CHECKED = "checked";
 
 
-    public static final String[] PROJECTION_ALL = {COL_STORE_CHAIN_ID, COL_STORE_CHAIN_NAME, COL_CHECKED};
+    public static final String[] PROJECTION_ALL = {COL_STORE_CHAIN_ID, COL_STORE_CHAIN_NAME, COL_STORE_CHAIN_DIRTY, COL_CHECKED};
 
     public static final String CONTENT_PATH = TABLE_STORE_CHAINS;
 
@@ -39,6 +39,7 @@ public class StoreChainsTable {
                     + " ("
                     + COL_STORE_CHAIN_ID + " integer primary key, "
                     + COL_STORE_CHAIN_NAME + " text collate nocase default '', "
+                    + COL_STORE_CHAIN_DIRTY + " integer default 0, "
                     + COL_CHECKED + " integer default 0 "
                     + ");";
 
@@ -54,6 +55,12 @@ public class StoreChainsTable {
         MyLog.i(TABLE_STORE_CHAINS, ": Upgrading database from version " + oldVersion + " to version " + newVersion
                 + ". NO CHANGES REQUIRED.");
         // This wipes out all of the user data and create an empty table
+        database.execSQL("DROP TABLE IF EXISTS " + TABLE_STORE_CHAINS);
+        onCreate(database);
+    }
+
+    public static void resetTable(SQLiteDatabase database) {
+        MyLog.i(TABLE_STORE_CHAINS, "Resetting table");
         database.execSQL("DROP TABLE IF EXISTS " + TABLE_STORE_CHAINS);
         onCreate(database);
     }

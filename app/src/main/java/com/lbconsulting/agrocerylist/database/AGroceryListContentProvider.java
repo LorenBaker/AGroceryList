@@ -306,7 +306,6 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ProductsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
                     }
                     return newRowUri;
@@ -318,6 +317,7 @@ public class aGroceryListContentProvider extends ContentProvider {
 
 
             case ITEMS_MULTI_ROWS:
+                values.put(ItemsTable.COL_ITEM_DIRTY, 1);
                 newRowId = db.insertOrThrow(ItemsTable.TABLE_ITEMS, nullColumnHack, values);
                 if (newRowId > 0) {
                     // Construct and return the URI of the newly inserted row.
@@ -327,7 +327,6 @@ public class aGroceryListContentProvider extends ContentProvider {
                         // Notify and observers of the change in the database.
                         getContext().getContentResolver().notifyChange(ItemsTable.CONTENT_URI, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-                        //getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
                         getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
                     }
                     return newRowUri;
@@ -474,6 +473,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case ITEMS_MULTI_ROWS:
                 // To return the number of deleted items you must specify a where clause.
                 // To delete all rows and return a value pass in "1".
+                // TODO: delete parse items
                 if (selection == null) {
                     selection = "1";
                 }
@@ -483,6 +483,7 @@ public class aGroceryListContentProvider extends ContentProvider {
 
             case ITEMS_SINGLE_ROW:
                 // Limit deletion to a single row
+                // TODO: delete parse item
                 rowID = uri.getLastPathSegment();
                 selection = ItemsTable.COL_ITEM_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
@@ -595,7 +596,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             // Notify and observers of the change in the database.
             getContext().getContentResolver().notifyChange(uri, null);
             getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_STORES_WITH_CHAIN_NAMES, null);
-           // getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
+            // getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_GROUPS, null);
             getContext().getContentResolver().notifyChange(JoinedTables.CONTENT_URI_ITEMS_BY_LOCATIONS_AND_GROUPS, null);
         }
         return deleteCount;
@@ -630,20 +631,13 @@ public class aGroceryListContentProvider extends ContentProvider {
 
 
             case ITEMS_MULTI_ROWS:
-                // remove the COL_LAST_TIME_USED key if it exists, then set the current time
-                if(values.containsKey(ItemsTable.COL_LAST_TIME_USED)){
-                    values.remove(ItemsTable.COL_LAST_TIME_USED);
-                }
-                values.put(ItemsTable.COL_LAST_TIME_USED,System.currentTimeMillis());
                 updateCount = db.update(ItemsTable.TABLE_ITEMS, values, selection, selectionArgs);
                 break;
 
             case ITEMS_SINGLE_ROW:
-                // remove the COL_LAST_TIME_USED key if it exists, then set the current time
-                if(values.containsKey(ItemsTable.COL_LAST_TIME_USED)){
-                    values.remove(ItemsTable.COL_LAST_TIME_USED);
+                if (!values.containsKey(ItemsTable.COL_ITEM_DIRTY)) {
+                    values.put(ItemsTable.COL_ITEM_DIRTY, 1);
                 }
-                values.put(ItemsTable.COL_LAST_TIME_USED,System.currentTimeMillis());
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {

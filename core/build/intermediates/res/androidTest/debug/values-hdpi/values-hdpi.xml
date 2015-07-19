@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- From: file:/D:/Android_Studio_Projects/AGroceryList/core/build/intermediates/bundles/debug/res/values-hdpi/values-hdpi.xml -->
+    <!-- From: file:/C:/Users/Loren/AndroidStudioProjects/AGroceryList/core/build/intermediates/bundles/debug/res/values-hdpi/values-hdpi.xml -->
     <eat-comment/>
     <integer name="viewfinder_border_length">60</integer>
     <integer name="viewfinder_border_width">4</integer>

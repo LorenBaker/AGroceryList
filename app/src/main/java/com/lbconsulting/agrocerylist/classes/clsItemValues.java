@@ -15,15 +15,15 @@ public class clsItemValues {
     private ContentValues cv;
 
 
-    public clsItemValues(Context context, long itemID) {
+/*    public clsItemValues(Context context, long itemID) {
         mContext = context;
         mItemCursor = ItemsTable.getItemCursor(context, itemID);
         if (mItemCursor != null) {
             mItemCursor.moveToFirst();
         }
         cv = new ContentValues();
-/*        String cursorContent = DatabaseUtils.dumpCursorToString(mItemCursor);
-        MyLog.i("clsItemValues: \n", cursorContent);*/
+*//*        String cursorContent = DatabaseUtils.dumpCursorToString(mItemCursor);
+        MyLog.i("clsItemValues: \n", cursorContent);*//*
 
     }
 
@@ -33,8 +33,8 @@ public class clsItemValues {
         if (hasData()) {
         }
         cv = new ContentValues();
-/*        String cursorContent = DatabaseUtils.dumpCursorToString(mItemCursor);
-        MyLog.i("clsItemValues: \n", cursorContent);*/
+*//*        String cursorContent = DatabaseUtils.dumpCursorToString(mItemCursor);
+        MyLog.i("clsItemValues: \n", cursorContent);*//*
     }
 
     public boolean hasData() {
@@ -50,16 +50,16 @@ public class clsItemValues {
         return result;
     }
 
-/*
+*//*
     public void putDateTimeLastUsed(long dateTimeLastUsed) {
         if (cv.containsKey(ItemsTable.COL_LAST_TIME_USED)) {
             cv.remove(ItemsTable.COL_LAST_TIME_USED);
         }
         cv.put(ItemsTable.COL_LAST_TIME_USED, dateTimeLastUsed);
     }
-*/
+*//*
 
-    public long getGroupID() {
+    public long getLocationID() {
         long result = -1;
         if (hasData()) {
             result = mItemCursor.getLong(mItemCursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
@@ -211,5 +211,5 @@ public class clsItemValues {
         } finally {
             super.finalize();
         }
-    }
+    }*/
 }

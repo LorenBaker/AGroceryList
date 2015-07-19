@@ -5,6 +5,10 @@ import android.content.SharedPreferences;
 
 import com.lbconsulting.agrocerylist.R;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
 /**
  * Helper methods for Application Settings
  */
@@ -78,6 +82,19 @@ public class MySettings {
     private static final String SETTING_STORE_SORTING_ORDER = "storeSortingOrder";
     public static final String SETTING_SHOW_FAVORITES = "showFavorites";
     public static final String SETTING_PARSE_ITEMS_TIMESTAMP = "parseItemsTimestamp";
+
+
+    public static final String SETTING_UPDATED_AT_GROUPS = "UpdateAtGroups";
+    public static final String SETTING_UPDATED_AT_ITEMS = "UpdateAtItems";
+    public static final String SETTING_UPDATED_AT_LOCATIONS = "UpdateAtLocations";
+    public static final String SETTING_UPDATED_AT_STORE_CHAINS = "UpdateAtStoreChains";
+    public static final String SETTING_UPDATED_AT_STORES = "UpdateAtStores";
+    public static final int UPDATED_AT_GROUPS = 201;
+    public static final int UPDATED_AT_ITEMS = 202;
+    public static final int UPDATED_AT_LOCATIONS = 203;
+    public static final int UPDATED_AT_STORE_CHAINS = 204;
+    public static final int UPDATED_AT_STORES = 205;
+
 
     public static final int SORT_ALPHABETICAL = 0;
     public static final int SORT_BY_AISLE = 1;
@@ -281,6 +298,69 @@ public class MySettings {
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
         SharedPreferences.Editor editor = passwordsSavedState.edit();
         editor.putLong(SETTING_PARSE_ITEMS_TIMESTAMP, parseItemsTimestamp);
+        editor.apply();
+    }
+
+    private static Date mills2Date(long mills) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(mills);
+        cal.setTimeZone(TimeZone.getDefault());
+        return cal.getTime();
+    }
+
+    public static Date getUpdatedAt(int updatedAt) {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        long updatedAtMills = 0;
+        switch (updatedAt) {
+            case UPDATED_AT_GROUPS:
+                updatedAtMills = passwordsSavedState.getLong(SETTING_UPDATED_AT_GROUPS, 0);
+                break;
+
+            case UPDATED_AT_ITEMS:
+                updatedAtMills = passwordsSavedState.getLong(SETTING_UPDATED_AT_ITEMS, 0);
+                break;
+
+            case UPDATED_AT_LOCATIONS:
+                updatedAtMills = passwordsSavedState.getLong(SETTING_UPDATED_AT_LOCATIONS, 0);
+                break;
+
+            case UPDATED_AT_STORE_CHAINS:
+                updatedAtMills = passwordsSavedState.getLong(SETTING_UPDATED_AT_STORE_CHAINS, 0);
+                break;
+
+            case UPDATED_AT_STORES:
+                updatedAtMills = passwordsSavedState.getLong(SETTING_UPDATED_AT_STORES, 0);
+                break;
+        }
+        return mills2Date(updatedAtMills);
+    }
+
+    public static void setUpdatedAt(int updatedAt, long timeMills) {
+        SharedPreferences passwordsSavedState =
+                mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
+        SharedPreferences.Editor editor = passwordsSavedState.edit();
+        switch (updatedAt) {
+            case UPDATED_AT_GROUPS:
+                editor.putLong(SETTING_UPDATED_AT_GROUPS, timeMills);
+                break;
+
+            case UPDATED_AT_ITEMS:
+                editor.putLong(SETTING_UPDATED_AT_ITEMS, timeMills);
+                break;
+
+            case UPDATED_AT_LOCATIONS:
+                editor.putLong(SETTING_UPDATED_AT_LOCATIONS, timeMills);
+                break;
+
+            case UPDATED_AT_STORE_CHAINS:
+                editor.putLong(SETTING_UPDATED_AT_STORE_CHAINS, timeMills);
+                break;
+
+            case UPDATED_AT_STORES:
+                editor.putLong(SETTING_UPDATED_AT_STORES, timeMills);
+                break;
+        }
         editor.apply();
     }
 }

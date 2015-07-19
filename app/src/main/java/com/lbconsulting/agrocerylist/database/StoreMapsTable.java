@@ -59,6 +59,11 @@ public class StoreMapsTable {
 
     }
 
+    public static void resetTable(SQLiteDatabase database) {
+        MyLog.i(TABLE_LOCATIONS_BRIDGE, "Resetting table");
+        database.execSQL("DROP TABLE IF EXISTS " + TABLE_LOCATIONS_BRIDGE);
+        onCreate(database);
+    }
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Create Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,8 +117,8 @@ public class StoreMapsTable {
         }
 
         if (storeMapEntryList.size() > 0) {
-            // use saveThisThread because this method is being run in an AsyncTask
-            clsParseUtils.createParseStoreMap(storeMapEntryList, parseStoreMapName, storeID, clsParseUtils.saveThisThread);
+            // use SAVE_THIS_THREAD because this method is being run in an AsyncTask
+            clsParseUtils.createParseStoreMap(storeMapEntryList, parseStoreMapName, storeID, clsParseUtils.SAVE_THIS_THREAD);
         }
     }
 

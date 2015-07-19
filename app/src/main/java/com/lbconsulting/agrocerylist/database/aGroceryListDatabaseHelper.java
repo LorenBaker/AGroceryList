@@ -46,7 +46,7 @@ public class aGroceryListDatabaseHelper extends SQLiteOpenHelper {
         ProductsTable.onUpgrade(database, oldVersion, newVersion);
         StoreChainsTable.onUpgrade(database, oldVersion, newVersion);
         StoresTable.onUpgrade(database, oldVersion, newVersion);
-        LocationsTable.onUpgrade(database,oldVersion,newVersion);
+        LocationsTable.onUpgrade(database, oldVersion, newVersion);
         StoreMapsTable.onUpgrade(database, oldVersion, newVersion);
     }
 
@@ -70,10 +70,38 @@ public class aGroceryListDatabaseHelper extends SQLiteOpenHelper {
 
 
     public static SQLiteDatabase getDatabase() {
-        return dBase;
+        if (dBase != null) {
+            return dBase;
+        }
+        SQLiteDatabase database = null;
+        try {
+
+            String DB_FULL_PATH = DB_PATH + DATABASE_NAME;
+            database = SQLiteDatabase.openDatabase(DB_FULL_PATH, null, SQLiteDatabase.OPEN_READONLY);
+
+        } catch (SQLiteException e) {
+            // database doesn't exist.
+            MyLog.i("aGroceryListDatabaseHelper", "Database does not exists. " + e.getMessage());
+        }
+        return database;
+
     }
 
     public static boolean deleteDatabase() {
         return mContext.deleteDatabase(DATABASE_NAME); // true if deleted
+    }
+
+    public static void resetDatabase() {
+        MyLog.i("aGroceryListDatabaseHelper", "resetDatabase");
+        SQLiteDatabase database= getDatabase();
+        if(database!=null) {
+            GroupsTable.resetTable(database);
+            ItemsTable.resetTable(database);
+            ProductsTable.resetTable(database);
+            StoreChainsTable.resetTable(database);
+            StoresTable.resetTable(database);
+            LocationsTable.resetTable(database);
+            StoreMapsTable.resetTable(database);
+        }
     }
 }

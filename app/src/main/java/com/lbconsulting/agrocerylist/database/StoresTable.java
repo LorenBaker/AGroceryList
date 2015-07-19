@@ -109,6 +109,12 @@ public class StoresTable {
         onCreate(database);
     }
 
+    public static void resetTable(SQLiteDatabase database) {
+        MyLog.i(TABLE_STORES, "Resetting table");
+        database.execSQL("DROP TABLE IF EXISTS " + TABLE_STORES);
+        onCreate(database);
+    }
+
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Create Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////

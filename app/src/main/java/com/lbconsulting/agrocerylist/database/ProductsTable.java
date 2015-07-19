@@ -72,6 +72,11 @@ public class ProductsTable {
         onCreate(database);
     }
 
+    public static void resetTable(SQLiteDatabase database) {
+        MyLog.i(TABLE_PRODUCTS, "Resetting table");
+        database.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCTS);
+        onCreate(database);
+    }
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Create Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////

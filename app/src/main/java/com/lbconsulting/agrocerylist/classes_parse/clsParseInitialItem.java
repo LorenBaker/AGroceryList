@@ -5,16 +5,15 @@ package com.lbconsulting.agrocerylist.classes_parse;
  */
 public class clsParseInitialItem {
 
-    private long itemID, groupID,lastTimeUsed;
+    private long itemID, groupID;
     private int manualSortOrder;
     private String itemName;
 
-    public clsParseInitialItem(long itemID, String itemName, long groupID, int manualSortOrder, long lastTimeUsed) {
-                this.itemID = itemID;
+    public clsParseInitialItem(long itemID, String itemName, long groupID, int manualSortOrder) {
+        this.itemID = itemID;
         this.itemName = itemName;
         this.groupID = groupID;
         this.manualSortOrder = manualSortOrder;
-        this.lastTimeUsed = lastTimeUsed;
     }
 
 
@@ -42,13 +41,6 @@ public class clsParseInitialItem {
         this.itemName = itemName;
     }
 
-    public long getLastTimeUsed() {
-        return lastTimeUsed;
-    }
-
-    public void setLastTimeUsed(long lastTimeUsed) {
-        this.lastTimeUsed = lastTimeUsed;
-    }
 
     public int getManualSortOrder() {
         return manualSortOrder;
@@ -57,6 +49,7 @@ public class clsParseInitialItem {
     public void setManualSortOrder(int manualSortOrder) {
         this.manualSortOrder = manualSortOrder;
     }
+
     @Override
     public String toString() {
         return itemName;

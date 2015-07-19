@@ -21,9 +21,10 @@ public class GroupsTable {
     public static final String TABLE_GROUPS = "tblGroups";
     public static final String COL_GROUP_ID = "_id";
     public static final String COL_GROUP_NAME = "groupName";
+    public static final String COL_GROUP_DIRTY = "groupDirty";
     public static final String COL_CHECKED = "checked";
 
-    public static final String[] PROJECTION_ALL = {COL_GROUP_ID, COL_GROUP_NAME, COL_CHECKED};
+    public static final String[] PROJECTION_ALL = {COL_GROUP_ID, COL_GROUP_NAME, COL_GROUP_DIRTY, COL_CHECKED};
 
     public static final String CONTENT_PATH = TABLE_GROUPS;
 
@@ -44,6 +45,7 @@ public class GroupsTable {
             + " ("
             + COL_GROUP_ID + " integer primary key, "
             + COL_GROUP_NAME + " text collate nocase default '', "
+            + COL_GROUP_DIRTY + " integer default 0, "
             + COL_CHECKED + " integer default 0 "
             + ");";
 
@@ -60,6 +62,12 @@ public class GroupsTable {
         onCreate(database);
     }
 
+
+    public static void resetTable(SQLiteDatabase database) {
+        MyLog.i(TABLE_GROUPS, "Resetting table");
+        database.execSQL("DROP TABLE IF EXISTS " + TABLE_GROUPS);
+        onCreate(database);
+    }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Create Methods
@@ -185,6 +193,21 @@ public class GroupsTable {
         return result;
     }
 
+    public static Cursor getAllDirtyGroupsCursor(Context context) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = COL_GROUP_DIRTY + " = ?";
+        String selectionArgs[] = new String[]{String.valueOf(1)};
+        String sortOrder = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("ItemsTable", "getAllDirtyGroupsCursor: Exception: " + e.getMessage());
+        }
+        return cursor;
+    }
 
     public static CursorLoader getAllGroupNames(Context context, String sortOrder) {
         CursorLoader cursorLoader = null;
@@ -286,4 +309,5 @@ public class GroupsTable {
 
         return numberOfDeletedRecords;
     }
+
 }

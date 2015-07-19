@@ -26,19 +26,14 @@ public class ItemsTable {
     public static final String COL_CHECKED = "itemChecked";
     public static final String COL_FAVORITE = "itemIsFavorite";
     public static final String COL_MANUAL_SORT_ORDER = "manualSortOrder";
-    public static final String COL_PARSE_OBJECT_ID = "parseObjectID";
-    public static final String COL_PARSE_OBJECT_NAME = "parseObjectName";
-    public static final String COL_PARSE_OBJECT_IS_DIRTY = "parseObjectIsDirty";
-    public static final String COL_PARSE_OBJECT_TIMESTAMP = "parseObjectTimestamp";
-    public static final String COL_LAST_TIME_USED = "lastTimeUsed";
+    public static final String COL_ITEM_DIRTY = "itemDirty";
 
     public static final String[] PROJECTION_ALL = {COL_ITEM_ID, COL_ITEM_NAME, COL_ITEM_NOTE,
             COL_GROUP_ID, COL_PRODUCT_ID, COL_SELECTED, COL_STRUCK_OUT, COL_CHECKED, COL_FAVORITE,
-            COL_MANUAL_SORT_ORDER, COL_PARSE_OBJECT_ID, COL_PARSE_OBJECT_NAME,
-            COL_PARSE_OBJECT_IS_DIRTY, COL_PARSE_OBJECT_TIMESTAMP, COL_LAST_TIME_USED};
+            COL_MANUAL_SORT_ORDER, COL_ITEM_DIRTY};
 
-    public static final String[] PROJECTION_PARSE_INFO = {COL_ITEM_ID, COL_PARSE_OBJECT_ID,
-            COL_PARSE_OBJECT_NAME, COL_PARSE_OBJECT_IS_DIRTY, COL_PARSE_OBJECT_TIMESTAMP};
+   /* public static final String[] PROJECTION_PARSE_INFO = {COL_ITEM_ID, COL_PARSE_OBJECT_ID,
+            COL_PARSE_OBJECT_NAME, COL_STORE_CHAIN_DIRTY, COL_ITEM_TIMESTAMP};*/
 
     public static final String CONTENT_PATH = TABLE_ITEMS;
     public static final String CONTENT_PATH_ITEMS_WITH_GROUPS = "itemsWithGroups";
@@ -57,9 +52,8 @@ public class ItemsTable {
     public static final Uri CONTENT_URI_ITEMS_WITH_LOCATIONS = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY
             + "/" + CONTENT_PATH_ITEMS_WITH_LOCATIONS);
 
-    public static final String SORT_ORDER_ITEM_NAME = COL_ITEM_NAME + " ASC";
+    public static final String SORT_ORDER_ITEM_NAME_ASC = COL_ITEM_NAME + " ASC";
     public static final String SORT_ORDER_ITEM_NAME_DESC = COL_ITEM_NAME + " DESC";
-    public static final String SORT_ORDER_LAST_USED = COL_LAST_TIME_USED + " DESC, " + SORT_ORDER_ITEM_NAME;
     public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_ORDER + " ASC";
 
     public static final int FALSE = 0;
@@ -81,13 +75,7 @@ public class ItemsTable {
                     + COL_CHECKED + " integer default 0, "
                     + COL_FAVORITE + " integer default 0, "
                     + COL_MANUAL_SORT_ORDER + " integer default -1, "
-
-                    + COL_PARSE_OBJECT_ID + " text default '', "
-                    + COL_PARSE_OBJECT_NAME + " text collate nocase default '', "
-                    + COL_PARSE_OBJECT_IS_DIRTY + " integer default 0, "
-                    + COL_PARSE_OBJECT_TIMESTAMP + " integer default 0, "
-
-                    + COL_LAST_TIME_USED + " integer default 0"
+                    + COL_ITEM_DIRTY + " integer default 0 "
                     + ");";
 
     private static long mExistingItemID;
@@ -104,7 +92,11 @@ public class ItemsTable {
         onCreate(database);
     }
 
-
+    public static void resetTable(SQLiteDatabase database) {
+        MyLog.i(TABLE_ITEMS, "Resetting table");
+        database.execSQL("DROP TABLE IF EXISTS " + TABLE_ITEMS);
+        onCreate(database);
+    }
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Create Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,7 +113,7 @@ public class ItemsTable {
                 Uri uri = CONTENT_URI;
                 ContentValues cv = new ContentValues();
                 cv.put(COL_ITEM_NAME, itemName);
-                cv.put(COL_LAST_TIME_USED, System.currentTimeMillis());
+                cv.put(COL_ITEM_DIRTY, 1);
 
                 Uri newListUri = cr.insert(uri, cv);
                 if (newListUri != null) {
@@ -142,7 +134,6 @@ public class ItemsTable {
     }
 
     public static void createNewItem(Context context, String itemName, long groupID) {
-
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;
         ContentValues cv = new ContentValues();
@@ -153,7 +144,7 @@ public class ItemsTable {
             groupID = 1;
         }
         cv.put(COL_GROUP_ID, groupID);
-        cv.put(COL_LAST_TIME_USED, System.currentTimeMillis());
+        cv.put(COL_ITEM_DIRTY, 1);
 
         Uri newListUri = cr.insert(uri, cv);
         if (newListUri != null) {
@@ -171,14 +162,14 @@ public class ItemsTable {
         Uri uri = CONTENT_URI;
         ContentValues cv = new ContentValues();
         cv.put(COL_ITEM_NAME, itemName);
-        int groupID = Integer.parseInt(strGroupID);
+        long groupID = Long.parseLong(strGroupID);
 
         // make sure there is a valid groupID
         if (groupID < 1) {
             groupID = 1;
         }
-        cv.put(COL_LAST_TIME_USED, System.currentTimeMillis());
         cv.put(COL_GROUP_ID, groupID);
+        cv.put(COL_ITEM_DIRTY, 1);
 
         Uri newListUri = cr.insert(uri, cv);
         if (newListUri != null) {
@@ -191,8 +182,8 @@ public class ItemsTable {
     }
 
     public static void createNewItem(Context context, clsParseInitialItem item) {
+        // This method is used to create new items when loading initial data
         ContentResolver cr = context.getContentResolver();
-
         try {
             Uri uri = CONTENT_URI;
             ContentValues values = new ContentValues();
@@ -200,14 +191,13 @@ public class ItemsTable {
             values.put(COL_GROUP_ID, item.getGroupID());
             values.put(COL_ITEM_NAME, item.getItemName());
             values.put(COL_MANUAL_SORT_ORDER, item.getManualSortOrder());
-            values.put(COL_LAST_TIME_USED, item.getLastTimeUsed());
             cr.insert(uri, values);
         } catch (Exception e) {
             MyLog.i("ItemsTable", "createNewItem: Exception: " + e.getMessage());
         }
     }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Read Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static Cursor getItemCursor(Context context, long itemID) {
@@ -307,18 +297,18 @@ public class ItemsTable {
         return cursor;
     }
 
-    public static Cursor getAllParseDirtyItemsCursor(Context context) {
+    public static Cursor getAllDirtyItemsCursor(Context context) {
         Cursor cursor = null;
         Uri uri = CONTENT_URI;
-        String[] projection = PROJECTION_PARSE_INFO;
-        String selection = COL_PARSE_OBJECT_IS_DIRTY + " = ?";
+        String[] projection = PROJECTION_ALL;
+        String selection = COL_ITEM_DIRTY + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(TRUE)};
         String sortOrder = null;
         ContentResolver cr = context.getContentResolver();
         try {
             cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
         } catch (Exception e) {
-            MyLog.e("ItemsTable", "getAllParseDirtyItemsCursor: Exception: " + e.getMessage());
+            MyLog.e("ItemsTable", "getAllDirtyItemsCursor: Exception: " + e.getMessage());
         }
         return cursor;
     }
@@ -575,7 +565,7 @@ public class ItemsTable {
     }
 
 
-    public static int checkUnusedItems(Context context, long numberOfDays) {
+/*    public static int checkUnusedItems(Context context, long numberOfDays) {
         int numberOfCheckedItems = -1;
 
         long numberOfMilliSeconds = numberOfDays * milliSecondsPerDay;
@@ -584,7 +574,7 @@ public class ItemsTable {
 
         ContentResolver cr = context.getContentResolver();
         Uri itemUri = CONTENT_URI;
-        String selection = COL_LAST_TIME_USED + " < ?";
+        String selection = COL_ITEM_TIMESTAMP + " < ?";
         String[] selectionArgs = {String.valueOf(dateTimeCutOff)};
 
         ContentValues values = new ContentValues();
@@ -593,26 +583,26 @@ public class ItemsTable {
         numberOfCheckedItems = cr.update(itemUri, values, selection, selectionArgs);
 
         return numberOfCheckedItems;
-    }
+    }*/
 
-    public static void setParseItemDirty(Context context, long itemID, boolean isDirty) {
+    public static void setItemDirty(Context context, long itemID, boolean isDirty) {
         int isDirtyValue = FALSE;
         if (isDirty) {
             isDirtyValue = TRUE;
         }
         ContentValues cv = new ContentValues();
-        cv.put(COL_PARSE_OBJECT_IS_DIRTY, isDirtyValue);
+        cv.put(COL_ITEM_DIRTY, isDirtyValue);
         updateItemFieldValues(context, itemID, cv);
     }
 
-    public static int resetAllParseDirtyItems(Context context) {
+    public static int resetAllDirtyItems(Context context) {
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;
-        String selection = COL_PARSE_OBJECT_IS_DIRTY + " = ?";
+        String selection = COL_ITEM_DIRTY + " = ?";
         String[] selectionArgs = {String.valueOf(TRUE)};
 
         ContentValues cv = new ContentValues();
-        cv.put(COL_PARSE_OBJECT_IS_DIRTY, FALSE);
+        cv.put(COL_ITEM_DIRTY, FALSE);
 
         return cr.update(uri, cv, selection, selectionArgs);
 

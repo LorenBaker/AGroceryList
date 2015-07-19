@@ -203,7 +203,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
                     switch (storeItemsSortOrder) {
                         case MySettings.SORT_ALPHABETICAL:
                             mStoreListCursorAdapter.setStoreItemsSortingOrder(MySettings.SORT_ALPHABETICAL, mStoreID);
-                            sortOrder = ItemsTable.SORT_ORDER_ITEM_NAME;
+                            sortOrder = ItemsTable.SORT_ORDER_ITEM_NAME_ASC;
                             cursorLoader = ItemsTable.getAllSelectedItems(getActivity(), sortOrder);
                             break;
 
@@ -219,7 +219,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
 
                         case MySettings.SORT_MANUALLY:
                             //TODO: join query master list manual sort order
-                            sortOrder = ItemsTable.SORT_ORDER_LAST_USED;
+                            sortOrder = ItemsTable.SORT_ORDER_MANUAL;
                             //cursorLoader = ItemsTable.getAllItemsInList(getActivity(), mActiveListID, selection, sortOrder);
                             break;
 

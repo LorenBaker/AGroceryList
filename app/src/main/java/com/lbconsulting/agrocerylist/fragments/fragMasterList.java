@@ -397,7 +397,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
                 try {
                     switch (masterListSortOrder) {
                         case MySettings.SORT_ALPHABETICAL:
-                            sortOrder = ItemsTable.SORT_ORDER_ITEM_NAME;
+                            sortOrder = ItemsTable.SORT_ORDER_ITEM_NAME_ASC;
                             cursorLoader = ItemsTable.getAllItems(getActivity(), selection, sortOrder);
                             break;
 
@@ -413,7 +413,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
                         case MySettings.SORT_MANUALLY:
                             //TODO: join query master list manual sort order
-                            sortOrder = ItemsTable.SORT_ORDER_LAST_USED;
+                            sortOrder = ItemsTable.SORT_ORDER_MANUAL;
                             //cursorLoader = ItemsTable.getAllItemsInList(getActivity(), mActiveListID, selection, sortOrder);
                             break;
 

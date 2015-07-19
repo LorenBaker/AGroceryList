@@ -7,9 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
-import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.classes.MyLog;
-import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.classes.clsLocation;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseLocation;
 
@@ -20,8 +18,9 @@ public class LocationsTable {
     public static final String TABLE_LOCATIONS = "tblLocations";
     public static final String COL_LOCATION_ID = "_id";
     public static final String COL_LOCATION_NAME = "locationName";
+    public static final String COL_LOCATION_DIRTY = "locationDirty";
 
-    public static final String[] PROJECTION_ALL = {COL_LOCATION_ID, COL_LOCATION_NAME};
+    public static final String[] PROJECTION_ALL = {COL_LOCATION_ID, COL_LOCATION_NAME, COL_LOCATION_DIRTY};
 
     public static final String CONTENT_PATH = TABLE_LOCATIONS;
     public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + "vnd.lbconsulting."
@@ -38,7 +37,8 @@ public class LocationsTable {
             + TABLE_LOCATIONS
             + " ("
             + COL_LOCATION_ID + " integer primary key, "
-            + COL_LOCATION_NAME + " text collate nocase DEFAULT '' "
+            + COL_LOCATION_NAME + " text collate nocase DEFAULT '', "
+            + COL_LOCATION_DIRTY + " integer default 0 "
             + ");";
 
     public static void onCreate(SQLiteDatabase database) {
@@ -52,11 +52,17 @@ public class LocationsTable {
         MyLog.i("LocationsTable", "onUpgrade: " + TABLE_LOCATIONS + " upgraded.");
         onCreate(database);
     }
+
+    public static void resetTable(SQLiteDatabase database) {
+        MyLog.i(TABLE_LOCATIONS, "Resetting table");
+        database.execSQL("DROP TABLE IF EXISTS " + TABLE_LOCATIONS);
+        onCreate(database);
+    }
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Create Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void createInitialLocationsIfNeeded(Context context) {
+/*    public static void createInitialLocationsIfNeeded(Context context) {
         if (isTableEmpty(context)) {
             String[] initialLocations = context.getResources().getStringArray(R.array.initial_location_list);
             ContentResolver cr = context.getContentResolver();
@@ -71,7 +77,7 @@ public class LocationsTable {
 
             createNewAisles(context, MySettings.INITIAL_NUMBER_OF_AISLES);
         }
-    }
+    }*/
 
     public static void createNewLocation(Context context, clsParseLocation location) {
         ContentResolver cr = context.getContentResolver();
@@ -79,8 +85,8 @@ public class LocationsTable {
         try {
             Uri uri = CONTENT_URI;
             ContentValues values = new ContentValues();
-            values.put(COL_LOCATION_ID,location.getLocationID());
-            values.put(COL_LOCATION_NAME,location.getLocationName());
+            values.put(COL_LOCATION_ID, location.getLocationID());
+            values.put(COL_LOCATION_NAME, location.getLocationName());
             cr.insert(uri, values);
         } catch (Exception e) {
             MyLog.e("LocationsTable", "createNewLocation: Exception: " + e.getMessage());
@@ -153,7 +159,7 @@ public class LocationsTable {
 
 
     public static ArrayList<String> getAllItemLocations(Context context, String sortOrder) {
-        createInitialLocationsIfNeeded(context);
+       // createInitialLocationsIfNeeded(context);
         ArrayList<String> itemLocations = new ArrayList<>();
         Cursor cursor = getAllLocationsCursor(context, sortOrder);
         if (cursor != null && cursor.getCount() > 0) {
@@ -236,7 +242,7 @@ public class LocationsTable {
 
 
     public static int clear(Context context) {
-        int numberOfDeletedRecords = 0;
+        int numberOfDeletedRecords;
 
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;

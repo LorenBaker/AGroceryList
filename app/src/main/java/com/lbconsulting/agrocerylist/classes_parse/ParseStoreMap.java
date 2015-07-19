@@ -13,36 +13,41 @@ import com.parse.ParseClassName;
 @ParseClassName("ParseStoreMap")
 public class ParseStoreMap extends ParseObject {
 
+    private final String STORE_ID = "storeID";
+    private final String MAP_NAME = "mapName";
+    private final String JASON_CONTENT = "jsonContent";
+    private final String TIMESTAMP = "timestamp";
+
     public ParseStoreMap() {
         // A default constructor is required.
     }
 
     public long getStoreID() {
-        return getLong("storeID");
+        return getLong(STORE_ID);
     }
     public void setStoreID(long storeID) {
-        put("storeID", storeID);
+        put(STORE_ID, storeID);
     }
 
     public String getMapName() {
-        return getString("mapName");
+        return getString(MAP_NAME);
     }
     public void setMapName(String mapName) {
-        put("mapName", mapName);
+        put(MAP_NAME, mapName);
     }
 
     public String getJsonContent() {
-        return getString("jsonContent");
+        return getString(JASON_CONTENT);
     }
     public void setJsonContent(String jsonContent) {
-        put("jsonContent", jsonContent);
+        put(JASON_CONTENT, jsonContent);
     }
 
     public long getTimestamp() {
-        return getLong("timestamp");
+        return getLong(TIMESTAMP);
     }
     public void setTimestamp(long timestamp) {
-        put("timestamp", timestamp);
+        put(TIMESTAMP, timestamp);
     }
 
 }

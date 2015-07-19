@@ -25,32 +25,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.adapters.DrawerArrayAdapter;
 import com.lbconsulting.agrocerylist.adapters.StoreListPagerAdapter;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
-import com.lbconsulting.agrocerylist.classes_parse.ParseStoreMap;
-import com.lbconsulting.agrocerylist.classes_parse.PublicTablesData;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseGroup;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseGroupArray;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseInitialItem;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseItemArray;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseLocation;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseLocationArray;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseStore;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreArray;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreChain;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreChainArray;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseUtils;
-import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
-import com.lbconsulting.agrocerylist.database.LocationsTable;
-import com.lbconsulting.agrocerylist.database.StoreChainsTable;
-import com.lbconsulting.agrocerylist.database.StoreMapsTable;
-import com.lbconsulting.agrocerylist.database.StoresTable;
 import com.lbconsulting.agrocerylist.database.aGroceryListDatabaseHelper;
 import com.lbconsulting.agrocerylist.dialogs.dialog_SelectLocation;
 import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
@@ -58,12 +40,12 @@ import com.lbconsulting.agrocerylist.dialogs.sortListDialog;
 import com.lbconsulting.agrocerylist.fragments.fragItemsByGroup;
 import com.lbconsulting.agrocerylist.fragments.fragMasterList;
 import com.lbconsulting.agrocerylist.fragments.fragProductsList;
+import com.parse.FunctionCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.util.List;
+import java.util.HashMap;
 
 import de.greenrobot.event.EventBus;
 
@@ -71,7 +53,7 @@ import de.greenrobot.event.EventBus;
 public class MainActivity extends Activity implements DrawerLayout.DrawerListener {
 
     // TODO: Remove mLoadInitialDataToParse
-    private boolean mLoadInitialDataToParse = false;
+    private boolean mLoadInitialDataToParse = true;
 
     private ActionBar mActionBar;
 
@@ -158,19 +140,25 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         ParseACL.setDefaultACL(new ParseACL(), true);
         //endregion*/
 
-
-        if (!aGroceryListDatabaseHelper.databaseExists()) {
-            new LoadInitialDataAsync(this).execute();
+        if (ParseUser.getCurrentUser().isNew()) {
+           new LoadInitialDataAsync(this).execute();
+        } else if (!aGroceryListDatabaseHelper.databaseExists()) {
+            // TODO: remove databaseExists if statement
+           new LoadInitialDataAsync(this).execute();
         }
     }
 
-    private void loadInitialData() {
-        // get all the tables from Parse
+    private void downLoadInitialData() {
+
+    }
+
+/*    private void downLoadInitialData() {
         try {
+            // get all the tables from Parse
             ParseQuery<PublicTablesData> publicTablesQuery = ParseQuery.getQuery(PublicTablesData.class);
             List<PublicTablesData> publicTablesResult = publicTablesQuery.find();
             if (publicTablesResult != null) {
-                MyLog.i("MainActivity", "loadInitialData: Number of tables found = " + publicTablesResult.size());
+                MyLog.i("MainActivity", "downLoadInitialData: Number of tables found = " + publicTablesResult.size());
                 if (publicTablesResult.size() > 0) {
                     for (PublicTablesData table : publicTablesResult) {
                         if (table.getTableName().equals(GroupsTable.TABLE_GROUPS)) {
@@ -191,7 +179,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
             ParseQuery<ParseStoreMap> storesMapQuery = ParseQuery.getQuery(ParseStoreMap.class);
             List<ParseStoreMap> storesMapResults = storesMapQuery.find();
             if (storesMapResults != null) {
-                MyLog.i("MainActivity", "loadInitialData: Number of store maps found = " + storesMapResults.size());
+                MyLog.i("MainActivity", "downLoadInitialData: Number of store maps found = " + storesMapResults.size());
                 if (storesMapResults.size() > 0) {
                     for (ParseStoreMap storeMap : storesMapResults) {
                         StoreMapsTable.updateStoreMap(this, storeMap);
@@ -200,12 +188,13 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
             }
 
         } catch (ParseException e) {
-            MyLog.e("MainActivity", "loadInitialData: ParseException: " + e.getMessage());
+            MyLog.e("MainActivity", "downLoadInitialData: ParseException: " + e.getMessage());
         }
 
-    }
+    }*/
 
-    private void fillGroupsTable(Context context, String jsonContent) {
+
+/*    private void fillGroupsTable(Context context, String jsonContent) {
         MyLog.i("MainActivity", "fillGroupsTable");
         Gson gson = new Gson();
         GroupsTable.clear(context);
@@ -253,14 +242,21 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         for (clsParseInitialItem item : content.getInitialItems()) {
             ItemsTable.createNewItem(context, item);
         }
-    }
+    }*/
 
     private void runParseTest() {
         // TODO: remove runParseTest
-        ParseObject testObject = new ParseObject("TestObject");
-        testObject.put("foo", "bar");
-        testObject.saveInBackground();
-        MyLog.i("MainActivity", "runParseTest: put(\"foo\", \"bar\")");
+        ParseCloud.callFunctionInBackground("initializeNewUser", new HashMap<String, Object>(), new FunctionCallback<Object>() {
+            public void done(Object result, ParseException e) {
+                if (e == null) {
+                    int length = (int)result;
+                    showOkDialog(MainActivity.this,"Parse Test", "Number of initial items = " + length);
+
+                } else{
+                    showOkDialog(MainActivity.this, "ERROR: Parse Test", "Error: " + e.getLocalizedMessage());
+                }
+            }
+        });
     }
 
 
@@ -712,12 +708,16 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         @Override
         protected Void doInBackground(Void... params) {
             // TODO: remove cls
-            if(mLoadInitialDataToParse){
-                // load initial data TO parse
-                clsParseUtils.loadInitialData(mContext);
-            }else{
-                // load initial data FROM parse
-                loadInitialData();
+            if (mLoadInitialDataToParse) {
+                // load initial data TO Parse
+                clsParseUtils.loadInitialDataToParse(mContext);
+               // clsParseUtils.uploadInitialItemsToParse(mContext,clsParseUtils.SAVE_THIS_THREAD);
+            } else {
+                // load initial data FROM Parse
+                //aGroceryListDatabaseHelper database = new aGroceryListDatabaseHelper(mContext);
+                aGroceryListDatabaseHelper.resetDatabase();
+                downLoadInitialData();
+                //clsParseUtils.uploadNewItemsToParse(mContext, clsParseUtils.SAVE_THIS_THREAD);
             }
 
 
