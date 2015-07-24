@@ -15,16 +15,12 @@ import android.widget.Spinner;
 
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.adapters.GroupsSpinnerArrayAdapter;
-import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
-import com.lbconsulting.agrocerylist.classes.MySettings;
 import com.lbconsulting.agrocerylist.classes.clsGroup;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
 
 import java.util.ArrayList;
-
-import de.greenrobot.event.EventBus;
 
 /**
  * A dialog where the user can edit the item's name, note, and group
@@ -106,7 +102,7 @@ public class dialog_edit_item extends DialogFragment {
             itemCursor.moveToFirst();
             String itemName = itemCursor.getString(itemCursor.getColumnIndex(ItemsTable.COL_ITEM_NAME));
             String itemNote = itemCursor.getString(itemCursor.getColumnIndex(ItemsTable.COL_ITEM_NOTE));
-            long itemGroupID = itemCursor.getLong(itemCursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
+            long itemGroupID = itemCursor.getLong(itemCursor.getColumnIndex(ItemsTable.COL_GROUP));
             txtItemName.setText(itemName);
             mInitialItemName = txtItemName.toString();
             txtItemNote.setText(itemNote);
@@ -135,7 +131,7 @@ public class dialog_edit_item extends DialogFragment {
 
                                 if (!itemName.isEmpty()) {
                                     // verify that there is no other item with the same proposed item name
-                                    boolean itemExists = ItemsTable.itemExists(getActivity(), itemName);
+                                    boolean itemExists = ItemsTable.itemExists(getActivity(), itemName,false);
                                     boolean sameItem = false;
                                     if (itemExists) {
                                         // the item exists, but it might have a different case
@@ -154,7 +150,7 @@ public class dialog_edit_item extends DialogFragment {
 
                                 // update the item's group
                                 clsGroup selectedGroup = (clsGroup) spnGroup.getSelectedItem();
-                                cv.put(ItemsTable.COL_GROUP_ID, selectedGroup.getGroupID());
+                                cv.put(ItemsTable.COL_GROUP, selectedGroup.getGroupID());
 
                                 // update the item's values
                                 ItemsTable.updateItemFieldValues(getActivity(), mItemID, cv);

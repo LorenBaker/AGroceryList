@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +26,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.lbconsulting.agrocerylist.R;
 import com.lbconsulting.agrocerylist.adapters.DrawerArrayAdapter;
 import com.lbconsulting.agrocerylist.adapters.StoreListPagerAdapter;
@@ -40,20 +46,50 @@ import com.lbconsulting.agrocerylist.dialogs.sortListDialog;
 import com.lbconsulting.agrocerylist.fragments.fragItemsByGroup;
 import com.lbconsulting.agrocerylist.fragments.fragMasterList;
 import com.lbconsulting.agrocerylist.fragments.fragProductsList;
-import com.parse.FunctionCallback;
-import com.parse.ParseCloud;
-import com.parse.ParseException;
 import com.parse.ParseUser;
 
-import java.util.HashMap;
+import java.text.DateFormat;
+import java.util.Date;
 
 import de.greenrobot.event.EventBus;
 
 
-public class MainActivity extends Activity implements DrawerLayout.DrawerListener {
+public class MainActivity extends Activity implements DrawerLayout.DrawerListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
 
     // TODO: Remove mLoadInitialDataToParse
     private boolean mLoadInitialDataToParse = true;
+
+    // TODO: optimize location request intervals
+    private final static int LOCATION_REQUEST_INTERVAL = 60000 * 10; // 10 minutes
+    private final static int LOCATION_REQUEST_FASTEST_INTERVAL = 60000; // 1 minutes
+    private final static String REQUESTING_LOCATION_UPDATES_KEY = "keyRequestingLocationUpdates";
+    private final static String LOCATION_KEY = "keyLocation";
+    private final static String LAST_UPDATED_TIME_STRING_KEY = "keyUpdatedTimeString";
+
+
+    /*
+     * Constants for handling location results
+     */
+    // Conversion from feet to meters
+    private static final float METERS_PER_FEET = 0.3048f;
+
+    // Conversion from kilometers to meters
+    private static final int METERS_PER_KILOMETER = 1000;
+
+    // Initial offset for calculating the map bounds
+    private static final double OFFSET_CALCULATION_INIT_DIFF = 1.0;
+
+    // Accuracy for calculating the map bounds
+    private static final float OFFSET_CALCULATION_ACCURACY = 0.01f;
+
+    // Maximum results returned from a Parse query
+    private static final int MAX_POST_SEARCH_RESULTS = 20;
+
+    // Maximum post search radius for map in kilometers
+    private static final int MAX_POST_SEARCH_DISTANCE = 100;
+
 
     private ActionBar mActionBar;
 
@@ -71,6 +107,18 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
 
     private static long mActiveStoreID;
     private boolean mInitializingData;
+
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
+    private LocationRequest mLocationRequest;
+    private Location mCurrentLocation;
+    //private String mLastUpdateTime;
+    // TODO: Figure out when to turn on and turn off mRequestingLocationUpdates
+    private boolean mRequestingLocationUpdates = true;
+    private boolean mPlayServicesConnected = false;
+
+/*    private LocationRequest locationRequest;
+    private LocationClient locationClient;*/
 
     public static long getActiveStoreID() {
         return mActiveStoreID;
@@ -110,6 +158,18 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         mActionBar = getActionBar();
         //MySettings.setActiveFragmentID(MySettings.FRAG_STORE_LISTS);
         mActiveFragmentID = MySettings.getActiveFragmentID();
+        buildGoogleApiClient();
+        createLocationRequest();
+
+
+/*        // Create a new global location parameters object
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setFastestInterval(FAST_INTERVAL_CEILING_IN_MILLISECONDS);
+
+        // Create a new location client, using the enclosing class to handle callbacks.
+        locationClient = new LocationClient(this, this, this);*/
 
         if (savedInstanceState != null) {
             // set activity variables
@@ -120,152 +180,83 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         }
 
 
-/*        //region Parse setup
-        // Initialize Crash Reporting.
-        ParseCrashReporting.enable(this);
+    }
 
-        // Enable Local Datastore.
-        Parse.enableLocalDatastore(this);
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
 
-        // Add your initialization code here
-        ParseObject.registerSubclass(ParseStoreMap.class);
-        ParseObject.registerSubclass(PublicTablesData.class);
-        Parse.initialize(this, "Z1uTyZFcvSsV74AdrqbfWPe44WhqtTvwmJupITew", "ZuBh1PV8oBebw2xgpURpdF5XDms5zS11QpYW9Kpn");
-        MyLog.i("AGroceryListApplication", "onCreate: initialized");
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
+        mLocationRequest.setFastestInterval(LOCATION_REQUEST_FASTEST_INTERVAL);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+    }
 
-        ParseUser.enableAutomaticUser();
-        ParseACL defaultACL = new ParseACL();
-        //user's data is only accessible by the user itself unless explicit permission is given
-        ParseACL.setDefaultACL(defaultACL, true);
-        ParseACL.setDefaultACL(new ParseACL(), true);
-        //endregion*/
+    @Override
+    protected void onStart() {
+        MyLog.i("MainActivity", "onStart");
+        super.onStart();
+        // TODO: mResolvingError
+        //if (!mResolvingError) {  // more about this later
+        mGoogleApiClient.connect();
+        //}
+    }
 
-        if (ParseUser.getCurrentUser().isNew()) {
-           new LoadInitialDataAsync(this).execute();
-        } else if (!aGroceryListDatabaseHelper.databaseExists()) {
-            // TODO: remove databaseExists if statement
-           new LoadInitialDataAsync(this).execute();
-        }
+    @Override
+    protected void onStop() {
+        MyLog.i("MainActivity", "onStop");
+        mGoogleApiClient.disconnect();
+        super.onStop();
     }
 
     private void downLoadInitialData() {
 
     }
 
-/*    private void downLoadInitialData() {
-        try {
-            // get all the tables from Parse
-            ParseQuery<PublicTablesData> publicTablesQuery = ParseQuery.getQuery(PublicTablesData.class);
-            List<PublicTablesData> publicTablesResult = publicTablesQuery.find();
-            if (publicTablesResult != null) {
-                MyLog.i("MainActivity", "downLoadInitialData: Number of tables found = " + publicTablesResult.size());
-                if (publicTablesResult.size() > 0) {
-                    for (PublicTablesData table : publicTablesResult) {
-                        if (table.getTableName().equals(GroupsTable.TABLE_GROUPS)) {
-                            fillGroupsTable(this, table.getJsonContent());
-                        } else if (table.getTableName().equals(LocationsTable.TABLE_LOCATIONS)) {
-                            fillLocationsTable(this, table.getJsonContent());
-                        } else if (table.getTableName().equals(StoreChainsTable.TABLE_STORE_CHAINS)) {
-                            fillStoreChainsTable(this, table.getJsonContent());
-                        } else if (table.getTableName().equals(StoresTable.TABLE_STORES)) {
-                            fillStoresTable(this, table.getJsonContent());
-                        } else if (table.getTableName().equals(ItemsTable.TABLE_ITEMS)) {
-                            fillItemsTable(this, table.getJsonContent());
-                        }
-                    }
-                }
-            }
-
-            ParseQuery<ParseStoreMap> storesMapQuery = ParseQuery.getQuery(ParseStoreMap.class);
-            List<ParseStoreMap> storesMapResults = storesMapQuery.find();
-            if (storesMapResults != null) {
-                MyLog.i("MainActivity", "downLoadInitialData: Number of store maps found = " + storesMapResults.size());
-                if (storesMapResults.size() > 0) {
-                    for (ParseStoreMap storeMap : storesMapResults) {
-                        StoreMapsTable.updateStoreMap(this, storeMap);
-                    }
-                }
-            }
-
-        } catch (ParseException e) {
-            MyLog.e("MainActivity", "downLoadInitialData: ParseException: " + e.getMessage());
-        }
-
-    }*/
-
-
-/*    private void fillGroupsTable(Context context, String jsonContent) {
-        MyLog.i("MainActivity", "fillGroupsTable");
-        Gson gson = new Gson();
-        GroupsTable.clear(context);
-        clsParseGroupArray content = gson.fromJson(jsonContent, clsParseGroupArray.class);
-        for (clsParseGroup group : content.getGroups()) {
-            GroupsTable.createNewGroup(context, group);
-        }
-    }
-
-    private void fillLocationsTable(Context context, String jsonContent) {
-        MyLog.i("MainActivity", "fillLocationsTable");
-        Gson gson = new Gson();
-        LocationsTable.clear(context);
-        clsParseLocationArray content = gson.fromJson(jsonContent, clsParseLocationArray.class);
-        for (clsParseLocation location : content.getLocations()) {
-            LocationsTable.createNewLocation(context, location);
-        }
-    }
-
-    private void fillStoreChainsTable(Context context, String jsonContent) {
-        MyLog.i("MainActivity", "fillStoreChainsTable");
-        Gson gson = new Gson();
-        StoreChainsTable.clear(context);
-        clsParseStoreChainArray content = gson.fromJson(jsonContent, clsParseStoreChainArray.class);
-        for (clsParseStoreChain storeChain : content.getStoreChains()) {
-            StoreChainsTable.createNewStoreChain(context, storeChain);
-        }
-    }
-
-    private void fillStoresTable(Context context, String jsonContent) {
-        MyLog.i("MainActivity", "fillStoresTable");
-        Gson gson = new Gson();
-        StoresTable.clear(context);
-        clsParseStoreArray content = gson.fromJson(jsonContent, clsParseStoreArray.class);
-        for (clsParseStore store : content.getStores()) {
-            StoresTable.createNewStore(context, store);
-        }
-    }
-
-    private void fillItemsTable(Context context, String jsonContent) {
-        MyLog.i("MainActivity", "fillItemsTable");
-        Gson gson = new Gson();
-        ItemsTable.clear(context);
-        clsParseItemArray content = gson.fromJson(jsonContent, clsParseItemArray.class);
-        for (clsParseInitialItem item : content.getInitialItems()) {
-            ItemsTable.createNewItem(context, item);
-        }
-    }*/
 
     private void runParseTest() {
         // TODO: remove runParseTest
-        ParseCloud.callFunctionInBackground("initializeNewUser", new HashMap<String, Object>(), new FunctionCallback<Object>() {
+/*        Stores store = new Stores();
+        store.setStore( "lkajdlfjaljfl", "Eastgate", "15100 SE 38TH ST", "STE 103", "BELLEVUE", "WA", "98006-1763");
+        clsParseUtils.saveNewStoreToParse(store, clsParseUtils.SAVE_IN_BACKGROUND);*/
+
+
+/*        final HashMap<String, Long> params = new HashMap<String, Long>();
+        params.put("storeID", (long)3);
+        ParseCloud.callFunctionInBackground("initializeStoreMap", params);*/
+
+/*        ParseCloud.callFunctionInBackground("initializeNewUser", new HashMap<String, Object>(), new FunctionCallback<Object>() {
             public void done(Object result, ParseException e) {
                 if (e == null) {
-                    int length = (int)result;
-                    showOkDialog(MainActivity.this,"Parse Test", "Number of initial items = " + length);
+                    int length = (int) result;
+                    showOkDialog(MainActivity.this, "Parse Test", "Number of initial items = " + length);
 
-                } else{
+                } else {
                     showOkDialog(MainActivity.this, "ERROR: Parse Test", "Error: " + e.getLocalizedMessage());
                 }
             }
-        });
+        });*/
     }
 
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
         MyLog.i("MainActivity", "onSaveInstanceState: ActiveStoreID = " + mActiveStoreID);
         // save activity variables
-        outState.putLong(MySettings.SETTING_ACTIVE_STORE_ID, mActiveStoreID);
+        savedInstanceState.putLong(MySettings.SETTING_ACTIVE_STORE_ID, mActiveStoreID);
+
+
+        savedInstanceState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY,
+                mRequestingLocationUpdates);
+/*        savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
+        savedInstanceState.putString(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);*/
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     public void onEvent(MyEvents.toggleItemStrikeOut event) {
@@ -459,6 +450,14 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         super.onPause();
         MyLog.i("MainActivity", "onPause: ActiveStoreID = " + mActiveStoreID);
         MySettings.setActiveStoreID(mActiveStoreID);
+        stopLocationUpdates();
+    }
+
+    protected void stopLocationUpdates() {
+        if (mPlayServicesConnected) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(
+                    mGoogleApiClient, this);
+        }
     }
 
     @Override
@@ -467,8 +466,23 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         mActiveStoreID = MySettings.getActiveStoreID();
         MyLog.i("MainActivity", "onResume: ActiveStoreID = " + mActiveStoreID);
 
+        if (mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+
+        if (ParseUser.getCurrentUser().isNew()) {
+            new LoadInitialDataAsync(this).execute();
+
+        } else if (!aGroceryListDatabaseHelper.databaseExists()) {
+            new LoadInitialDataAsync(this).execute();
+
+        } else {
+            new SyncWithParseAsync(this, mCurrentLocation).execute();
+        }
         // show the appropriate fragment
-        if (!mInitializingData) {
+        if (!mInitializingData)
+
+        {
             showFragment(MySettings.getActiveFragmentID());
         }
     }
@@ -479,19 +493,38 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         super.onRestoreInstanceState(savedInstanceState);
         if (savedInstanceState != null) {
             mActiveStoreID = savedInstanceState.getLong(MySettings.SETTING_ACTIVE_STORE_ID);
+            updateValuesFromBundle(savedInstanceState);
         }
         MyLog.i("MainActivity", "onRestoreInstanceState: ActiveStoreID = " + mActiveStoreID);
     }
 
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            // Update the value of mRequestingLocationUpdates from the Bundle, and
+            // make sure that the Start Updates and Stop Updates buttons are
+            // correctly enabled or disabled.
+            if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
+                mRequestingLocationUpdates = savedInstanceState.getBoolean(
+                        REQUESTING_LOCATION_UPDATES_KEY);
+                //setButtonsEnabledState();
+            }
 
-/*    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        MyLog.i("MainActivity", "onPrepareOptionsMenu");
+            // Update the value of mCurrentLocation from the Bundle and update the
+            // UI to show the correct latitude and longitude.
+/*            if (savedInstanceState.keySet().contains(LOCATION_KEY)) {
+                // Since LOCATION_KEY was found in the Bundle, we can be sure that
+                // mCurrentLocation is not null.
+                mCurrentLocation = savedInstanceState.getParcelable(LOCATION_KEY);
+            }*/
 
-
-
-        return super.onPrepareOptionsMenu(menu);
-    }*/
+            // Update the value of mLastUpdateTime from the Bundle and update the UI.
+/*            if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_STRING_KEY)) {
+                mLastUpdateTime = savedInstanceState.getString(
+                        LAST_UPDATED_TIME_STRING_KEY);
+            }*/
+            //updateUI();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -689,6 +722,89 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         mDrawerLayout.closeDrawer(mDrawerList);
     }
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        MyLog.i("MainActivity", "Google Play Services onConnected.");
+        mPlayServicesConnected = true;
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+     /*   if (mLastLocation != null) {
+            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
+            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
+        }*/
+
+        if (mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+    protected void startLocationUpdates() {
+        MyLog.i("MainActivity", "Google Play Services startLocationUpdates");
+        if (mPlayServicesConnected) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mCurrentLocation = location;
+        MySettings.setLastLocation(location);
+        String lastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        /*double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        String msg = "Latitude = " + latitude + "\nLongitude = " + longitude + "\nUpdate Time = " + lastUpdateTime;
+        showOkDialog(this, "Location Changed", msg);*/
+        MyLog.i("MainActivity", "onLocationChanged: time=" + lastUpdateTime);
+        //updateUI();
+    }
+
+
+    /*    private void updateUI() {
+            mLatitudeTextView.setText(String.valueOf(mCurrentLocation.getLatitude()));
+            mLongitudeTextView.setText(String.valueOf(mCurrentLocation.getLongitude()));
+            mLastUpdateTimeTextView.setText(mLastUpdateTime);
+        }*/
+    @Override
+    public void onConnectionSuspended(int cause) {
+        mPlayServicesConnected = false;
+        String errorMessage = "UNKNOWN CAUSE";
+        switch (cause) {
+            case CAUSE_NETWORK_LOST:
+                errorMessage = "CAUSE_NETWORK_LOST";
+                break;
+
+            case CAUSE_SERVICE_DISCONNECTED:
+                errorMessage = "CAUSE_SERVICE_DISCONNECTED";
+                break;
+        }
+        MyLog.d("MainActivity", "Google Play Services onConnectionSuspended: cause = " + errorMessage);
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        mPlayServicesConnected = false;
+        String errorMessage = "UNKNOWN CONNECTION RESULT ERROR";
+        switch (connectionResult.getErrorCode()) {
+            case 1:
+                errorMessage = "SERVICE_MISSING";
+                break;
+
+            case 2:
+                errorMessage = "SERVICE_VERSION_UPDATE_REQUIRED";
+                break;
+
+            case 3:
+                errorMessage = "SERVICE_DISABLED";
+                break;
+
+
+        }
+        MyLog.d("MainActivity", "Google Play Services onConnectionFailed: cause = " + errorMessage);
+
+    }
+
+
     public class LoadInitialDataAsync extends AsyncTask<Void, Void, Void> {
         Context mContext;
 
@@ -711,7 +827,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
             if (mLoadInitialDataToParse) {
                 // load initial data TO Parse
                 clsParseUtils.loadInitialDataToParse(mContext);
-               // clsParseUtils.uploadInitialItemsToParse(mContext,clsParseUtils.SAVE_THIS_THREAD);
+                // clsParseUtils.uploadInitialItemsToParse(mContext,clsParseUtils.SAVE_THIS_THREAD);
             } else {
                 // load initial data FROM Parse
                 //aGroceryListDatabaseHelper database = new aGroceryListDatabaseHelper(mContext);
@@ -731,4 +847,69 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
             showFragment(MySettings.FRAG_STORE_LISTS);
         }
     }
+
+    public class SyncWithParseAsync extends AsyncTask<Void, Void, Void> {
+        Context mContext;
+        Location mLocation;
+
+        public SyncWithParseAsync(Context context, Location location) {
+            super();
+            mContext = context;
+            mLocation = location;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            clsParseUtils.syncWithParse(mContext, mLocation);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+
+// MainActivity.java
+
+/*    public static class ErrorDialogFragment extends DialogFragment {
+        private Dialog mDialog;
+
+        public ErrorDialogFragment() {
+            super();
+            mDialog = null;
+        }
+
+        public void setDialog(Dialog dialog) {
+            mDialog = dialog;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            return mDialog;
+        }
+    }*/
+
+/*    private boolean servicesConnected() {
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+
+        if (ConnectionResult.SUCCESS == resultCode) {
+            return true;
+        } else {
+            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(resultCode, this, 0);
+            if (dialog != null) {
+                ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+                errorFragment.setDialog(dialog);
+                //errorFragment.show(getFragmentManager(), Application.APPTAG);
+                errorFragment.show(getFragmentManager(), "GooglePlayServicesConnectedTag");
+            }
+            return false;
+        }
+    }*/
+
 }

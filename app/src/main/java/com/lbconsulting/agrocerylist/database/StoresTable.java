@@ -9,42 +9,40 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseStore;
+import com.parse.ParseGeoPoint;
+import com.parse.ParseObject;
 
 public class StoresTable {
-    // Lists data table
+
     public static final String TABLE_STORES = "tblStores";
-    public static final String COL_STORE_ID = "_id";
-    public static final String COL_STORE_CHAIN_ID = "storeChainID";
-
-    //public static final String COL_PARSE_STORE_MAP_ID = "parseStoreMapID";
-    public static final String COL_PARSE_STORE_MAP_NAME = "parseStoreMapName";
-    public static final String COL_PARSE_STORE_MAP_IS_DIRTY = "parseStoreMapIsDirty";
-    public static final String COL_PARSE_STORE_MAP_TIMESTAMP = "parseStoreMapTimestamp";
-
+    public static final String COL_ID = "_id";
+    // Parse fields
+    public static final String COL_STORE_ID = "storeID";
+    public static final String COL_STORE_CHAIN_ID = "storeChain";
     public static final String COL_STORE_REGIONAL_NAME = "storeRegionalName";
-    public static final String COL_CHECKED = "storeChecked";
-    public static final String COL_DISPLAYED = "storeDisplayed";
-    public static final String COL_MANUAL_SORT_KEY = "manualSortKey";
-    public static final String COL_STORE_ITEMS_SORTING_ORDER = "storeItemsSortOrder";
-    public static final String COL_COLOR_THEME_ID = "colorThemeID";
-
+    public static final String COL_SORT_KEY = "sortKey";
     public static final String COL_ADDRESS1 = "address1";   // number and street
     public static final String COL_ADDRESS2 = "address2";   // ste, etc.
     public static final String COL_CITY = "city";
     public static final String COL_STATE = "state";
     public static final String COL_ZIP = "zip";
-    public static final String COL_GPS_LATITUDE = "gpsLatitude";
-    public static final String COL_GPS_LONGITUDE = "gpsLongitude";
+    public static final String COL_COUNTRY = "country";
+    public static final String COL_LATITUDE = "latitude";
+    public static final String COL_LONGITUDE = "longitude";
     public static final String COL_WEBSITE_URL = "websiteURL";
     public static final String COL_PHONE_NUMBER = "phoneNumber";
+    // SQLite only fields
+    public static final String COL_DIRTY = "dirty";
+    public static final String COL_CHECKED = "checked";
 
-    public static final String[] PROJECTION_ALL = {COL_STORE_ID, COL_STORE_CHAIN_ID,
-            COL_PARSE_STORE_MAP_NAME, COL_PARSE_STORE_MAP_IS_DIRTY, COL_PARSE_STORE_MAP_TIMESTAMP,
-            COL_STORE_REGIONAL_NAME, COL_CHECKED, COL_DISPLAYED,
-            COL_MANUAL_SORT_KEY, COL_STORE_ITEMS_SORTING_ORDER, COL_COLOR_THEME_ID,
-            COL_ADDRESS1, COL_ADDRESS2, COL_CITY, COL_STATE, COL_ZIP,
-            COL_GPS_LATITUDE, COL_GPS_LONGITUDE, COL_WEBSITE_URL, COL_PHONE_NUMBER
+    // Parse only field names
+    public static final String COL_PARSE_LOCATION = "location";
+
+    public static final String[] PROJECTION_ALL = {COL_ID, COL_STORE_ID, COL_STORE_CHAIN_ID,
+            COL_STORE_REGIONAL_NAME,COL_SORT_KEY,
+            COL_ADDRESS1, COL_ADDRESS2, COL_CITY, COL_STATE, COL_ZIP, COL_COUNTRY,
+            COL_LATITUDE, COL_LONGITUDE, COL_WEBSITE_URL, COL_PHONE_NUMBER,
+            COL_DIRTY, COL_CHECKED
     };
 
     public static final String CONTENT_PATH = TABLE_STORES;
@@ -56,44 +54,32 @@ public class StoresTable {
 
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
 
-    public static final String SORT_ORDER_CHAIN_ID_BY_REGIONAL_NAME = COL_STORE_CHAIN_ID + " ASC, " + COL_STORE_REGIONAL_NAME + " ASC";
-    public static final String SORT_ORDER_MANUAL = COL_MANUAL_SORT_KEY + " ASC";
-    public static final String SORT_ORDER_CITY = COL_CITY + " ASC";
-    public static final String SORT_ORDER_STATE = COL_STATE + " ASC";
-    public static final String SORT_ORDER_ZIP = COL_ZIP + " ASC";
+    public static final String SORT_ORDER_SORT_KEY = COL_SORT_KEY + " ASC";
 
-    // TODO: add references to Theme Table
-    // TODO: upon updating the store zip code, revise the Parse Store Map Object Name
+    // TODO: Create a new table to hold store theme colors, and any other user specific settings.
     // Database creation SQL statements
     private static final String CREATE_TABLE =
             "create table " + TABLE_STORES
                     + " ("
-                    + COL_STORE_ID + " integer primary key, "
-                    //+ COL_STORE_CHAIN_ID + " integer default -1, "
-                    + COL_STORE_CHAIN_ID + " integer not null references " + StoreChainsTable.TABLE_STORE_CHAINS + "  default -1, "
-
-                    + COL_PARSE_STORE_MAP_NAME + " text collate nocase default '', "
-                    + COL_PARSE_STORE_MAP_IS_DIRTY + " integer default 0, "
-                    + COL_PARSE_STORE_MAP_TIMESTAMP + " integer default 0, "
-
+                    + COL_ID + " integer primary key, "
+                    + COL_STORE_ID + " text default '', "
+                    + COL_STORE_CHAIN_ID + " text default '', "
                     + COL_STORE_REGIONAL_NAME + " text collate nocase default '', "
-                    + COL_CHECKED + " integer default 0, "
-                    + COL_DISPLAYED + " integer default 1, "
-                    + COL_MANUAL_SORT_KEY + " integer default 0, "
-                    + COL_STORE_ITEMS_SORTING_ORDER + " integer default 0, "
-                    + COL_COLOR_THEME_ID + " integer default 1, "
+                    + COL_SORT_KEY + " integer default 0, "
                     + COL_ADDRESS1 + " text collate nocase default '', "
                     + COL_ADDRESS2 + " text collate nocase default '', "
                     + COL_CITY + " text collate nocase default '', "
                     + COL_STATE + " text collate nocase default '', "
                     + COL_ZIP + " text collate nocase default '', "
-                    + COL_GPS_LATITUDE + " text default '', "
-                    + COL_GPS_LONGITUDE + " text default '', "
+                    + COL_COUNTRY + " text collate nocase default '', "
+                    + COL_LATITUDE + " real default 0.0, "
+                    + COL_LONGITUDE + " real default 0.0, "
                     + COL_WEBSITE_URL + " text default '', "
-                    + COL_PHONE_NUMBER + " text default '' "
+                    + COL_PHONE_NUMBER + " text default '', "
+                    + COL_DIRTY + " integer default 0, "
+                    + COL_CHECKED + " integer default 0 "
                     + ");";
 
-    private static String defaultStoreValue = "[No Store]";
     private static long mExistingStoreID = -1;
 
     public static void onCreate(SQLiteDatabase database) {
@@ -118,7 +104,7 @@ public class StoresTable {
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Create Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public static long createNewStore(Context context, long storeChainID,
+/*    public static long createNewStore(Context context, long storeChainID,
                                       String storeRegionalName,
                                       String address1,  // number and street
                                       String address2,  // ste, etc
@@ -142,7 +128,7 @@ public class StoresTable {
                     ContentResolver cr = context.getContentResolver();
                     Uri uri = CONTENT_URI;
                     ContentValues cv = new ContentValues();
-                    cv.put(COL_STORE_CHAIN_ID, storeChainID);
+                    cv.put(COL_ID, storeChainID);
                     cv.put(COL_STORE_REGIONAL_NAME, storeRegionalName);
                     cv.put(COL_ADDRESS1, address1); // number and street
                     cv.put(COL_ADDRESS2, address2); // ste, etc
@@ -154,7 +140,7 @@ public class StoresTable {
                     if (newListUri != null) {
                         newStoreID = Long.parseLong(newListUri.getLastPathSegment());
                         cv = new ContentValues();
-                        cv.put(COL_MANUAL_SORT_KEY, newStoreID);
+                        cv.put(COL_SORT_KEY, newStoreID);
                         cv.put(COL_COLOR_THEME_ID, getColorThemeID(newStoreID));
                         updateStoreFieldValues(context, newStoreID, cv);
                         StoreMapsTable.initializeStoreMap(context, newStoreID);
@@ -166,28 +152,39 @@ public class StoresTable {
             }
         }
         return newStoreID;
-    }
+    }*/
 
-    public static void createNewStore(Context context, clsParseStore store) {
+    public static void createNewStore(Context context, ParseObject store) {
         ContentResolver cr = context.getContentResolver();
+
+        String StoreID = store.getObjectId();
+        if(storeExists(context,StoreID)){
+            // TODO: Store exists ... do you want to update the store's fields??
+            return;
+        }
 
         try {
             Uri uri = CONTENT_URI;
             ContentValues values = new ContentValues();
-            values.put(COL_STORE_ID, store.getStoreID());
-            values.put(COL_ADDRESS1, store.getAddress1());
-            values.put(COL_ADDRESS2, store.getAddress2());
-            values.put(COL_CITY, store.getCity());
-            values.put(COL_GPS_LATITUDE, store.getGpsLatitude());
-            values.put(COL_GPS_LONGITUDE, store.getGpsLongitude());
-            values.put(COL_PARSE_STORE_MAP_NAME, store.getParseStoreMapName());
-            values.put(COL_PHONE_NUMBER, store.getPhoneNumber());
-            values.put(COL_STATE, store.getState());
-            values.put(COL_STORE_CHAIN_ID, store.getStoreChainID());
-            values.put(COL_STORE_REGIONAL_NAME, store.getStoreRegionalName());
-            values.put(COL_WEBSITE_URL, store.getWebsiteURL());
-            values.put(COL_ZIP, store.getZip());
-            values.put(COL_MANUAL_SORT_KEY, store.getManualSortKey());
+            values.put(COL_STORE_ID, store.getObjectId());
+            String test = store.getString(COL_STORE_CHAIN_ID);
+            MyLog.d("StoresTable", "createNewStore: COL_STORE_CHAIN_ID = " +test);
+            values.put(COL_STORE_CHAIN_ID, store.getString(COL_STORE_CHAIN_ID));
+            values.put(COL_STORE_REGIONAL_NAME, store.getString(COL_STORE_REGIONAL_NAME));
+            values.put(COL_SORT_KEY, store.getLong(COL_SORT_KEY));
+            values.put(COL_ADDRESS1, store.getString(COL_ADDRESS1));
+            values.put(COL_ADDRESS2, store.getString(COL_ADDRESS2));
+            values.put(COL_CITY, store.getString(COL_CITY));
+            values.put(COL_STATE, store.getString(COL_STATE));
+            values.put(COL_ZIP, store.getString(COL_ZIP));
+            values.put(COL_COUNTRY, store.getString(COL_COUNTRY));
+            ParseGeoPoint geoPoint = store.getParseGeoPoint(COL_PARSE_LOCATION);
+            if (geoPoint != null) {
+                values.put(COL_LATITUDE, geoPoint.getLatitude());
+                values.put(COL_LONGITUDE, geoPoint.getLongitude());
+            }
+            values.put(COL_PHONE_NUMBER, store.getString(COL_PHONE_NUMBER));
+            values.put(COL_WEBSITE_URL, store.getString(COL_WEBSITE_URL));
 
             cr.insert(uri, values);
         } catch (Exception e) {
@@ -223,13 +220,13 @@ public class StoresTable {
         return cursor;
     }
 
-    public static Cursor getStoreCursor(Context context, long storeChainID, String storeName) {
+    public static Cursor getStoreCursor(Context context, String parseStoreID) {
         Cursor cursor = null;
 
         Uri uri = CONTENT_URI;
         String[] projection = PROJECTION_ALL;
-        String selection = COL_STORE_CHAIN_ID + " = ? AND " + COL_STORE_REGIONAL_NAME + " = ?";
-        String selectionArgs[] = new String[]{String.valueOf(storeChainID), storeName};
+        String selection = COL_STORE_ID + " = ?";
+        String selectionArgs[] = new String[]{parseStoreID};
         String sortOrder = null;
         ContentResolver cr = context.getContentResolver();
         try {
@@ -241,14 +238,48 @@ public class StoresTable {
         return cursor;
     }
 
-    private static boolean storeExists(Context context, long storeChainID, String storeName) {
+    public static Cursor getStoreCursor(Context context, String storeChainID, String storeName) {
+        Cursor cursor = null;
+
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection = COL_STORE_CHAIN_ID + " = ? AND " + COL_STORE_REGIONAL_NAME + " = ?";
+        String selectionArgs[] = new String[]{storeChainID, storeName};
+        String sortOrder = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("StoresTable", "getStoreChainCursor: Exception: " + e.getMessage());
+        }
+
+        return cursor;
+    }
+
+    private static boolean storeExists(Context context, String storeChainID, String storeName) {
         mExistingStoreID = -1;
         boolean result = false;
         Cursor cursor = getStoreCursor(context, storeChainID, storeName);
         if (cursor != null) {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
-                mExistingStoreID = cursor.getLong(cursor.getColumnIndex(COL_STORE_ID));
+                mExistingStoreID = cursor.getLong(cursor.getColumnIndex(COL_ID));
+                result = true;
+            }
+            cursor.close();
+        }
+        return result;
+
+    }
+
+    private static boolean storeExists(Context context, String parseStoreID) {
+        mExistingStoreID = -1;
+        boolean result = false;
+        Cursor cursor = getStoreCursor(context, parseStoreID);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                mExistingStoreID = cursor.getLong(cursor.getColumnIndex(COL_ID));
                 result = true;
             }
             cursor.close();
@@ -275,34 +306,14 @@ public class StoresTable {
         return cursor;
     }
 
-    public static Cursor getAllDisplayedStoresCursor(Context context, String sortOrder) {
+
+    public static Cursor getAllStoresWithChainID(Context context, String storeChainID, String sortOrder) {
         Cursor cursor = null;
 
         Uri uri = CONTENT_URI;
-        String[] projection = {COL_STORE_ID};
-        String selection = COL_DISPLAYED + " = ?";
-        String selectionArgs[] = new String[]{String.valueOf(1)};
-
-        ContentResolver cr = context.getContentResolver();
-        try {
-            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
-        } catch (Exception e) {
-            MyLog.e("StoresTable", "getAllDisplayedStoresCursor: Exception: " + e.getMessage());
-        }
-
-        return cursor;
-    }
-    public static Cursor getAllStoresWithChainID(Context context, long storeChainID, String sortOrder) {
-        Cursor cursor = null;
-
-        Uri uri = CONTENT_URI;
-        String[] projection = {COL_STORE_ID};
-        String selection = COL_DISPLAYED + " = ?";
-        String selectionArgs[] = new String[]{String.valueOf(1)};
-        if (storeChainID > 0) {
-            selection = COL_STORE_CHAIN_ID + " = ?";
-            selectionArgs = new String[]{String.valueOf(storeChainID)};
-        }
+        String[] projection = {COL_ID};
+        String selection = COL_STORE_CHAIN_ID + " = ?";
+        String selectionArgs[] = new String[]{storeChainID};
 
         ContentResolver cr = context.getContentResolver();
         try {
@@ -318,7 +329,7 @@ public class StoresTable {
         Cursor cursor = null;
 
         Uri uri = CONTENT_URI;
-        String[] projection = {COL_STORE_ID};
+        String[] projection = {COL_ID};
         String selection = COL_CHECKED + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(1)};
         ContentResolver cr = context.getContentResolver();
@@ -397,8 +408,9 @@ public class StoresTable {
 
 
     public static int getStoreItemsSortingOrder(Context context, long storeID) {
+        // TODO: Move getStoreItemsSortingOrder to a new stores preferences SQLite table
         int itemsSortingOrder = -1;
-        if (storeID > 0) {
+/*        if (storeID > 0) {
             Cursor cursor = getStoreCursor(context, storeID);
             if (cursor != null && cursor.getCount() > 0) {
                 cursor.moveToFirst();
@@ -407,12 +419,12 @@ public class StoresTable {
             if (cursor != null) {
                 cursor.close();
             }
-        }
+        }*/
         return itemsSortingOrder;
     }
 
 
-    public static String getStoreMapParseName(Context context, long storeID) {
+/*    public static String getStoreMapParseName(Context context, long storeID) {
         String parseObjectName = "";
         Cursor cursor = getStoreCursor(context, storeID);
         if (cursor != null && cursor.getCount() > 0) {
@@ -423,7 +435,7 @@ public class StoresTable {
             cursor.close();
         }
         return parseObjectName;
-    }
+    }*/
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Update Methods
@@ -443,11 +455,12 @@ public class StoresTable {
     }
 
     public static int updateStoreItemsSortOrder(Context context, long storeID, int storeItemsSortingOrder) {
+        // TODO: Move updateStoreItemsSortOrder to a new stores preferences SQLite table
         int numberOfUpdatedRecords = -1;
-        String selection = null;
+/*        String selection = null;
         String[] selectionArgs = null;
         if (storeID > 0) {
-            selection = COL_STORE_ID + " = ?";
+            selection = COL_ID + " = ?";
             selectionArgs = new String[]{String.valueOf(storeID)};
         }
 
@@ -456,7 +469,7 @@ public class StoresTable {
 
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;
-        numberOfUpdatedRecords = cr.update(uri, cv, selection, selectionArgs);
+        numberOfUpdatedRecords = cr.update(uri, cv, selection, selectionArgs);*/
 
         return numberOfUpdatedRecords;
     }
@@ -472,20 +485,33 @@ public class StoresTable {
         // delete the store
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;
-        String where = COL_STORE_ID + " = ?";
+        String where = COL_ID + " = ?";
         String[] selectionArgs = {String.valueOf(storeID)};
         numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
 
         return numberOfDeletedRecords;
     }
 
-    public static int deleteAllStoresWithChainID(Context context, long storeChainID) {
+    public static int deleteStore(Context context, String parseStoreID) {
+        int numberOfDeletedRecords;
+
+        // delete the store
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = CONTENT_URI;
+        String where = COL_STORE_ID + " = ?";
+        String[] selectionArgs = {parseStoreID};
+        numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
+
+        return numberOfDeletedRecords;
+    }
+
+    public static int deleteAllStoresWithChainID(Context context, String storeChainID) {
         int numberOfDeletedRecords = 0;
         Cursor cursor = getAllStoresWithChainID(context, storeChainID, null);
         long storeID;
         if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
-                storeID = cursor.getLong(cursor.getColumnIndex(COL_STORE_ID));
+                storeID = cursor.getLong(cursor.getColumnIndex(COL_ID));
                 numberOfDeletedRecords += deleteStore(context, storeID);
             }
         }
@@ -502,7 +528,7 @@ public class StoresTable {
         long storeID;
         if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
-                storeID = cursor.getLong(cursor.getColumnIndex(COL_STORE_ID));
+                storeID = cursor.getLong(cursor.getColumnIndex(COL_ID));
                 numberOfDeletedRecords += deleteStore(context, storeID);
             }
         }

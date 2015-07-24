@@ -62,7 +62,7 @@ public class clsStoreChainValues {
     public long getStoreChainID() {
         long result = -1;
         if (hasData()) {
-            result = mStoreChainCursor.getLong(mStoreChainCursor.getColumnIndex(StoreChainsTable.COL_STORE_CHAIN_ID));
+            result = mStoreChainCursor.getLong(mStoreChainCursor.getColumnIndex(StoreChainsTable.COL_ID));
         }
         return result;
     }

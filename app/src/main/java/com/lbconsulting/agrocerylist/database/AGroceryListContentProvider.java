@@ -138,7 +138,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case ITEMS_SINGLE_ROW:
                 queryBuilder.setTables(ItemsTable.TABLE_ITEMS);
                 checkColumnNames(projection, ITEMS_SINGLE_ROW);
-                queryBuilder.appendWhere(ItemsTable.COL_ITEM_ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(ItemsTable.COL_ID + "=" + uri.getLastPathSegment());
                 break;
 
 
@@ -150,7 +150,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case STORE_CHAINS_SINGLE_ROW:
                 queryBuilder.setTables(StoreChainsTable.TABLE_STORE_CHAINS);
                 checkColumnNames(projection, STORE_CHAINS_SINGLE_ROW);
-                queryBuilder.appendWhere(StoreChainsTable.COL_STORE_CHAIN_ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(StoreChainsTable.COL_ID + "=" + uri.getLastPathSegment());
                 break;
 
 
@@ -162,7 +162,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case STORES_SINGLE_ROW:
                 queryBuilder.setTables(StoresTable.TABLE_STORES);
                 checkColumnNames(projection, STORES_SINGLE_ROW);
-                queryBuilder.appendWhere(StoresTable.COL_STORE_ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(StoresTable.COL_ID + "=" + uri.getLastPathSegment());
                 break;
 
             case GROUPS_MULTI_ROWS:
@@ -173,7 +173,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case GROUPS_SINGLE_ROW:
                 queryBuilder.setTables(GroupsTable.TABLE_GROUPS);
                 checkColumnNames(projection, GROUPS_SINGLE_ROW);
-                queryBuilder.appendWhere(GroupsTable.COL_GROUP_ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(GroupsTable.COL_ID + "=" + uri.getLastPathSegment());
                 break;
 
 
@@ -185,7 +185,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case LOCATIONS_SINGLE_ROW:
                 queryBuilder.setTables(LocationsTable.TABLE_LOCATIONS);
                 checkColumnNames(projection, LOCATIONS_SINGLE_ROW);
-                queryBuilder.appendWhere(LocationsTable.COL_LOCATION_ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(LocationsTable.COL_ID + "=" + uri.getLastPathSegment());
                 break;
 
             case LOCATIONS_BRIDGE_MULTI_ROWS:
@@ -210,7 +210,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                         " JOIN " + StoreChainsTable.TABLE_STORE_CHAINS
                         + " ON "
                         + StoresTable.TABLE_STORES + "." + StoresTable.COL_STORE_CHAIN_ID + " = "
-                        + StoreChainsTable.TABLE_STORE_CHAINS + "." + StoreChainsTable.COL_STORE_CHAIN_ID;
+                        + StoreChainsTable.TABLE_STORE_CHAINS + "." + StoreChainsTable.COL_ID;
                 queryBuilder.setTables(tables);
                 break;
 
@@ -221,8 +221,8 @@ public class aGroceryListContentProvider extends ContentProvider {
             ORDER BY groupName, itemName*/
                 tables = ItemsTable.TABLE_ITEMS + " JOIN " + GroupsTable.TABLE_GROUPS
                         + " ON "
-                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID + " = "
-                        + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_ID;
+                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP + " = "
+                        + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_ID;
                 queryBuilder.setTables(tables);
                 break;
 
@@ -239,16 +239,16 @@ public class aGroceryListContentProvider extends ContentProvider {
             ORDER BY   tblGroups.groupName, tblItems.itemName*/
                 tables = ItemsTable.TABLE_ITEMS
                         + " JOIN " + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + " ON "
-                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID + " = "
+                        + ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP + " = "
                         + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_GROUP_ID
 
                         + " JOIN " + LocationsTable.TABLE_LOCATIONS + " ON "
                         + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_LOCATION_ID + " = "
-                        + LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_LOCATION_ID
+                        + LocationsTable.TABLE_LOCATIONS + "." + LocationsTable.COL_ID
 
                         + " JOIN " + GroupsTable.TABLE_GROUPS + " ON "
                         + StoreMapsTable.TABLE_LOCATIONS_BRIDGE + "." + StoreMapsTable.COL_GROUP_ID + " = "
-                        + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_ID;
+                        + GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_ID;
 
                 queryBuilder.setTables(tables);
                 break;
@@ -317,7 +317,7 @@ public class aGroceryListContentProvider extends ContentProvider {
 
 
             case ITEMS_MULTI_ROWS:
-                values.put(ItemsTable.COL_ITEM_DIRTY, 1);
+                values.put(ItemsTable.COL_DIRTY, 1);
                 newRowId = db.insertOrThrow(ItemsTable.TABLE_ITEMS, nullColumnHack, values);
                 if (newRowId > 0) {
                     // Construct and return the URI of the newly inserted row.
@@ -485,7 +485,7 @@ public class aGroceryListContentProvider extends ContentProvider {
                 // Limit deletion to a single row
                 // TODO: delete parse item
                 rowID = uri.getLastPathSegment();
-                selection = ItemsTable.COL_ITEM_ID + "=" + rowID
+                selection = ItemsTable.COL_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
                 deleteCount = db.delete(ItemsTable.TABLE_ITEMS, selection, selectionArgs);
@@ -504,7 +504,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case STORE_CHAINS_SINGLE_ROW:
                 // Limit deletion to a single row
                 rowID = uri.getLastPathSegment();
-                selection = StoreChainsTable.COL_STORE_CHAIN_ID + "=" + rowID
+                selection = StoreChainsTable.COL_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
                 deleteCount = db.delete(StoreChainsTable.TABLE_STORE_CHAINS, selection, selectionArgs);
@@ -523,7 +523,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case STORES_SINGLE_ROW:
                 // Limit deletion to a single row
                 rowID = uri.getLastPathSegment();
-                selection = StoresTable.COL_STORE_ID + "=" + rowID
+                selection = StoresTable.COL_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
                 deleteCount = db.delete(StoresTable.TABLE_STORES, selection, selectionArgs);
@@ -542,7 +542,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case GROUPS_SINGLE_ROW:
                 // Limit deletion to a single row
                 rowID = uri.getLastPathSegment();
-                selection = GroupsTable.COL_GROUP_ID + "=" + rowID
+                selection = GroupsTable.COL_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
                 deleteCount = db.delete(GroupsTable.TABLE_GROUPS, selection, selectionArgs);
@@ -562,7 +562,7 @@ public class aGroceryListContentProvider extends ContentProvider {
             case LOCATIONS_SINGLE_ROW:
                 // Limit deletion to a single row
                 rowID = uri.getLastPathSegment();
-                selection = LocationsTable.COL_LOCATION_ID + "=" + rowID
+                selection = LocationsTable.COL_ID + "=" + rowID
                         + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 // Perform the deletion
                 deleteCount = db.delete(LocationsTable.TABLE_LOCATIONS, selection, selectionArgs);
@@ -635,15 +635,15 @@ public class aGroceryListContentProvider extends ContentProvider {
                 break;
 
             case ITEMS_SINGLE_ROW:
-                if (!values.containsKey(ItemsTable.COL_ITEM_DIRTY)) {
-                    values.put(ItemsTable.COL_ITEM_DIRTY, 1);
+                if (!values.containsKey(ItemsTable.COL_DIRTY)) {
+                    values.put(ItemsTable.COL_DIRTY, 1);
                 }
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
-                    selection = ItemsTable.COL_ITEM_ID + "=" + rowID;
+                    selection = ItemsTable.COL_ID + "=" + rowID;
                 } else {
-                    selection = ItemsTable.COL_ITEM_ID + "=" + rowID
+                    selection = ItemsTable.COL_ID + "=" + rowID
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update
@@ -658,9 +658,9 @@ public class aGroceryListContentProvider extends ContentProvider {
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
-                    selection = StoreChainsTable.COL_STORE_CHAIN_ID + "=" + rowID;
+                    selection = StoreChainsTable.COL_ID + "=" + rowID;
                 } else {
-                    selection = StoreChainsTable.COL_STORE_CHAIN_ID + "=" + rowID
+                    selection = StoreChainsTable.COL_ID + "=" + rowID
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update
@@ -675,9 +675,9 @@ public class aGroceryListContentProvider extends ContentProvider {
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
-                    selection = StoresTable.COL_STORE_ID + "=" + rowID;
+                    selection = StoresTable.COL_ID + "=" + rowID;
                 } else {
-                    selection = StoresTable.COL_STORE_ID + "=" + rowID
+                    selection = StoresTable.COL_ID + "=" + rowID
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update
@@ -693,9 +693,9 @@ public class aGroceryListContentProvider extends ContentProvider {
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
-                    selection = GroupsTable.COL_GROUP_ID + "=" + rowID;
+                    selection = GroupsTable.COL_ID + "=" + rowID;
                 } else {
-                    selection = GroupsTable.COL_GROUP_ID + "=" + rowID
+                    selection = GroupsTable.COL_ID + "=" + rowID
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update
@@ -711,9 +711,9 @@ public class aGroceryListContentProvider extends ContentProvider {
                 // Limit update to a single row
                 rowID = uri.getLastPathSegment();
                 if (selection == null) {
-                    selection = LocationsTable.COL_LOCATION_ID + "=" + rowID;
+                    selection = LocationsTable.COL_ID + "=" + rowID;
                 } else {
-                    selection = LocationsTable.COL_LOCATION_ID + "=" + rowID
+                    selection = LocationsTable.COL_ID + "=" + rowID
                             + (!selection.isEmpty() ? " AND (" + selection + ")" : "");
                 }
                 // Perform the update

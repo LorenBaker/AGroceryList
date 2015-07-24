@@ -49,13 +49,13 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
         //mStoreItemsSortOrder = 0;
         try {
             mAllStoresCursor.moveToPosition(position);
-            mStoreID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_STORE_ID));
+            mStoreID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_ID));
 
             String storeChainName = mAllStoresCursor.getString(mAllStoresCursor.getColumnIndex(StoreChainsTable.COL_STORE_CHAIN_NAME));
             String storeRegionalName = mAllStoresCursor.getString(mAllStoresCursor.getColumnIndex(StoresTable.COL_STORE_REGIONAL_NAME));
             mDisplayName = storeChainName + dash + storeRegionalName;
 
-            mColorThemeID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_COLOR_THEME_ID));
+           // mColorThemeID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_COLOR_THEME_ID));
 
             //mStoreItemsSortOrder = mAllStoresCursor.getInt(mAllStoresCursor.getColumnIndex(StoresTable.COL_STORE_ITEMS_SORTING_ORDER));
 
@@ -69,7 +69,7 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
         long storeID = -1;
         try {
             mAllStoresCursor.moveToPosition(position);
-            storeID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_STORE_ID));
+            storeID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_ID));
         } catch (Exception e) {
             MyLog.e("StoreListPagerAdapter", "getStoreID: Exception: " + e.getMessage());
         }
@@ -86,7 +86,7 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
         String sortOrder = JoinedTables.SORT_ORDER_CHAIN_NAME_THEN_STORE_NAME;
         switch (MySettings.getStoreSortingOrder()) {
             case MySettings.SORT_MANUALLY:
-                sortOrder = StoresTable.SORT_ORDER_MANUAL;
+                sortOrder = StoresTable.SORT_ORDER_SORT_KEY;
                 break;
 
             default:
@@ -108,7 +108,7 @@ public class StoreListPagerAdapter extends FragmentStatePagerAdapter {
         mAllStoresCursor.moveToPosition(-1);
         while (mAllStoresCursor.moveToNext()) {
             index++;
-            storeID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_STORE_ID));
+            storeID = mAllStoresCursor.getLong(mAllStoresCursor.getColumnIndex(StoresTable.COL_ID));
             if (storeID == soughtStoreID) {
                 position = index;
                 break;

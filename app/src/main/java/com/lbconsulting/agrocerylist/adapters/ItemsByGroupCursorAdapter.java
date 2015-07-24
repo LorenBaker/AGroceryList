@@ -35,10 +35,10 @@ public class ItemsByGroupCursorAdapter extends CursorAdapter {
 
     private boolean showGroupSeparator(TextView tv, Cursor itemsCursor) {
         boolean result;
-        long currentGroupID = itemsCursor.getLong(itemsCursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
+        long currentGroupID = itemsCursor.getLong(itemsCursor.getColumnIndex(ItemsTable.COL_GROUP));
         long previousGroupID;
         if (itemsCursor.moveToPrevious()) {
-            previousGroupID = itemsCursor.getLong(itemsCursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
+            previousGroupID = itemsCursor.getLong(itemsCursor.getColumnIndex(ItemsTable.COL_GROUP));
             itemsCursor.moveToNext();
             if (currentGroupID == previousGroupID) {
                 tv.setVisibility(View.GONE);
@@ -102,7 +102,7 @@ public class ItemsByGroupCursorAdapter extends CursorAdapter {
             if (position > -1 && position < cursor.getCount()) {
                 int currentCursorPosition = cursor.getPosition();
                 cursor.moveToPosition(position);
-                itemID = cursor.getLong(cursor.getColumnIndexOrThrow(ItemsTable.COL_ITEM_ID));
+                itemID = cursor.getLong(cursor.getColumnIndexOrThrow(ItemsTable.COL_ID));
                 cursor.moveToPosition(currentCursorPosition);
             }
             // cursor.close(); DON'T CLOSE THE CURSOR

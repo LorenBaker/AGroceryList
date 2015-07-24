@@ -8,26 +8,28 @@ import android.database.Cursor;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.database.GroupsTable;
+import com.parse.ParseACL;
 import com.parse.ParseClassName;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.util.List;
+
 @ParseClassName("Groups")
 public class Groups extends ParseObject {
-    private static final String COL_GROUP_ID = "groupID";
     private static final String AUTHOR = "author";
 
     public Groups() {
         // A default constructor is required.
     }
 
-    public void setGroup(long id, String groupName) {
+    public void setGroup(String groupName, long sortKey) {
         groupName = groupName.trim();
-        if (id > 0 && !groupName.isEmpty()) {
-            setGroupID(id);
+        if (!groupName.isEmpty()) {
             setGroupName(groupName);
+            setSortKey(sortKey);
             setAuthor(ParseUser.getCurrentUser());
         }
     }
@@ -36,19 +38,18 @@ public class Groups extends ParseObject {
         if (cursor == null) {
             return;
         }
-
         // String currentRow = DatabaseUtils.dumpCurrentRowToString(cursor);
-        setGroupID(cursor.getLong(cursor.getColumnIndex(GroupsTable.COL_GROUP_ID)));
         setGroupName(cursor.getString(cursor.getColumnIndex(GroupsTable.COL_GROUP_NAME)));
+        setSortKey(cursor.getLong(cursor.getColumnIndex(GroupsTable.COL_SORT_KEY)));
         setAuthor(ParseUser.getCurrentUser());
     }
 
-    public long getGroupID() {
-        return getLong(COL_GROUP_ID);
+    public long getSortKey() {
+        return getLong(GroupsTable.COL_SORT_KEY);
     }
 
-    public void setGroupID(long itemID) {
-        put(COL_GROUP_ID, itemID);
+    public void setSortKey(long sortKey) {
+        put(GroupsTable.COL_SORT_KEY, sortKey);
     }
 
     public String getGroupName() {
@@ -67,22 +68,54 @@ public class Groups extends ParseObject {
         put(AUTHOR, currentUser);
     }
 
-/*
-    public boolean isChecked() {
-        return getBoolean(GroupsTable.COL_CHECKED);
-    }
-
-    public void setChecked(boolean isChecked) {
-        put(GroupsTable.COL_CHECKED, isChecked);
-    }
-
-*/
 
     public static ParseQuery<Groups> getQuery() {
         return ParseQuery.getQuery(Groups.class);
     }
 
+    public static ParseObject getGroup(String parseObjectID) {
+        ParseObject group = null;
+        try {
+            ParseQuery<Groups> query = getQuery();
+            query.whereEqualTo("objectID", parseObjectID);
+            List groups = query.find();
+            if (groups!=null && groups.size() > 0) {
+                group = (ParseObject) groups.get(0);
+            }
+        } catch (ParseException e) {
+            MyLog.e("Groups", "getGroup: ParseException: " + e.getMessage());
+        }
+        return group;
 
+    }
+
+    public static void saveGroupToParse(Groups group, int saveType) {
+        ParseACL groupACL = new ParseACL(ParseUser.getCurrentUser());
+        groupACL.setPublicReadAccess(true);
+        group.setACL(groupACL);
+        try {
+            switch (saveType) {
+                case clsParseUtils.SAVE_THIS_THREAD:
+                    // use SAVE_THIS_THREAD if this method is being called in an AsyncTask or background thread.
+                    group.save();
+                    MyLog.i("Groups", "saveGroupToParse: SAVE(): name = " + group.getGroupName());
+                    break;
+
+                case clsParseUtils.SAVE_IN_BACKGROUND:
+                    group.saveInBackground();
+                    MyLog.i("Groups", "saveGroupToParse: SAVE_IN_BACKGROUND(): name = " + group.getGroupName());
+                    break;
+
+                case clsParseUtils.SAVE_EVENTUALLY:
+                    group.saveEventually();
+                    MyLog.i("Groups", "saveGroupToParse: SAVE_EVENTUALLY(): name = " + group.getGroupName());
+                    break;
+            }
+
+        } catch (ParseException e) {
+            MyLog.e("Groups", "saveGroupToParse: ParseException: " + e.getMessage());
+        }
+    }
 }
 
 

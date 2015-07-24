@@ -42,7 +42,7 @@ public class ScannerFragmentActivity extends Activity {
         setContentView(R.layout.activity_scanner_fragment);
 
         spnLocation = (Spinner) findViewById(R.id.spnItemLocation);
-        ArrayList<String> itemLocationsList = LocationsTable.getAllItemLocations(this,LocationsTable.SORT_ORDER_LOCATION_ID);
+        ArrayList<String> itemLocationsList = LocationsTable.getAllItemLocations(this,LocationsTable.SORT_ORDER_SORT_KEY);
         mSpinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, itemLocationsList);
         mSpinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnLocation.setAdapter(mSpinnerArrayAdapter);
@@ -118,7 +118,7 @@ public class ScannerFragmentActivity extends Activity {
                     LocationsTable.createNewAisles(ScannerFragmentActivity.this, numberOfAisles);
 
                     ArrayList<String> itemLocationsList = LocationsTable
-                            .getAllItemLocations(ScannerFragmentActivity.this,LocationsTable.SORT_ORDER_LOCATION_ID);
+                            .getAllItemLocations(ScannerFragmentActivity.this,LocationsTable.SORT_ORDER_SORT_KEY);
                     mSpinnerArrayAdapter = new ArrayAdapter<>(ScannerFragmentActivity.this,
                             android.R.layout.simple_spinner_item, itemLocationsList);
                     int position = spnLocation.getSelectedItemPosition();

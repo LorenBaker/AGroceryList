@@ -413,7 +413,7 @@ public class fragMasterList extends Fragment implements View.OnClickListener,
 
                         case MySettings.SORT_MANUALLY:
                             //TODO: join query master list manual sort order
-                            sortOrder = ItemsTable.SORT_ORDER_MANUAL;
+                            sortOrder = ItemsTable.SORT_ORDER_SORT_KEY;
                             //cursorLoader = ItemsTable.getAllItemsInList(getActivity(), mActiveListID, selection, sortOrder);
                             break;
 

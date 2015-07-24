@@ -14,11 +14,12 @@ public class JoinedTables {
         ON tblStores.storeChainID = tblStoreChains._id
         ORDER BY storeChainName ASC, storeRegionalName ASC  */
     public static final String[] PROJECTION_STORES_WITH_CHAIN_NAMES = {
+            StoresTable.TABLE_STORES + "." + StoresTable.COL_ID,
             StoresTable.TABLE_STORES + "." + StoresTable.COL_STORE_ID,
             StoresTable.TABLE_STORES + "." + StoresTable.COL_STORE_REGIONAL_NAME,
-            StoresTable.TABLE_STORES + "." + StoresTable.COL_MANUAL_SORT_KEY,
+/*            StoresTable.TABLE_STORES + "." + StoresTable.COL_SORT_KEY,
             StoresTable.TABLE_STORES + "." + StoresTable.COL_STORE_ITEMS_SORTING_ORDER,
-            StoresTable.TABLE_STORES + "." + StoresTable.COL_COLOR_THEME_ID,
+            StoresTable.TABLE_STORES + "." + StoresTable.COL_COLOR_THEME_ID,*/
             StoreChainsTable.TABLE_STORE_CHAINS + "." + StoreChainsTable.COL_STORE_CHAIN_NAME};
 
     public static final String CONTENT_PATH_STORES_WITH_CHAIN_NAMES = "storesWithChainNames";
@@ -38,9 +39,9 @@ public class JoinedTables {
         ORDER BY groupName, itemName*/
 
 /*    public static final String[] PROJECTION_ITEMS_BY_GROUPS = {
-            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_ID,
+            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ID,
             GroupsTable.COL_GROUP_NAME, ItemsTable.COL_ITEM_NAME, ItemsTable.COL_ITEM_NOTE,
-            ItemsTable.COL_GROUP_ID, ItemsTable.COL_SELECTED, ItemsTable.COL_STRUCK_OUT,
+            ItemsTable.COL_ID, ItemsTable.COL_SELECTED, ItemsTable.COL_STRUCK_OUT,
             ItemsTable.COL_CHECKED, ItemsTable.COL_FAVORITE
     };
     public static final String CONTENT_PATH_ITEMS_BY_GROUPS = "itemsByGroups";
@@ -63,10 +64,11 @@ public class JoinedTables {
     ORDER BY   tblLocations._id, tblItems.itemName*/
 
     public static final String[] PROJECTION_ITEMS_BY_LOCATIONS_AND_GROUPS = {
+            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ID,
             ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_ID,
             ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_NAME,
             ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_ITEM_NOTE,
-            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP_ID,
+            ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_GROUP,
             ItemsTable.TABLE_ITEMS + "." + ItemsTable.COL_STRUCK_OUT,
 
             GroupsTable.TABLE_GROUPS + "." + GroupsTable.COL_GROUP_NAME,

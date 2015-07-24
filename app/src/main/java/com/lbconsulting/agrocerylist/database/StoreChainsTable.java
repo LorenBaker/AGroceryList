@@ -10,17 +10,23 @@ import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreChain;
+import com.parse.ParseObject;
 
 public class StoreChainsTable {
-    // Lists data table
+
     public static final String TABLE_STORE_CHAINS = "tblStoreChains";
-    public static final String COL_STORE_CHAIN_ID = "_id";
+    public static final String COL_ID = "_id";
+    // Parse fields
+    public static final String COL_STORE_CHAIN_ID = "storeChainID";
     public static final String COL_STORE_CHAIN_NAME = "storeChainName";
-    public static final String COL_STORE_CHAIN_DIRTY = "storeChainDirty";
+    public static final String COL_SORT_KEY = "sortKey";
+    // SQLite only fields
+    public static final String COL_DIRTY = "dirty";
     public static final String COL_CHECKED = "checked";
 
 
-    public static final String[] PROJECTION_ALL = {COL_STORE_CHAIN_ID, COL_STORE_CHAIN_NAME, COL_STORE_CHAIN_DIRTY, COL_CHECKED};
+    public static final String[] PROJECTION_ALL = {COL_ID, COL_STORE_CHAIN_ID, COL_STORE_CHAIN_NAME,
+            COL_SORT_KEY, COL_DIRTY, COL_CHECKED};
 
     public static final String CONTENT_PATH = TABLE_STORE_CHAINS;
 
@@ -32,18 +38,20 @@ public class StoreChainsTable {
 
     // Version 1
     public static final String SORT_ORDER_STORE_CHAIN_NAME = COL_STORE_CHAIN_NAME + " ASC";
+    public static final String SORT_ORDER_SORT_KEY = COL_SORT_KEY + " ASC";
 
     // Database creation SQL statements
     private static final String CREATE_TABLE =
             "create table " + TABLE_STORE_CHAINS
                     + " ("
-                    + COL_STORE_CHAIN_ID + " integer primary key, "
+                    + COL_ID + " integer primary key, "
+                    + COL_STORE_CHAIN_ID + " text default '', "
                     + COL_STORE_CHAIN_NAME + " text collate nocase default '', "
-                    + COL_STORE_CHAIN_DIRTY + " integer default 0, "
+                    + COL_SORT_KEY + " integer default 0, "
+                    + COL_DIRTY + " integer default 0, "
                     + COL_CHECKED + " integer default 0 "
                     + ");";
 
-    public final static String defaultStoreChainName = "[No Store Chain]";
     private static long mExistingStoreChainID = -1;
 
     public static void onCreate(SQLiteDatabase database) {
@@ -95,13 +103,36 @@ public class StoreChainsTable {
         return newStoreChainID;
     }
 
+    public static void createNewStoreChain(Context context, ParseObject chainName) {
+        String storeChainNameID = chainName.getObjectId();
+        String storeChainName = chainName.getString(COL_STORE_CHAIN_NAME);
+        long sortKey = chainName.getLong(COL_SORT_KEY);
+        if (!storeChainName.isEmpty() && !storeChainNameID.isEmpty()) {
+
+            try {
+                ContentResolver cr = context.getContentResolver();
+                Uri uri = CONTENT_URI;
+                ContentValues values = new ContentValues();
+                values.put(COL_STORE_CHAIN_ID, storeChainNameID);
+                values.put(COL_STORE_CHAIN_NAME, storeChainName);
+                values.put(COL_SORT_KEY, sortKey);
+                cr.insert(uri, values);
+
+            } catch (Exception e) {
+                MyLog.e("StoreChainsTable", "createNewStoreChain: Exception: " + e.getMessage());
+            }
+        }else{
+            MyLog.e("StoreChainsTable", "createNewStoreChain: Either storeChainName or chainNameID is empty.");
+        }
+    }
+
     public static void createNewStoreChain(Context context, clsParseStoreChain storeChain) {
         ContentResolver cr = context.getContentResolver();
 
         try {
             Uri uri = CONTENT_URI;
             ContentValues values = new ContentValues();
-            values.put(COL_STORE_CHAIN_ID, storeChain.getStoreChainID());
+            values.put(COL_ID, storeChain.getStoreChainID());
             values.put(COL_STORE_CHAIN_NAME, storeChain.getStoreChainName());
             cr.insert(uri, values);
         } catch (Exception e) {
@@ -155,7 +186,7 @@ public class StoreChainsTable {
         if (cursor != null) {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
-                mExistingStoreChainID = cursor.getLong(cursor.getColumnIndex(COL_STORE_CHAIN_ID));
+                mExistingStoreChainID = cursor.getLong(cursor.getColumnIndex(COL_ID));
                 result = true;
             }
             cursor.close();
@@ -233,7 +264,7 @@ public class StoreChainsTable {
         int numberOfDeletedRecords = -1;
         ContentResolver cr = context.getContentResolver();
         Uri uri = CONTENT_URI;
-        String selection = COL_STORE_CHAIN_ID + " = ?";
+        String selection = COL_ID + " = ?";
         String[] selectionArgs = {String.valueOf(storeChainID)};
         numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
         return numberOfDeletedRecords;

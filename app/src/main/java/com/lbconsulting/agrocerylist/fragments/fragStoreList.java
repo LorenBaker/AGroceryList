@@ -219,7 +219,7 @@ public class fragStoreList extends Fragment implements LoaderManager.LoaderCallb
 
                         case MySettings.SORT_MANUALLY:
                             //TODO: join query master list manual sort order
-                            sortOrder = ItemsTable.SORT_ORDER_MANUAL;
+                            sortOrder = ItemsTable.SORT_ORDER_SORT_KEY;
                             //cursorLoader = ItemsTable.getAllItemsInList(getActivity(), mActiveListID, selection, sortOrder);
                             break;
 

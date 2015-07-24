@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Parse" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/../../ParseJar" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../../ParseJar" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>

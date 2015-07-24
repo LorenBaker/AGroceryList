@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="C:\Users\Loren\AndroidStudioProjects\AGroceryList\core\src\main\assets"/></dataSet><dataSet config="debug"><source path="C:\Users\Loren\AndroidStudioProjects\AGroceryList\core\src\debug\assets"/></dataSet></merger>
+<merger version="3"><dataSet config="main"><source path="D:\Android_Studio_Projects\AGroceryList\core\src\main\assets"/></dataSet><dataSet config="debug"><source path="D:\Android_Studio_Projects\AGroceryList\core\src\debug\assets"/></dataSet></merger>

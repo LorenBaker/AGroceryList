@@ -28,17 +28,17 @@ public class Items extends ParseObject {
 
        // String currentRow = DatabaseUtils.dumpCurrentRowToString(cursor);
 
-        setItemID(cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_ITEM_ID)));
+        setItemID(cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_ID)));
         setAuthor(ParseUser.getCurrentUser());
         setItemName(cursor.getString(cursor.getColumnIndex(ItemsTable.COL_ITEM_NAME)));
         setItemNote(cursor.getString(cursor.getColumnIndex(ItemsTable.COL_ITEM_NOTE)));
-        setGroupID(cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_GROUP_ID)));
+        setGroupID(cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_GROUP)));
         setProductID(cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_PRODUCT_ID)));
         setSelected(cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_SELECTED)) > 0);
         setStruckOut(cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_STRUCK_OUT)) > 0);
         setChecked(cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_CHECKED)) > 0);
         setFavorite(cursor.getInt(cursor.getColumnIndex(ItemsTable.COL_FAVORITE)) > 0);
-        setManualSortOrder(cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_MANUAL_SORT_ORDER)));
+        setManualSortOrder(cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_SORT_KEY)));
     }
 
     public long getItemID() {
@@ -74,11 +74,11 @@ public class Items extends ParseObject {
     }
 
     public long getGroupID() {
-        return getLong(ItemsTable.COL_GROUP_ID);
+        return getLong(ItemsTable.COL_GROUP);
     }
 
     public void setGroupID(long groupID) {
-        put(ItemsTable.COL_GROUP_ID, groupID);
+        put(ItemsTable.COL_GROUP, groupID);
     }
 
     public long getProductID() {
@@ -122,11 +122,11 @@ public class Items extends ParseObject {
     }
 
     public int getManualSortOrder() {
-        return getInt(ItemsTable.COL_MANUAL_SORT_ORDER);
+        return getInt(ItemsTable.COL_SORT_KEY);
     }
 
     public void setManualSortOrder(long manualSortOrder) {
-        put(ItemsTable.COL_MANUAL_SORT_ORDER, manualSortOrder);
+        put(ItemsTable.COL_SORT_KEY, manualSortOrder);
     }
 
 

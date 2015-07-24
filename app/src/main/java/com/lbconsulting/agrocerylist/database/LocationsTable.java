@@ -9,18 +9,24 @@ import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.clsLocation;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseLocation;
+import com.parse.ParseObject;
 
 import java.util.ArrayList;
 
 public class LocationsTable {
 
     public static final String TABLE_LOCATIONS = "tblLocations";
-    public static final String COL_LOCATION_ID = "_id";
+    public static final String COL_ID = "_id";
+    // Parse fields
+    public static final String COL_LOCATION_ID = "locationID";
     public static final String COL_LOCATION_NAME = "locationName";
-    public static final String COL_LOCATION_DIRTY = "locationDirty";
+    public static final String COL_SORT_KEY = "sortKey";
+    // SQLite only fields
+    public static final String COL_DIRTY = "dirty";
+    public static final String COL_CHECKED = "checked";
 
-    public static final String[] PROJECTION_ALL = {COL_LOCATION_ID, COL_LOCATION_NAME, COL_LOCATION_DIRTY};
+    public static final String[] PROJECTION_ALL = {COL_ID, COL_LOCATION_ID, COL_LOCATION_NAME,
+            COL_SORT_KEY, COL_DIRTY, COL_CHECKED};
 
     public static final String CONTENT_PATH = TABLE_LOCATIONS;
     public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + "vnd.lbconsulting."
@@ -30,15 +36,20 @@ public class LocationsTable {
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
 
     public static final String SORT_ORDER_LOCATION_NAME = COL_LOCATION_NAME + " ASC";
-    public static final String SORT_ORDER_LOCATION_ID = COL_LOCATION_ID + " ASC";
+    public static final String SORT_ORDER_SORT_KEY = COL_SORT_KEY + " ASC";
+
+    private static long mExistingLocationID;
 
     // Database creation SQL statements
     private static final String CREATE_TABLE = "create table "
             + TABLE_LOCATIONS
             + " ("
-            + COL_LOCATION_ID + " integer primary key, "
-            + COL_LOCATION_NAME + " text collate nocase DEFAULT '', "
-            + COL_LOCATION_DIRTY + " integer default 0 "
+            + COL_ID + " integer primary key, "
+            + COL_LOCATION_ID + " text default '', "
+            + COL_LOCATION_NAME + " text collate nocase default '', "
+            + COL_SORT_KEY + " integer default 0, "
+            + COL_DIRTY + " integer default 0, "
+            + COL_CHECKED + " integer default 0 "
             + ");";
 
     public static void onCreate(SQLiteDatabase database) {
@@ -79,17 +90,44 @@ public class LocationsTable {
         }
     }*/
 
-    public static void createNewLocation(Context context, clsParseLocation location) {
+/*    public static void createNewLocation(Context context, clsParseLocation location) {
         ContentResolver cr = context.getContentResolver();
 
         try {
             Uri uri = CONTENT_URI;
             ContentValues values = new ContentValues();
-            values.put(COL_LOCATION_ID, location.getLocationID());
+            values.put(COL_ID, location.getLocationID());
             values.put(COL_LOCATION_NAME, location.getLocationName());
             cr.insert(uri, values);
         } catch (Exception e) {
             MyLog.e("LocationsTable", "createNewLocation: Exception: " + e.getMessage());
+        }
+    }*/
+
+    public static void createNewLocation(Context context, ParseObject location) {
+        String locationID = location.getObjectId();
+        if (locationExists(context, locationID, true)) {
+            // TODO: Location exists ... do you want to update the location's fields??
+            return;
+        }
+        String locationName = location.getString(COL_LOCATION_NAME);
+        long sortKey = location.getLong(COL_SORT_KEY);
+        if (!locationName.isEmpty() && !locationID.isEmpty()) {
+
+            try {
+                ContentResolver cr = context.getContentResolver();
+                Uri uri = CONTENT_URI;
+                ContentValues values = new ContentValues();
+                values.put(COL_LOCATION_ID, locationID);
+                values.put(COL_LOCATION_NAME, locationName);
+                values.put(COL_SORT_KEY, sortKey);
+                cr.insert(uri, values);
+
+            } catch (Exception e) {
+                MyLog.e("LocationsTable", "createNewLocation: Exception: " + e.getMessage());
+            }
+        } else {
+            MyLog.e("LocationsTable", "createNewLocation: Either locationName or locationID is empty.");
         }
     }
 
@@ -108,6 +146,7 @@ public class LocationsTable {
         int aisleNumber = numberOfAisles + 1;
         String aisleName;
 
+        // TODO: Upload any new aisles to Parse 
         for (int i = 0; i < numberOfAislesToCreate; i++) {
             values = new ContentValues();
             aisleName = "Aisle " + aisleNumber;
@@ -122,9 +161,67 @@ public class LocationsTable {
 // Read Methods
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public static Cursor getLocationCursor(Context context, long ID) {
+        Cursor cursor = null;
+        if (ID > 0) {
+            Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(ID));
+            String[] projection = PROJECTION_ALL;
+            String selection = null;
+            String selectionArgs[] = null;
+            String sortOrder = null;
+            ContentResolver cr = context.getContentResolver();
+            try {
+                cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+            } catch (Exception e) {
+                MyLog.e("LocationsTable", "getLocationCursor: Exception: " + e.getMessage());
+            }
+        } else {
+            MyLog.e("LocationsTable", "getLocationCursor: Invalid groupID");
+        }
+        return cursor;
+    }
+
+    private static Cursor getLocationCursor(Context context, String locationFieldValue, boolean isParseObjectID) {
+        Cursor cursor = null;
+        Uri uri = CONTENT_URI;
+        String[] projection = PROJECTION_ALL;
+        String selection;
+
+        if (isParseObjectID) {
+            selection = COL_LOCATION_ID + " = ?";
+        } else {
+            selection = COL_LOCATION_NAME + " = ?";
+        }
+        String selectionArgs[] = new String[]{locationFieldValue};
+        String sortOrder = null;
+        ContentResolver cr = context.getContentResolver();
+        try {
+            cursor = cr.query(uri, projection, selection, selectionArgs, sortOrder);
+        } catch (Exception e) {
+            MyLog.e("LocationsTable", "getLocationCursor: Exception: " + e.getMessage());
+        }
+        return cursor;
+    }
+
+    private static boolean locationExists(Context context, String locationFieldValue, boolean isParseObjectID) {
+        mExistingLocationID = -1;
+        boolean result = false;
+        Cursor cursor = getLocationCursor(context, locationFieldValue, isParseObjectID);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                mExistingLocationID = cursor.getLong(cursor.getColumnIndex(COL_ID));
+                result = true;
+            }
+            cursor.close();
+        }
+        return result;
+
+    }
+
     private static boolean isTableEmpty(Context context) {
         boolean result = true;
-        Cursor cursor = getAllLocationsCursor(context, SORT_ORDER_LOCATION_ID);
+        Cursor cursor = getAllLocationsCursor(context, SORT_ORDER_SORT_KEY);
         if (cursor != null) {
             result = cursor.getCount() == 0;
             cursor.close();
@@ -134,7 +231,7 @@ public class LocationsTable {
 
     public static int getNumberOfAisles(Context context) {
         int numberOfAisles = -1;
-        Cursor cursor = getAllLocationsCursor(context, SORT_ORDER_LOCATION_ID);
+        Cursor cursor = getAllLocationsCursor(context, SORT_ORDER_SORT_KEY);
         if (cursor != null) {
             numberOfAisles = cursor.getCount() - 9;
             cursor.close();
@@ -159,7 +256,7 @@ public class LocationsTable {
 
 
     public static ArrayList<String> getAllItemLocations(Context context, String sortOrder) {
-       // createInitialLocationsIfNeeded(context);
+        // createInitialLocationsIfNeeded(context);
         ArrayList<String> itemLocations = new ArrayList<>();
         Cursor cursor = getAllLocationsCursor(context, sortOrder);
         if (cursor != null && cursor.getCount() > 0) {
@@ -205,13 +302,13 @@ public class LocationsTable {
 
     public static ArrayList<clsLocation> getLocationsArray(Context context) {
         ArrayList<clsLocation> list = new ArrayList<>();
-        Cursor cursor = getAllLocationsCursor(context, SORT_ORDER_LOCATION_ID);
+        Cursor cursor = getAllLocationsCursor(context, SORT_ORDER_SORT_KEY);
         if (cursor != null && cursor.getCount() > 0) {
             clsLocation location;
             long locationID;
             String locationName;
             while (cursor.moveToNext()) {
-                locationID = cursor.getLong(cursor.getColumnIndex(COL_LOCATION_ID));
+                locationID = cursor.getLong(cursor.getColumnIndex(COL_ID));
                 locationName = cursor.getString(cursor.getColumnIndex(COL_LOCATION_NAME));
                 location = new clsLocation(locationID, locationName);
                 list.add(location);
@@ -232,7 +329,7 @@ public class LocationsTable {
         if (locationID > 1) {
             ContentResolver cr = context.getContentResolver();
             Uri uri = CONTENT_URI;
-            String selection = COL_LOCATION_ID + " = ?";
+            String selection = COL_ID + " = ?";
             String[] selectionArgs = {String.valueOf(locationID)};
             numberOfDeletedRecords = cr.delete(uri, selection, selectionArgs);
             StoreMapsTable.resetLocationID(context, locationID);

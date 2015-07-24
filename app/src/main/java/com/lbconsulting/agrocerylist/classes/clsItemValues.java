@@ -62,16 +62,16 @@ public class clsItemValues {
     public long getLocationID() {
         long result = -1;
         if (hasData()) {
-            result = mItemCursor.getLong(mItemCursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
+            result = mItemCursor.getLong(mItemCursor.getColumnIndex(ItemsTable.COL_ID));
         }
         return result;
     }
 
     public void putGroupID(long groupID) {
-        if (cv.containsKey(ItemsTable.COL_GROUP_ID)) {
-            cv.remove(ItemsTable.COL_GROUP_ID);
+        if (cv.containsKey(ItemsTable.COL_ID)) {
+            cv.remove(ItemsTable.COL_ID);
         }
-        cv.put(ItemsTable.COL_GROUP_ID, groupID);
+        cv.put(ItemsTable.COL_ID, groupID);
     }
 
     public boolean isItemSelected() {
@@ -117,7 +117,7 @@ public class clsItemValues {
     public long getItemID() {
         long result = -1;
         if (hasData()) {
-            result = mItemCursor.getLong(mItemCursor.getColumnIndex(ItemsTable.COL_ITEM_ID));
+            result = mItemCursor.getLong(mItemCursor.getColumnIndex(ItemsTable.COL_ID));
         }
         return result;
     }
@@ -176,16 +176,16 @@ public class clsItemValues {
     public int getManualSortOrder() {
         int result = -1;
         if (hasData()) {
-            result = mItemCursor.getInt(mItemCursor.getColumnIndex(ItemsTable.COL_MANUAL_SORT_ORDER));
+            result = mItemCursor.getInt(mItemCursor.getColumnIndex(ItemsTable.COL_SORT_KEY));
         }
         return result;
     }
 
     public void putManualSortOrder(int manualSortOrder) {
-        if (cv.containsKey(ItemsTable.COL_MANUAL_SORT_ORDER)) {
-            cv.remove(ItemsTable.COL_MANUAL_SORT_ORDER);
+        if (cv.containsKey(ItemsTable.COL_SORT_KEY)) {
+            cv.remove(ItemsTable.COL_SORT_KEY);
         }
-        cv.put(ItemsTable.COL_MANUAL_SORT_ORDER, manualSortOrder);
+        cv.put(ItemsTable.COL_SORT_KEY, manualSortOrder);
     }
 
 

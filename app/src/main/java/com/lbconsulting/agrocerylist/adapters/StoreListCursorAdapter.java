@@ -63,7 +63,7 @@ public class StoreListCursorAdapter extends CursorAdapter {
             return;
         }
         // set the Item's ID so it can be retrieved latter in the onClick callbacks
-        long itemID = cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_ITEM_ID));
+        long itemID = cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_ID));
         view.setTag(itemID);
 
         TextView tvItemName = (TextView) view.findViewById(R.id.tvItemName);
@@ -160,7 +160,7 @@ public class StoreListCursorAdapter extends CursorAdapter {
                         Cursor cursor = ItemsTable.getItemCursor(mContext, itemID);
                         if (cursor != null && cursor.getCount() > 0) {
                             cursor.moveToFirst();
-                            groupID = cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
+                            groupID = cursor.getLong(cursor.getColumnIndex(ItemsTable.COL_GROUP));
                             if (groupID > 1) {
                                 currentLocationID = StoreMapsTable.getLocationID(mContext, groupID, mStoreID);
                                 switch (mStoreItemsSortingOrder) {
@@ -211,10 +211,10 @@ public class StoreListCursorAdapter extends CursorAdapter {
 
     private boolean showGroupSeparator(Cursor itemsCursor) {
         boolean result;
-        long currentGroupID = itemsCursor.getLong(itemsCursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
+        long currentGroupID = itemsCursor.getLong(itemsCursor.getColumnIndex(ItemsTable.COL_GROUP));
         long previousGroupID;
         if (itemsCursor.moveToPrevious()) {
-            previousGroupID = itemsCursor.getLong(itemsCursor.getColumnIndex(ItemsTable.COL_GROUP_ID));
+            previousGroupID = itemsCursor.getLong(itemsCursor.getColumnIndex(ItemsTable.COL_GROUP));
             itemsCursor.moveToNext();
             if (currentGroupID == previousGroupID) {
                 tvItemsSeparator.setVisibility(View.GONE);

@@ -47,6 +47,7 @@
         <item>Yogurt</item>
     </string-array>
 
+    <!--Don't Change grocery_groups order-->
     <string-array name="grocery_groups">
         <item>[No Group]</item>
         <item>Baby Care</item>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- From: file:/C:/Users/Loren/AndroidStudioProjects/AGroceryList/core/build/intermediates/bundles/debug/res/values/values.xml -->
+    <!-- From: file:/D:/Android_Studio_Projects/AGroceryList/core/build/intermediates/bundles/debug/res/values/values.xml -->
     <eat-comment/>
     <color name="viewfinder_border">#ffafed44</color>
     <color name="viewfinder_laser">#ffcc0000</color>

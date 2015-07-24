@@ -12,7 +12,6 @@ import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes_parse.ParseStoreMap;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreMapEntry;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseStoreMapEntryArray;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseUtils;
 
 import java.util.ArrayList;
 
@@ -41,9 +40,9 @@ public class StoreMapsTable {
     // Database creation SQL statements
     private static final String CREATE_TABLE = "create table " + TABLE_LOCATIONS_BRIDGE + " ("
             + COL_MAP_ENTRY_ID + " integer primary key, "
-            + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_GROUP_ID + ") default 1, "
-            + COL_STORE_ID + " integer not null references " + StoresTable.TABLE_STORES + " (" + StoresTable.COL_STORE_ID + ") default -1, "
-            + COL_LOCATION_ID + " integer not null references " + LocationsTable.TABLE_LOCATIONS + " (" + LocationsTable.COL_LOCATION_ID + ") default 1 "
+            + COL_GROUP_ID + " integer not null references " + GroupsTable.TABLE_GROUPS + " (" + GroupsTable.COL_ID + ") default 1, "
+            + COL_STORE_ID + " integer not null references " + StoresTable.TABLE_STORES + " (" + StoresTable.COL_ID + ") default -1, "
+            + COL_LOCATION_ID + " integer not null references " + LocationsTable.TABLE_LOCATIONS + " (" + LocationsTable.COL_ID + ") default 1 "
             + ");";
 
     public static void onCreate(SQLiteDatabase database) {
@@ -93,7 +92,7 @@ public class StoreMapsTable {
         return newMapEntryID;
     }
 
-    public static void initializeStoreMap(Context context, long storeID) {
+/*    public static void initializeStoreMap(Context context, long storeID) {
         // delete all map entries associated with the store
         deleteAllStoreMapEntriesInStore(context, storeID);
 
@@ -106,7 +105,7 @@ public class StoreMapsTable {
         if (groupsCursor != null && groupsCursor.getCount() > 0) {
             long groupID;
             while (groupsCursor.moveToNext()) {
-                groupID = groupsCursor.getLong(groupsCursor.getColumnIndex(GroupsTable.COL_GROUP_ID));
+                groupID = groupsCursor.getLong(groupsCursor.getColumnIndex(GroupsTable.COL_ID));
                 createNewStoreMapEntry(context, groupID, storeID, DEFAULT_LOCATION);
                 clsParseStoreMapEntry newStoreMapEntry = new clsParseStoreMapEntry(groupID, DEFAULT_LOCATION);
                 storeMapEntryList.add(newStoreMapEntry);
@@ -118,9 +117,9 @@ public class StoreMapsTable {
 
         if (storeMapEntryList.size() > 0) {
             // use SAVE_THIS_THREAD because this method is being run in an AsyncTask
-            clsParseUtils.createParseStoreMap(storeMapEntryList, parseStoreMapName, storeID, clsParseUtils.SAVE_THIS_THREAD);
+           // clsParseUtils.createParseStoreMap(storeMapEntryList, parseStoreMapName, storeID, clsParseUtils.SAVE_THIS_THREAD);
         }
-    }
+    }*/
 
     public static void updateStoreMap(Context context, ParseStoreMap storeMap) {
         ContentResolver cr = context.getContentResolver();

@@ -10,21 +10,25 @@ import android.net.Uri;
 
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.clsGroup;
-import com.lbconsulting.agrocerylist.classes_parse.clsParseGroup;
+import com.parse.ParseObject;
 
 import java.util.ArrayList;
 
 public class GroupsTable {
 
-    // PublicTablesData data table
     // Version 1
     public static final String TABLE_GROUPS = "tblGroups";
-    public static final String COL_GROUP_ID = "_id";
+    public static final String COL_ID = "_id";
+    // Parse fields
+    public static final String COL_GROUP_ID = "groupID";
     public static final String COL_GROUP_NAME = "groupName";
-    public static final String COL_GROUP_DIRTY = "groupDirty";
+    public static final String COL_SORT_KEY = "sortKey";
+    // SQLite only fields
+    public static final String COL_DIRTY = "dirty";
     public static final String COL_CHECKED = "checked";
 
-    public static final String[] PROJECTION_ALL = {COL_GROUP_ID, COL_GROUP_NAME, COL_GROUP_DIRTY, COL_CHECKED};
+    public static final String[] PROJECTION_ALL = {COL_ID, COL_GROUP_ID, COL_GROUP_NAME,
+            COL_SORT_KEY, COL_DIRTY, COL_CHECKED};
 
     public static final String CONTENT_PATH = TABLE_GROUPS;
 
@@ -36,6 +40,7 @@ public class GroupsTable {
     public static final Uri CONTENT_URI = Uri.parse("content://" + aGroceryListContentProvider.AUTHORITY + "/" + CONTENT_PATH);
 
     public static final String SORT_ORDER_GROUP_NAME = COL_GROUP_NAME + " ASC";
+    public static final String SORT_ORDER_SORT_KEY = COL_SORT_KEY + " ASC";
 
     private static long mExistingGroupID = -1;
 
@@ -43,9 +48,11 @@ public class GroupsTable {
     private static final String CREATE_TABLE = "create table "
             + TABLE_GROUPS
             + " ("
-            + COL_GROUP_ID + " integer primary key, "
+            + COL_ID + " integer primary key, "
+            + COL_GROUP_ID + " text default '', "
             + COL_GROUP_NAME + " text collate nocase default '', "
-            + COL_GROUP_DIRTY + " integer default 0, "
+            + COL_SORT_KEY + " integer default 0, "
+            + COL_DIRTY + " integer default 0, "
             + COL_CHECKED + " integer default 0 "
             + ");";
 
@@ -99,10 +106,11 @@ public class GroupsTable {
         return newGroupID;
     }
 
-    public static void createNewGroup(Context context, clsParseGroup group) {
-        long groupID = group.getGroupID();
-        String groupName = group.getGroupName();
-        if (!groupName.isEmpty() && groupID > 0) {
+    public static void createNewGroup(Context context, ParseObject group) {
+        String groupID = group.getObjectId();
+        String groupName = group.getString(COL_GROUP_NAME);
+        long sortKey = group.getLong(COL_SORT_KEY);
+        if (!groupName.isEmpty() && !groupID.isEmpty()) {
 
             try {
                 ContentResolver cr = context.getContentResolver();
@@ -110,24 +118,25 @@ public class GroupsTable {
                 ContentValues values = new ContentValues();
                 values.put(COL_GROUP_ID, groupID);
                 values.put(COL_GROUP_NAME, groupName);
+                values.put(COL_SORT_KEY, sortKey);
                 cr.insert(uri, values);
 
             } catch (Exception e) {
                 MyLog.e("GroupsTable", "createNewGroup: Exception: " + e.getMessage());
             }
-
+        }else{
+            MyLog.e("GroupsTable", "createNewGroup: Either groupName or groupID is empty.");
         }
-
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Read Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static Cursor getGroupCursor(Context context, long groupID) {
+    public static Cursor getGroupCursor(Context context, long ID) {
         Cursor cursor = null;
-        if (groupID > 0) {
-            Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(groupID));
+        if (ID > 0) {
+            Uri uri = Uri.withAppendedPath(CONTENT_URI, String.valueOf(ID));
             String[] projection = PROJECTION_ALL;
             String selection = null;
             String selectionArgs[] = null;
@@ -144,12 +153,18 @@ public class GroupsTable {
         return cursor;
     }
 
-    private static Cursor getGroupCursor(Context context, String groupName) {
+    private static Cursor getGroupCursor(Context context, String groupFieldValue, boolean isParseObjectID) {
         Cursor cursor = null;
         Uri uri = CONTENT_URI;
         String[] projection = PROJECTION_ALL;
-        String selection = COL_GROUP_NAME + " = ?";
-        String selectionArgs[] = new String[]{groupName};
+        String selection;
+
+        if(isParseObjectID){
+             selection = COL_GROUP_ID + " = ?";
+        }else{
+            selection = COL_GROUP_NAME + " = ?";
+        }
+        String selectionArgs[]  = new String[]{groupFieldValue};
         String sortOrder = null;
         ContentResolver cr = context.getContentResolver();
         try {
@@ -181,12 +196,38 @@ public class GroupsTable {
     private static boolean groupExists(Context context, String groupName) {
         mExistingGroupID = -1;
         boolean result = false;
-        Cursor cursor = getGroupCursor(context, groupName);
+        Cursor cursor = getGroupCursor(context, groupName,false);
         if (cursor != null) {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
-                mExistingGroupID = cursor.getLong(cursor.getColumnIndex(COL_GROUP_ID));
+                mExistingGroupID = cursor.getLong(cursor.getColumnIndex(COL_ID));
                 result = true;
+            }
+            cursor.close();
+        }
+        return result;
+    }
+
+    public static boolean groupExists(Context context, long groupID) {
+        boolean result = false;
+        Cursor cursor = getGroupCursor(context, groupID);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                result = true;
+            }
+            cursor.close();
+        }
+        return result;
+    }
+
+    public static boolean isGroupDirty(Context context, long groupID) {
+        boolean result = false;
+        Cursor cursor = getGroupCursor(context, groupID);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                int groupDirty = cursor.getInt(cursor.getColumnIndex(COL_DIRTY));
+                result = groupDirty > 0;
             }
             cursor.close();
         }
@@ -197,7 +238,7 @@ public class GroupsTable {
         Cursor cursor = null;
         Uri uri = CONTENT_URI;
         String[] projection = PROJECTION_ALL;
-        String selection = COL_GROUP_DIRTY + " = ?";
+        String selection = COL_DIRTY + " = ?";
         String selectionArgs[] = new String[]{String.valueOf(1)};
         String sortOrder = null;
         ContentResolver cr = context.getContentResolver();
@@ -234,7 +275,7 @@ public class GroupsTable {
             boolean isChecked;
             clsGroup group;
             while (cursor.moveToNext()) {
-                groupID = cursor.getLong(cursor.getColumnIndex(COL_GROUP_ID));
+                groupID = cursor.getLong(cursor.getColumnIndex(COL_ID));
                 groupName = cursor.getString(cursor.getColumnIndex(COL_GROUP_NAME));
                 isChecked = cursor.getInt(cursor.getColumnIndex(COL_CHECKED)) > 0;
                 group = new clsGroup(groupID, groupName, isChecked);
@@ -265,6 +306,15 @@ public class GroupsTable {
         return numberOfUpdatedRecords;
     }
 
+    public static void updateGroup(Context context, ParseObject group) {
+        long groupID = group.getLong("groupID");
+        String groupName = group.getString(COL_GROUP_NAME);
+        if (!groupName.isEmpty() && groupID > 0) {
+            ContentValues cv = new ContentValues();
+            cv.put(COL_GROUP_NAME, groupName);
+            updateGroupFieldValues(context, groupID, cv);
+        }
+    }
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Delete Methods
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,7 +325,7 @@ public class GroupsTable {
         if (groupID > 1) {
             ContentResolver cr = context.getContentResolver();
             Uri uri = CONTENT_URI;
-            String where = COL_GROUP_ID + " = ?";
+            String where = COL_ID + " = ?";
             String[] selectionArgs = {String.valueOf(groupID)};
             numberOfDeletedRecords = cr.delete(uri, where, selectionArgs);
             StoreMapsTable.resetGroupID(context, groupID);
@@ -309,5 +359,6 @@ public class GroupsTable {
 
         return numberOfDeletedRecords;
     }
+
 
 }

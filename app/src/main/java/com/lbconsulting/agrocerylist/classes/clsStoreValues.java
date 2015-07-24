@@ -73,31 +73,31 @@ public class clsStoreValues {
     public String getGpsLatitude() {
         String result = "";
         if (hasData()) {
-            result = mStoreCursor.getString(mStoreCursor.getColumnIndex(StoresTable.COL_GPS_LATITUDE));
+            result = mStoreCursor.getString(mStoreCursor.getColumnIndex(StoresTable.COL_LATITUDE));
         }
         return result;
     }
 
     public void putGpsLatitude(String gpsLatitude) {
-        if (cv.containsKey(StoresTable.COL_GPS_LATITUDE)) {
-            cv.remove(StoresTable.COL_GPS_LATITUDE);
+        if (cv.containsKey(StoresTable.COL_LATITUDE)) {
+            cv.remove(StoresTable.COL_LATITUDE);
         }
-        cv.put(StoresTable.COL_GPS_LATITUDE, gpsLatitude);
+        cv.put(StoresTable.COL_LATITUDE, gpsLatitude);
     }
 
     public String getGpsLongitude() {
         String result = "";
         if (hasData()) {
-            result = mStoreCursor.getString(mStoreCursor.getColumnIndex(StoresTable.COL_GPS_LONGITUDE));
+            result = mStoreCursor.getString(mStoreCursor.getColumnIndex(StoresTable.COL_LONGITUDE));
         }
         return result;
     }
 
     public void putGpsLongitude(String gpsLongitude) {
-        if (cv.containsKey(StoresTable.COL_GPS_LONGITUDE)) {
-            cv.remove(StoresTable.COL_GPS_LONGITUDE);
+        if (cv.containsKey(StoresTable.COL_LONGITUDE)) {
+            cv.remove(StoresTable.COL_LONGITUDE);
         }
-        cv.put(StoresTable.COL_GPS_LONGITUDE, gpsLongitude);
+        cv.put(StoresTable.COL_LONGITUDE, gpsLongitude);
     }
 
     public String getPhoneNumber() {
@@ -167,7 +167,7 @@ public class clsStoreValues {
     public long getStoreID() {
         long result = -1;
         if (hasData()) {
-            result = mStoreCursor.getLong(mStoreCursor.getColumnIndex(StoresTable.COL_STORE_ID));
+            result = mStoreCursor.getLong(mStoreCursor.getColumnIndex(StoresTable.COL_ID));
         }
         return result;
     }
