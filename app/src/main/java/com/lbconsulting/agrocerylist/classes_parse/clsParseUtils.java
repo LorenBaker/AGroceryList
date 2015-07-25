@@ -476,25 +476,25 @@ public class clsParseUtils {
 
 //endregion
 
-    public static void syncWithParse(Context context, Location location) {
+/*    public static void syncWithParse(Context context, Location location) {
         // Call this from a background thread
-/*  Over view of sync process:
+*//*  Over view of sync process:
         1) get data from Parse that is updated after last sync
         2) update the SQLite database if the database row is not dirty
         3) update Parse with dirty database rows
-*/
+*//*
         // sync the data tables
         // Note: groups may not be updated the user
 
-/*        syncGroups(context);
+*//*        syncGroups(context);
         syncItems(context);
         syncLocations(context);
         syncStoreChains(context);
-        syncStoreMaps(context);*/
+        syncStoreMaps(context);*//*
         syncStores(context, location);
-    }
+    }*/
 
-    private static void syncGroups(Context context) {
+/*    private static void syncGroups(Context context) {
         //get data from Parse that has been updated since the last sync
         try {
             Date dateLastUpdated = MySettings.getUpdatedAt(MySettings.UPDATED_AT_GROUPS);
@@ -528,23 +528,9 @@ public class clsParseUtils {
 
         // Note: Parse groups may not be updated the user
 
-    }
+    }*/
 
-    private static void syncItems(Context context) {
 
-    }
-
-    private static void syncLocations(Context context) {
-
-    }
-
-    private static void syncStoreChains(Context context) {
-
-    }
-
-    private static void syncStoreMaps(Context context) {
-
-    }
 
     private static void syncStores(Context context, Location location) {
         //get nearby Stores from Parse

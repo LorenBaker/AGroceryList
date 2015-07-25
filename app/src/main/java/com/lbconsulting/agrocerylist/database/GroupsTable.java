@@ -84,7 +84,7 @@ public class GroupsTable {
         long newGroupID = -1;
         groupName = groupName.trim();
         if (!groupName.isEmpty()) {
-            if (groupExists(context, groupName)) {
+            if (groupExists(context, groupName, false)) {
                 // the group exists in the table ... so return its id
                 newGroupID = mExistingGroupID;
             } else {
@@ -124,7 +124,7 @@ public class GroupsTable {
             } catch (Exception e) {
                 MyLog.e("GroupsTable", "createNewGroup: Exception: " + e.getMessage());
             }
-        }else{
+        } else {
             MyLog.e("GroupsTable", "createNewGroup: Either groupName or groupID is empty.");
         }
     }
@@ -159,12 +159,12 @@ public class GroupsTable {
         String[] projection = PROJECTION_ALL;
         String selection;
 
-        if(isParseObjectID){
-             selection = COL_GROUP_ID + " = ?";
-        }else{
+        if (isParseObjectID) {
+            selection = COL_GROUP_ID + " = ?";
+        } else {
             selection = COL_GROUP_NAME + " = ?";
         }
-        String selectionArgs[]  = new String[]{groupFieldValue};
+        String selectionArgs[] = new String[]{groupFieldValue};
         String sortOrder = null;
         ContentResolver cr = context.getContentResolver();
         try {
@@ -193,10 +193,10 @@ public class GroupsTable {
         return cursor;
     }
 
-    private static boolean groupExists(Context context, String groupName) {
+    private static boolean groupExists(Context context, String locationFieldValue, boolean isParseObjectID) {
         mExistingGroupID = -1;
         boolean result = false;
-        Cursor cursor = getGroupCursor(context, groupName,false);
+        Cursor cursor = getGroupCursor(context, locationFieldValue, isParseObjectID);
         if (cursor != null) {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
@@ -361,4 +361,26 @@ public class GroupsTable {
     }
 
 
+    public static void syncParseData(Context context, ParseObject group) {
+        String groupID = group.getObjectId();
+        String groupName = group.getString(COL_GROUP_NAME);
+        long sortKey = group.getLong(COL_SORT_KEY);
+
+        ContentValues cv = new ContentValues();
+        cv.put(COL_GROUP_NAME, groupName);
+        cv.put(COL_SORT_KEY, sortKey);
+
+        if (groupExists(context, groupID, true)) {
+            MyLog.i("GroupsTable", "syncParseData: updating Group: " + groupName);
+            // the record exists ... so update its fields
+            updateGroupFieldValues(context, mExistingGroupID, cv);
+        } else {
+            // the record does not exist ... so create it
+            MyLog.i("GroupsTable", "syncParseData: creating Group: " + groupName);
+            ContentResolver cr = context.getContentResolver();
+            Uri uri = CONTENT_URI;
+            cv.put(COL_GROUP_ID, groupID);
+            cr.insert(uri, cv);
+        }
+    }
 }

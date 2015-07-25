@@ -1,9 +1,9 @@
 // Use Parse.Cloud.define to define as many cloud functions as you want.
 
 Parse.Cloud.define("initializeNewUser", function (request, response) {
-    var InitialItemsObject = Parse.Object.extend("InitialParseItems");
+    var InitialItemsObject = Parse.Object.extend("Initial_Items");
     var itemsQuery = new Parse.Query(InitialItemsObject);
-    itemsQuery.ascending("itemID");
+    itemsQuery.ascending("itemName");
     itemsQuery.limit(500);
 
     itemsQuery.find().then(function (results) {
@@ -13,27 +13,25 @@ Parse.Cloud.define("initializeNewUser", function (request, response) {
         var unsavedItemObjects = [];
         for (var i = 0; i < results.length; i++) {
             var item = new Parse.Object("Items");
-            item.set('itemID', results[i].get('itemID'));
             item.set('author', user);
-            item.set('groupID', results[i].get('groupID'));
             item.set('itemName', results[i].get('itemName'));
             item.set('itemNote', '');
-            item.set("itemChecked", false);
-            item.set("itemIsFavorite", false);
+            item.set('groupID', results[i].get('groupID'));
+            item.set('productID', -1);
             item.set("itemSelected", false);
             item.set("itemStruckOut", false);
-            item.set('manualSortOrder', results[i].get('manualSortOrder'));
-            item.set('productID', -1);
+            item.set("itemFavorite", false);
+            item.set('sortKey', results[i].get('sortKey'));
             item.setACL(ACL);
             unsavedItemObjects[i] = item;
         }
 
-        console.log('Ready to save ' + unsavedItemObjects.length + ' Items.');
+        console.log('Ready to save ' + unsavedItemObjects.length + ' Items for user: ' + user.get("name"));
 
         Parse.Object.saveAll(unsavedItemObjects, {
             success: function (list) {
                 // All the objects were saved.
-                console.log('Successfully initialize ' + list.length + ' Items.');
+                console.log('Successfully initialized ' + list.length + ' Items for user: ' + user.get("name"));
                 response.success(list.length);
             },
             error: function (error) {

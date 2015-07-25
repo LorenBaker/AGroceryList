@@ -88,16 +88,18 @@ public class MySettings {
     public static final String SETTING_LAST_LATITUDE = "lastLatitude";
 
 
-    public static final String SETTING_UPDATED_AT_GROUPS = "UpdateAtGroups";
-    public static final String SETTING_UPDATED_AT_ITEMS = "UpdateAtItems";
-    public static final String SETTING_UPDATED_AT_LOCATIONS = "UpdateAtLocations";
-    public static final String SETTING_UPDATED_AT_STORE_CHAINS = "UpdateAtStoreChains";
-    public static final String SETTING_UPDATED_AT_STORES = "UpdateAtStores";
-    public static final int UPDATED_AT_GROUPS = 201;
-    public static final int UPDATED_AT_ITEMS = 202;
-    public static final int UPDATED_AT_LOCATIONS = 203;
-    public static final int UPDATED_AT_STORE_CHAINS = 204;
-    public static final int UPDATED_AT_STORES = 205;
+    public static final String SETTING_LAST_SYNC_DATE_GROUPS = "lastSyncDateGroups";
+    public static final String SETTING_LAST_SYNC_DATE_ITEMS = "lastSyncDateItems";
+    public static final String SETTING_LAST_SYNC_DATE_LOCATIONS = "lastSyncDateLocations";
+    public static final String SETTING_LAST_SYNC_DATE_STORE_CHAINS = "lastSyncDateStoreChains";
+    public static final String SETTING_LAST_SYNC_DATE_STORE_MAPS = "lastSyncDateStoreMaps";
+    public static final String SETTING_LAST_SYNC_DATE_STORES = "lastSyncDateStores";
+    public static final int LAST_SYNC_DATE_GROUPS = 201;
+    public static final int LAST_SYNC_DATE_ITEMS = 202;
+    public static final int LAST_SYNC_DATE_LOCATIONS = 203;
+    public static final int LAST_SYNC_DATE_STORE_CHAINS = 204;
+    public static final int LAST_SYNC_DATE_STORE_MAPS = 205;
+    public static final int LAST_SYNC_DATE_STORES = 206;
 
 
     public static final int SORT_ALPHABETICAL = 0;
@@ -312,57 +314,65 @@ public class MySettings {
         return cal.getTime();
     }
 
-    public static Date getUpdatedAt(int updatedAt) {
+    public static Date getLastSyncDate(int updatedAt) {
         SharedPreferences savedState =
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
-        long updatedAtMills = 0;
+        long lastSyncDateMills = 0;
         switch (updatedAt) {
-            case UPDATED_AT_GROUPS:
-                updatedAtMills = savedState.getLong(SETTING_UPDATED_AT_GROUPS, 0);
+            case LAST_SYNC_DATE_GROUPS:
+                lastSyncDateMills = savedState.getLong(SETTING_LAST_SYNC_DATE_GROUPS, 0);
                 break;
 
-            case UPDATED_AT_ITEMS:
-                updatedAtMills = savedState.getLong(SETTING_UPDATED_AT_ITEMS, 0);
+            case LAST_SYNC_DATE_ITEMS:
+                lastSyncDateMills = savedState.getLong(SETTING_LAST_SYNC_DATE_ITEMS, 0);
                 break;
 
-            case UPDATED_AT_LOCATIONS:
-                updatedAtMills = savedState.getLong(SETTING_UPDATED_AT_LOCATIONS, 0);
+            case LAST_SYNC_DATE_LOCATIONS:
+                lastSyncDateMills = savedState.getLong(SETTING_LAST_SYNC_DATE_LOCATIONS, 0);
                 break;
 
-            case UPDATED_AT_STORE_CHAINS:
-                updatedAtMills = savedState.getLong(SETTING_UPDATED_AT_STORE_CHAINS, 0);
+            case LAST_SYNC_DATE_STORE_CHAINS:
+                lastSyncDateMills = savedState.getLong(SETTING_LAST_SYNC_DATE_STORE_CHAINS, 0);
                 break;
 
-            case UPDATED_AT_STORES:
-                updatedAtMills = savedState.getLong(SETTING_UPDATED_AT_STORES, 0);
+            case LAST_SYNC_DATE_STORE_MAPS:
+                lastSyncDateMills = savedState.getLong(SETTING_LAST_SYNC_DATE_STORE_MAPS, 0);
+                break;
+
+            case LAST_SYNC_DATE_STORES:
+                lastSyncDateMills = savedState.getLong(SETTING_LAST_SYNC_DATE_STORES, 0);
                 break;
         }
-        return mills2Date(updatedAtMills);
+        return mills2Date(lastSyncDateMills);
     }
 
-    public static void setUpdatedAt(int updatedAt, Date date) {
+    public static void setLastSyncDate(int table, Date date) {
         SharedPreferences savedState =
                 mContext.getSharedPreferences(A_GROCERY_LIST_SAVED_STATES, 0);
         SharedPreferences.Editor editor = savedState.edit();
-        switch (updatedAt) {
-            case UPDATED_AT_GROUPS:
-                editor.putLong(SETTING_UPDATED_AT_GROUPS, date.getTime());
+        switch (table) {
+            case LAST_SYNC_DATE_GROUPS:
+                editor.putLong(SETTING_LAST_SYNC_DATE_GROUPS, date.getTime());
                 break;
 
-            case UPDATED_AT_ITEMS:
-                editor.putLong(SETTING_UPDATED_AT_ITEMS, date.getTime());
+            case LAST_SYNC_DATE_ITEMS:
+                editor.putLong(SETTING_LAST_SYNC_DATE_ITEMS, date.getTime());
                 break;
 
-            case UPDATED_AT_LOCATIONS:
-                editor.putLong(SETTING_UPDATED_AT_LOCATIONS, date.getTime());
+            case LAST_SYNC_DATE_LOCATIONS:
+                editor.putLong(SETTING_LAST_SYNC_DATE_LOCATIONS, date.getTime());
                 break;
 
-            case UPDATED_AT_STORE_CHAINS:
-                editor.putLong(SETTING_UPDATED_AT_STORE_CHAINS, date.getTime());
+            case LAST_SYNC_DATE_STORE_CHAINS:
+                editor.putLong(SETTING_LAST_SYNC_DATE_STORE_CHAINS, date.getTime());
                 break;
 
-            case UPDATED_AT_STORES:
-                editor.putLong(SETTING_UPDATED_AT_STORES, date.getTime());
+            case LAST_SYNC_DATE_STORE_MAPS:
+                editor.putLong(SETTING_LAST_SYNC_DATE_STORE_MAPS, date.getTime());
+                break;
+
+            case LAST_SYNC_DATE_STORES:
+                editor.putLong(SETTING_LAST_SYNC_DATE_STORES, date.getTime());
                 break;
         }
         editor.apply();

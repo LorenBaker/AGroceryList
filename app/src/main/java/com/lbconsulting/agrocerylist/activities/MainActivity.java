@@ -37,8 +37,11 @@ import com.lbconsulting.agrocerylist.adapters.StoreListPagerAdapter;
 import com.lbconsulting.agrocerylist.classes.MyEvents;
 import com.lbconsulting.agrocerylist.classes.MyLog;
 import com.lbconsulting.agrocerylist.classes.MySettings;
+import com.lbconsulting.agrocerylist.classes_parse.Groups;
 import com.lbconsulting.agrocerylist.classes_parse.clsParseUtils;
+import com.lbconsulting.agrocerylist.database.GroupsTable;
 import com.lbconsulting.agrocerylist.database.ItemsTable;
+import com.lbconsulting.agrocerylist.database.aGroceryListContentProvider;
 import com.lbconsulting.agrocerylist.database.aGroceryListDatabaseHelper;
 import com.lbconsulting.agrocerylist.dialogs.dialog_SelectLocation;
 import com.lbconsulting.agrocerylist.dialogs.dialog_edit_item;
@@ -46,10 +49,16 @@ import com.lbconsulting.agrocerylist.dialogs.sortListDialog;
 import com.lbconsulting.agrocerylist.fragments.fragItemsByGroup;
 import com.lbconsulting.agrocerylist.fragments.fragMasterList;
 import com.lbconsulting.agrocerylist.fragments.fragProductsList;
+import com.parse.ParseCloud;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import de.greenrobot.event.EventBus;
 
@@ -59,7 +68,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         LocationListener {
 
     // TODO: Remove mLoadInitialDataToParse
-    private boolean mLoadInitialDataToParse = true;
+    private boolean mLoadInitialDataToParse = false;
 
     // TODO: optimize location request intervals
     private final static int LOCATION_REQUEST_INTERVAL = 60000 * 10; // 10 minutes
@@ -214,10 +223,81 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         super.onStop();
     }
 
-    private void downLoadInitialData() {
+    private void initializeNewUser() {
+        // Run on a non-UI thread
+        // initializeNewUser on Parse
+        try {
+            final HashMap<String, Object> params = new HashMap<String, Object>();
+            ParseCloud.callFunction("initializeNewUser", params);
+        } catch (ParseException e) {
+            MyLog.e("MainActivity", "initializeNewUser: ParseException: " + e.getMessage());
+        }
+    }
+
+    private void syncWithParse() {
+        // Run on a non-UI thread
+        // For each data table:
+        // 1. Get items from Parse that have changed since the last sync called
+        // 2. Revise or add items to SQLite database ... except if the item is dirty
+        // 3. Get all dirty items from the SQLite database, upload changes to Parse, and clear dirty tags
+        aGroceryListContentProvider.setSuppressChangeNotification(true);
+        syncWithParse_Groups();
+        syncWithParse_Items();
+        syncWithParse_Locations();
+        syncWithParse_StoreChains();
+        syncWithParse_StoreMaps();
+        syncWithParse_Stores();
+        aGroceryListContentProvider.setSuppressChangeNotification(false);
+        // TODO: restart loaders to show updates
+        EventBus.getDefault().post(new MyEvents.updateUI());
+    }
+
+    private void syncWithParse_Groups() {
+        // get the last date synced
+        MyLog.i("MainActivity", "syncWithParse_Groups");
+        try {
+            Date lastSyncDate = MySettings.getLastSyncDate(MySettings.LAST_SYNC_DATE_GROUPS);
+            Date newSyncDate = lastSyncDate;
+            ParseQuery<Groups> query = Groups.getQuery();
+            query.whereGreaterThan("updatedAt", lastSyncDate);
+            List<Groups> foundGroups = query.find();
+            if (foundGroups != null) {
+                MyLog.i("MainActivity", "syncWithParse_Groups: Syncing " + foundGroups.size() + " Groups");
+                if (foundGroups.size() > 0) {
+                    for (ParseObject group : foundGroups) {
+                        GroupsTable.syncParseData(this, group);
+                        if (group.getUpdatedAt().compareTo(newSyncDate) > 0) {
+                            newSyncDate = group.getUpdatedAt();
+                        }
+                    }
+                    MySettings.setLastSyncDate(MySettings.LAST_SYNC_DATE_GROUPS, newSyncDate);
+                }
+            }
+        } catch (ParseException e) {
+            MyLog.e("MainActivity", "syncWithParse_Groups: ParseException: " + e.getMessage());
+        }
 
     }
 
+    private void syncWithParse_Items() {
+
+    }
+
+    private void syncWithParse_Locations() {
+
+    }
+
+    private void syncWithParse_StoreChains() {
+
+    }
+
+    private void syncWithParse_StoreMaps() {
+
+    }
+
+    private void syncWithParse_Stores() {
+
+    }
 
     private void runParseTest() {
         // TODO: remove runParseTest
@@ -473,8 +553,8 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
         if (ParseUser.getCurrentUser().isNew()) {
             new LoadInitialDataAsync(this).execute();
 
-        } else if (!aGroceryListDatabaseHelper.databaseExists()) {
-            new LoadInitialDataAsync(this).execute();
+/*        } else if (!aGroceryListDatabaseHelper.databaseExists()) {
+            new LoadInitialDataAsync(this).execute();*/
 
         } else {
             new SyncWithParseAsync(this, mCurrentLocation).execute();
@@ -823,7 +903,7 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
 
         @Override
         protected Void doInBackground(Void... params) {
-            // TODO: remove cls
+            // TODO: remove mLoadInitialDataToParse
             if (mLoadInitialDataToParse) {
                 // load initial data TO Parse
                 clsParseUtils.loadInitialDataToParse(mContext);
@@ -832,7 +912,8 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
                 // load initial data FROM Parse
                 //aGroceryListDatabaseHelper database = new aGroceryListDatabaseHelper(mContext);
                 aGroceryListDatabaseHelper.resetDatabase();
-                downLoadInitialData();
+                initializeNewUser();
+                syncWithParse();
                 //clsParseUtils.uploadNewItemsToParse(mContext, clsParseUtils.SAVE_THIS_THREAD);
             }
 
@@ -865,7 +946,8 @@ public class MainActivity extends Activity implements DrawerLayout.DrawerListene
 
         @Override
         protected Void doInBackground(Void... params) {
-            clsParseUtils.syncWithParse(mContext, mLocation);
+            syncWithParse();
+            // clsParseUtils.syncWithParse(mContext, mLocation);
             return null;
         }
 
